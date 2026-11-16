@@ -65,6 +65,28 @@ export const DIVISIONS = {
   perPallInverted:    { name: 'per pall inverted',    parts: 3, code: 'FIELD DIV.-PER PALL*7', fieldWord: 'divided pallwise inverted', ordered: true, plainLine: true, tincturesIndexed: false },
 };
 
+// How SENA sorts divisions for its contrast rules (SENA A3B3):
+//   two:   "divided in two parts"            (any two tinctures)
+//   four:  quarterly and per saltire          (any two tinctures)
+//   three: per pall and per pall inverted     (one part must contrast with both others)
+//   many:  everything else                    (the two tinctures must have good contrast)
+const FAMILIES = {
+  two: ['perPale', 'perFess', 'perBend', 'perBendSinister', 'perChevron', 'perChevronInverted'],
+  four: ['quarterly', 'perSaltire'],
+  three: ['perPall', 'perPallInverted'],
+  many: ['gyronny', 'checky', 'lozengy', 'paly', 'barry', 'bendy', 'bendySinister', 'chevronelly'],
+};
+export function familyOf(division) {
+  return Object.keys(FAMILIES).find(f => FAMILIES[f].includes(division));
+}
+
+// The plain tincture a tincture counts as underneath: a fur's background.
+// (SENA: "No two parts may share a background tincture".)
+export function baseTincture(tincture) {
+  const t = TINCTURES[tincture];
+  return t.fur ? t.fur.field : tincture;
+}
+
 // ---- Ordinaries ------------------------------------------------------------
 // Simple geometric charges that draw.js draws itself (no picture needed).
 // code:       the O&A category code (checked against real records).

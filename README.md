@@ -14,6 +14,8 @@ then open:
 - http://localhost:8767/apps/suggester/charge_picker.html : the charge picker
 - http://localhost:8767/apps/suggester/heraldry_mvp.html : the first suggester prototype
 - http://localhost:8767/tests/ : checks the search patterns against the real armorial
+- http://localhost:8767/tests/rules.html : checks the rules against SENA's own examples, and the random generator
+- http://localhost:8767/tests/charges.html : draws every charge picture in every tincture
 
 ## What is where
 
@@ -38,8 +40,8 @@ Two things are deliberately kept off GitHub:
 
 ## Adding a field division
 
-1. Add an entry to `DIVISIONS` in `core/catalog.js` (name, number of parts, O&A code).
-2. Add its shape to `SHAPES` in `core/draw.js`.
+1. Add an entry to `DIVISIONS` in `core/catalog.js` (name, number of parts, O&A code) and to its family there.
+2. Add its shape to `DIVISION_SHAPES` in `core/geometry.js`.
 3. Open http://localhost:8767/tests/ and check it passes.
 
 It then appears in the search page automatically.

@@ -1,26 +1,69 @@
 # Notes for Claude (SCA heraldry tools)
 
-One project, several tools that share one core: a simple front end for the
-O&A Complex Search Form (`apps/search`), and a heraldry suggester / generator
-(`apps/suggester`). Read README.md for the layout.
+One project that shares one core. `apps/search` is BOTH the search front end
+for the O&A Complex Search Form AND the shield builder: the maintainer decided
+(November 2026) they are the same page, since a builder exports to Complex
+Search for conflict checking anyway. `apps/suggester` holds older prototypes.
+Read README.md for the layout and ROADMAP.md for what is built and what is next.
 
 ## Architecture (decided with the maintainer, November 2026)
 - **One shared description of a shield** (`core/shield.js`): a field is plain,
-  or a division whose parts are themselves fields (so nesting is free).
-  Charge groups are still to be added to it.
-- **Everything else translates that description** and must not know about any
-  particular app: `core/draw.js` (SVG picture), `core/shield.js` (blazon),
-  `core/oanda.js` (Complex Search patterns + link). Planned: contrast rules,
-  blazon text -> description, and the generator (which just produces many
-  descriptions and reuses the rest).
-- **Vocabulary is data** in `core/catalog.js` (tinctures, divisions, their
-  O&A codes and conventions). Adding a division = one catalog entry plus one
-  shape in `draw.js`. Apps never hard-code tinctures or divisions.
+  or a division whose parts are themselves fields (so nesting is free), plus
+  charge groups. Anything may be left "not chosen yet" (null): drawing shows
+  it grey, the blazon says so, the search leaves it out, the rules skip it.
+- **Everything else reads that description** and must not know about any
+  particular app:
+  - `core/catalog.js`: the vocabulary (tinctures, divisions, ordinaries, their
+    O&A codes, SENA's division families). Apps never hard-code these.
+  - `core/geometry.js`: shapes as numbers (division regions, ordinaries, the
+    shield outline, sample points). Shared by drawing and the rules.
+  - `core/layout.js`: where charges go and how big (centre first, then 95%).
+  - `core/draw.js`: the SVG picture.
+  - `core/oanda.js`: Complex Search patterns and link.
+  - `core/rules.js`: SENA's style rules. See below.
+  - `core/generate.js`: random shields within constraints. It guesses and asks
+    `rules.js`, so it can never disagree with the rules; add rules there, not here.
+  - `core/art.js`, `core/csv.js`: the charge library and its pictures.
+- Adding a division = a catalog entry + a shape in `geometry.js`. Adding an
+  ordinary = the same. Both then appear in the page, the rules and the generator.
 - Plain HTML + JavaScript modules, no build step, no dependencies. Node is not
   installed on the maintainer's machine; tests run in the browser.
-- Only ordinaries will get real drawings; other charges are shown as blobs in
-  the right place (no image library is assumed), though `SVG/` holds the
-  Traceable Art collection used by the charge picker.
+
+## The rules (`core/rules.js`) and SENA
+- Source: SENA section A3, https://heraldry.sca.org/sena.html (read November
+  2026). Every check quotes the sentence it implements. `tests/rules.html`
+  holds SENA's own examples and must pass after any change to the rules.
+- Problems have a level: `sena` (SENA says no) or `house` (SENA may allow it
+  but the maintainer does not want the tools to offer it: too complex, or
+  only registerable if drawn just so). The maintainer's rule of thumb: if
+  unsure whether something is allowed, do not generate it, but let people who
+  tick "I'm a herald and I know what I'm doing" choose it.
+- House rules so far (all about a background where a part is itself divided):
+  no pattern of many pieces at the top level; no tincture twice; the divided
+  part must be a metal and a colour; one level of nesting; not the same
+  division inside itself. SENA is more generous on the first three: tell the
+  maintainer if a request needs them relaxed, don't relax them silently.
+- Contrast for a charge is judged against the part of the field it actually
+  lies on (worked out from geometry + layout), which is how SENA treats a
+  chief on a per pall field or two charges side by side on per pale.
+- Rule violations never block the search link: people search for old armory
+  that breaks today's rules. They grey out options and show a warning.
+- Not covered yet: complex lines (SENA Appendix H), arrangements of several
+  charge groups (Appendix J), voiding/fimbriation, "sword and dagger".
+
+## How the page behaves (decided with the maintainer)
+- Three areas: questions (top left, scrolls on its own, always shows every
+  question), the shield being built (top right), suggestions (bottom).
+- Nothing waits for an earlier answer. Unanswered things are filled at random
+  in option pictures and suggestions, within the rules. Random pictures are
+  seeded from what they depend on, so they only change when that changes.
+- Question 1 "colours used in the shield" is a palette (a subset may be used;
+  with only one ticked it must appear but others may too). Question 2
+  "colours used in the background" means exactly those.
+- An option the rules forbid is shown greyed with the reason, never hidden
+  ("misses a chance for education"). Option groups are limited to about 18.
+- Each question card sets one thing. "select this shield" on a suggestion
+  copies everything into the questions; "pin suggestion" keeps it.
 
 ## How the O&A indexes things (verified, do not guess)
 - `data/mycat.txt` is the official category list; `data/oanda.db` is the whole

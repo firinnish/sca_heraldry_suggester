@@ -21,26 +21,32 @@
 //  * A part that is a fur is "fur" on the FIELD line; a part that is itself
 //    divided is "multicolor" on both lines, and gets its own division line.
 //  * Three-part divisions (per pall) do not record their tinctures at all.
+//  * Armory with nothing on the field is also marked FO (field only).
+//
+// NOT CHOSEN YET: anything the shield description leaves open (see shield.js)
+// is simply left out of the pattern, so the search matches any value for it.
 
 import { TINCTURES, DIVISIONS, ORDINARIES } from './catalog.js';
+import { COUNTERCHANGED, tincturesIn, isComplete } from './shield.js';
 
 const FORM_URL = 'https://oanda.sca.org/oanda_complex.cgi';
 export const MAX_PATTERNS = 10;
 
-const isFur = field => field.type === 'plain' && TINCTURES[field.tincture].kind === 'fur';
+const isFurTincture = t => TINCTURES[t].kind === 'fur';
+const known = field => field.type !== 'plain' || field.tincture !== null;
 
 // How a part is named on a division line (furs keep their own name).
 const divisionLineName = field => (field.type === 'plain' ? field.tincture : 'multicolor');
 
 // How a part is named on the general FIELD line (all furs are just "fur").
 const fieldLineName = field =>
-  field.type !== 'plain' ? 'multicolor' : isFur(field) ? 'fur' : field.tincture;
+  field.type !== 'plain' ? 'multicolor' : isFurTincture(field.tincture) ? 'fur' : field.tincture;
 
 // "multicolor dark" (two colours), "multicolor light" (two metals),
 // "multicolor neutral" (one of each). With furs or nested divisions the
 // records are less consistent, so use plain "multicolor", which matches all.
 function multicolorClass(parts) {
-  if (parts.some(p => p.type !== 'plain' || isFur(p))) return 'multicolor';
+  if (parts.some(p => p.type !== 'plain' || isFurTincture(p.tincture))) return 'multicolor';
   const tones = new Set(parts.map(p => TINCTURES[p.tincture].tone));
   if (tones.size === 2) return 'multicolor neutral';
   return tones.has('dark') ? 'multicolor dark' : 'multicolor light';
@@ -50,14 +56,20 @@ function multicolorClass(parts) {
 function divisionLine(field) {
   const def = DIVISIONS[field.division];
   const bits = [def.code];
-  if (def.tincturesIndexed !== false) {
+  const plainLine = def.plainLine && field.line === 'plain';
+  if (def.tincturesIndexed === false) {
+    if (plainLine) bits.push('pl');
+  } else if (field.parts.every(known)) {
     let names = field.parts.map(divisionLineName);
     if (!def.ordered) names = [...names].sort();
     bits.push(names[0]);
-    if (def.plainLine && field.line === 'plain') bits.push('pl');
+    if (plainLine) bits.push('pl');
     bits.push('~and ' + names[1]);
-  } else if (def.plainLine && field.line === 'plain') {
-    bits.push('pl');
+  } else {
+    // Some tinctures not chosen. Where the O&A records the first-named
+    // tincture as the main one, a known first tincture can still be used.
+    if (def.ordered && known(field.parts[0])) bits.push(divisionLineName(field.parts[0]));
+    if (plainLine) bits.push('pl');
   }
   return bits.join(':');
 }
@@ -69,17 +81,18 @@ function nestedDivisionLines(field) {
     .flatMap(p => [divisionLine(p), ...nestedDivisionLines(p)]);
 }
 
-// All the search patterns describing a field.
+// All the search patterns describing a field (none if nothing is chosen).
 export function fieldPatterns(field) {
-  if (field.type === 'plain') return [`FIELD:${field.tincture}:solid`];
+  if (!field) return [];
+  if (field.type === 'plain') return field.tincture === null ? ['FIELD:solid'] : [`FIELD:${field.tincture}:solid`];
 
   const def = DIVISIONS[field.division];
-  const fieldBits = ['FIELD', def.fieldWord, multicolorClass(field.parts)];
-  if (def.tincturesIndexed !== false) {
+  const fieldBits = ['FIELD', def.fieldWord];
+  if (def.tincturesIndexed === false) {
+    fieldBits.push('multicolor');
+  } else if (field.parts.every(known)) {
     const names = field.parts.map(fieldLineName).sort();
-    fieldBits.push('~ ' + names[0], '~and ' + names[1]);
-  } else {
-    fieldBits[2] = 'multicolor';
+    fieldBits.push(multicolorClass(field.parts), '~ ' + names[0], '~and ' + names[1]);
   }
   return [divisionLine(field), fieldBits.join(':'), ...nestedDivisionLines(field)];
 }
@@ -93,27 +106,45 @@ export function fieldPatterns(field) {
 //    carry no number.
 //  * A chief, bordure or base is never primary: it is just <code>:<tincture>:pl,
 //    and armory with nothing else on it is also marked PO (peripheral only).
+//  * A counterchanged charge is indexed as "multicolor neutral" with both of
+//    the field's tinctures, alphabetically: "Per pale azure and Or, a lion
+//    counterchanged" is CAT:1:multicolor neutral:rampant to dexter:spa:~ azure:~and or
+//    (and the same for two or three charges).
 
-function groupPattern(group) {
+function tinctureFeatures(group, field) {
+  if (group.tincture === null) return [];
+  if (group.tincture !== COUNTERCHANGED) return [group.tincture];
+  const pair = isComplete(field) ? tincturesIn(field) : [];
+  if (pair.length !== 2) return ['multicolor'];
+  const names = pair.map(t => (isFurTincture(t) ? 'fur' : t)).sort();
+  return ['multicolor neutral', '~ ' + names[0], '~and ' + names[1]];
+}
+
+function groupPattern(group, field) {
+  const tincture = tinctureFeatures(group, field);
   if (group.kind === 'ordinary') {
     const def = ORDINARIES[group.ordinary];
     const bits = [def.code];
     if (def.numbered) bits.push(String(group.number));
-    bits.push(group.tincture, 'pl');
+    bits.push(...tincture, 'pl');
     if (!def.peripheral) bits.push('primary');
     return bits.join(':');
   }
-  const bits = [group.category, String(group.number), group.tincture, 'primary'];
+  const bits = [group.category];
+  if (group.number !== null) bits.push(String(group.number));
+  bits.push(...tincture, 'primary');
   if (group.posture) bits.push(group.posture);
   return bits.join(':');
 }
 
 const isPeripheral = g => g.kind === 'ordinary' && ORDINARIES[g.ordinary].peripheral;
 
-// All the search patterns for a whole shield: the field, then each charge group.
-export function shieldPatterns(field, groups = []) {
-  const patterns = [...fieldPatterns(field), ...groups.map(groupPattern)];
+// All the search patterns for a whole shield: the field, then each charge
+// group. `noCharge` true means the user has said nothing is on the field.
+export function shieldPatterns(field, groups = [], { noCharge = false } = {}) {
+  const patterns = [...fieldPatterns(field), ...groups.map(g => groupPattern(g, field))];
   if (groups.length && groups.every(isPeripheral)) patterns.push('PO');
+  if (!groups.length && noCharge) patterns.push('FO');
   return patterns;
 }
 

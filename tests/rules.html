@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rules check: SENA's own examples</title>
+<style>
+  body { font-family: Georgia, serif; margin: 20px 16px; color: #2b2620; background: #faf6ee; }
+  table { border-collapse: collapse; margin: 12px 0; }
+  td, th { border: 1px solid #d8cfba; padding: 4px 10px; text-align: left; font-size: 0.88rem; vertical-align: middle; }
+  td svg { width: 44px; height: auto; display: block; }
+  .bad { background: #fde3e3; } .ok { background: #e8f5e4; }
+</style>
+</head>
+<body>
+<h1>Rules check</h1>
+<p>Part 1 feeds <code>core/rules.js</code> the examples SENA itself gives (section A3) and
+checks it reaches the same verdict. "House" means SENA allows it but the tools hold it back
+unless "I'm a herald" is ticked. Part 2 makes hundreds of random shields with
+<code>core/generate.js</code> and checks every one obeys the rules and the constraints it was given.</p>
+<p id="status">Running…</p>
+<div id="out"></div>
+
+<script type="module">
+import { plain as P, divided as D, ordinaryGroup, chargeGroup, blazon, COUNTERCHANGED, shieldTinctures } from '../core/shield.js';
+import { shieldSVG } from '../core/draw.js';
+import { checkShield } from '../core/rules.js';
+import { randomShield, whyNot } from '../core/generate.js';
+import { placeGroup } from '../core/layout.js';
+
+const blob = (tincture, number = 1) => chargeGroup({ charge: 'mullet', tincture, number });
+const two = (d, a, b) => D(d, [P(a), P(b)]);
+
+// [what SENA says: 'yes' | 'no' | 'house' (SENA yes, tools hold back), field, groups, extra, where in SENA]
+const CASES = [
+  // A3B3a: two parts
+  ['yes', two('perPale', 'azure', 'gules'), [], {}, 'A3B3a'],
+  ['yes', two('perPale', 'argent', 'or'), [], {}, 'A3B3a'],
+  ['yes', two('perPale', 'or', 'ermine'), [], {}, 'A3B3a'],
+  ['no', two('perPale', 'argent', 'ermine'), [], {}, 'A3B3a'],
+  ['no', D('perPale', [P('sable'), two('perFess', 'gules', 'azure')]), [], {}, 'A3B3a'],
+  ['house', D('perFess', [P('azure'), two('lozengy', 'argent', 'azure')]), [], {}, 'A3B3a'],
+  // A3B3b: three parts
+  ['yes', D('perPall', [P('azure'), P('vert'), P('argent')]), [], {}, 'A3B3b'],
+  ['yes', D('perPall', [P('azure'), P('vert'), two('checky', 'sable', 'argent')]), [], {}, 'A3B3b'],
+  ['no', D('perPall', [P('azure'), P('vert'), P('sable')]), [], {}, 'A3B3b'],
+  ['no', D('perPall', [P('argent'), P('sable'), P('counterermine')]), [], {}, 'A3B3b'],
+  // A3B3c: quarterly and per saltire
+  ['yes', two('perSaltire', 'azure', 'gules'), [], {}, 'A3B3c'],
+  ['yes', two('perSaltire', 'argent', 'or'), [], {}, 'A3B3c'],
+  ['no', two('perSaltire', 'argent', 'ermine'), [], {}, 'A3B3c'],
+  ['yes', D('perSaltire', [two('checky', 'azure', 'argent'), P('gules')]), [], {}, 'A3B3c'],
+  ['no', D('quarterly', [two('perPale', 'azure', 'argent'), P('gules')]), [], {}, 'A3B3c'],
+  // A3B3d: everything else
+  ['yes', two('paly', 'azure', 'or'), [], {}, 'A3B3d'],
+  ['no', two('paly', 'azure', 'purpure'), [], {}, 'A3B3d'],
+  ['yes', two('checky', 'argent', 'gules'), [], {}, 'A3B3d'],
+  ['no', two('checky', 'azure', 'gules'), [], {}, 'A3B3d'],
+  ['house', D('barry', [P('azure'), two('checky', 'gules', 'argent')]), [], {}, 'A3B3d'],
+  ['yes', D('perFess', [P('argent'), two('perPale', 'azure', 'or')]), [], {}, 'A3B3d'],
+  ['no', D('perFess', [P('argent'), two('perPale', 'azure', 'ermine')]), [], {}, 'A3B3d'],
+  // A3B4a: charges against the part of the field they lie on
+  ['yes', P('azure'), [blob('or')], {}, 'A3B2'],
+  ['no', P('azure'), [blob('gules')], {}, 'A3B2'],
+  ['no', P('argent'), [blob('or')], {}, 'A3B2'],
+  ['yes', D('perPall', [P('argent'), P('gules'), P('azure')]), [ordinaryGroup('chief', 'sable')], {}, 'A3B4a'],
+  ['no', D('perPall', [P('argent'), P('gules'), P('azure')]), [ordinaryGroup('chief', 'or')], {}, 'A3B4a'],
+  ['no', D('perPallInverted', [P('argent'), P('gules'), P('azure')]), [blob('sable')], {}, 'A3B4a'],
+  ['yes', two('perPale', 'azure', 'argent'), [blob('or')], {}, 'A3B1 (neutral field)'],
+  ['no', two('perPale', 'azure', 'argent'), [blob('or', 2)], {}, 'A3B4a (each on its own half)'],
+  ['no', two('perPale', 'azure', 'argent'), [blob('azure')], {}, 'A3B4b'],
+  ['house', two('lozengy', 'vert', 'or'), [ordinaryGroup('chief', 'or')], {}, 'A3B4b'],
+  // A3D1c: a chief or base with a per fess field
+  ['no', two('perFess', 'argent', 'sable'), [ordinaryGroup('chief', 'gules')], {}, 'A3D1c'],
+  ['yes', two('perPale', 'argent', 'sable'), [ordinaryGroup('chief', 'gules')], {}, 'A3D1c'],
+  // A3E3: too simple
+  ['no', P('gules'), [], { noCharge: true }, 'A3E3'],
+  ['yes', two('perChevron', 'gules', 'ermine'), [], { noCharge: true }, 'A3E3'],
+  // A3F4: counterchanging
+  ['yes', two('perPale', 'azure', 'argent'), [blob(COUNTERCHANGED)], {}, 'A3F4'],
+  ['yes', two('quarterly', 'sable', 'or'), [blob(COUNTERCHANGED, 3)], {}, 'A3F4'],
+  ['no', two('gyronny', 'sable', 'or'), [blob(COUNTERCHANGED)], {}, 'A3F4'],
+  ['no', two('perPale', 'azure', 'gules'), [blob(COUNTERCHANGED)], {}, 'A3B4a'],
+  ['no', P('azure'), [blob(COUNTERCHANGED)], {}, 'A3F4'],
+  // The maintainer's own examples
+  ['house', D('perSaltire', [P('gules'), two('lozengy', 'argent', 'gules')]), [], {}, 'house: no tincture twice'],
+  ['no', D('perPale', [P('or'), two('barry', 'gules', 'azure')]), [], {}, 'A3B3d inside'],
+  ['yes', D('perPale', [P('gules'), two('barry', 'or', 'azure')]), [], {}, 'maintainer'],
+  ['yes', D('perBend', [P('azure'), two('checky', 'argent', 'gules')]), [], {}, 'maintainer'],
+  ['house', D('checky', [P('azure'), two('perBend', 'argent', 'gules')]), [], {}, 'house: too complex'],
+];
+
+let failures = 0;
+let html = '<h2>1. SENA\'s examples</h2><table><tr><th></th><th>Shield</th><th>SENA says</th><th>The code says</th><th>Why</th><th>SENA</th></tr>';
+for (const [expected, field, groups, extra, where] of CASES) {
+  const problems = checkShield({ field, groups, ...extra });
+  const got = problems.some(p => p.level === 'sena') ? 'no' : problems.length ? 'house' : 'yes';
+  const ok = got === expected;
+  if (!ok) failures++;
+  html += `<tr class="${ok ? 'ok' : 'bad'}"><td>${shieldSVG(field, { charges: groups })}</td><td>${blazon(field, groups)}</td>` +
+    `<td>${expected}</td><td>${got}</td><td>${problems.map(p => p.id + (p.hint ? ' (' + p.hint + ')' : '')).join(', ')}</td><td>${where}</td></tr>`;
+}
+html += '</table>';
+
+// ---- Part 2: the generator ---------------------------------------------------
+const library = { charges: [{ id: 'mullet', name: 'Mullet', plural: '', oanda_category: 'STAR' }], pictures: [] };
+const RUNS = [
+  ['nothing chosen', {}],
+  ['palette azure, purpure, Or', { palette: ['azure', 'purpure', 'or'] }],
+  ['palette azure, sable (no metal)', { palette: ['azure', 'sable'] }],
+  ['must include vert', { mustInclude: 'vert' }],
+  ['background exactly gules and argent', { fieldTinctures: ['gules', 'argent'] }],
+  ['background exactly gules, argent, sable', { fieldTinctures: ['gules', 'argent', 'sable'] }],
+  ['background exactly four tinctures', { fieldTinctures: ['gules', 'argent', 'sable', 'or'] }],
+  ['checky', { division: 'checky', charge: 'none', allowBare: true }],
+  ['a mullet, three of them', { charge: { kind: 'charge', id: 'mullet', file: null }, number: 3 }],
+  ['a chevron counterchanged', { charge: { kind: 'ordinary', id: 'chevron' }, chargeTincture: COUNTERCHANGED }],
+  ['charge Or on azure background', { fieldTinctures: ['azure'], chargeTincture: 'or' }],
+];
+html += '<h2>2. Random shields</h2><table><tr><th>Constraints</th><th>Made</th><th>Different</th><th>Broke a rule</th><th>Broke a constraint</th><th>Examples</th></tr>';
+for (const [label, c] of RUNS) {
+  let made = 0, illegal = 0, wrong = 0; const seen = new Set(), examples = [];
+  for (let i = 0; i < 60; i++) {
+    const s = randomShield(c, 'test|' + label + '|' + i, library);
+    if (!s) continue;
+    made++;
+    if (checkShield(s).filter(p => !(c.allowBare && p.id === 'single-tincture')).length) illegal++;
+    const used = shieldTinctures(s.field, s.groups);
+    if (c.palette && used.some(t => !c.palette.includes(t))) wrong++;
+    if (c.mustInclude && !used.includes(c.mustInclude)) wrong++;
+    if (c.number && s.groups[0] && s.groups[0].number !== c.number) wrong++;
+    if (c.chargeTincture && s.groups[0] && s.groups[0].tincture !== c.chargeTincture) wrong++;
+    const text = blazon(s.field, s.groups);
+    if (!seen.has(text)) { seen.add(text); if (examples.length < 5) examples.push(shieldSVG(s.field, { charges: s.groups, title: text })); }
+  }
+  const ok = illegal === 0 && wrong === 0 && made > 0;
+  if (!ok) failures++;
+  html += `<tr class="${ok ? 'ok' : 'bad'}"><td>${label}</td><td>${made}</td><td>${seen.size}</td><td>${illegal}</td><td>${wrong}</td>` +
+    `<td><div style="display:flex;gap:4px">${examples.join('')}</div></td></tr>`;
+}
+html += '</table>';
+
+// Impossible on purpose: the generator should say why.
+const why = whyNot({ division: 'checky', palette: ['azure', 'sable'], charge: 'none', allowBare: true }, 'x', library);
+const whyOk = why && why.problems[0].id === 'many-low-contrast' && why.problems[0].hint === 'metal' &&
+  randomShield({ division: 'checky', palette: ['azure', 'sable'], charge: 'none', allowBare: true }, 'x', library) === null;
+if (!whyOk) failures++;
+html += `<p class="${whyOk ? 'ok' : 'bad'}">Checky with only azure and sable: ${whyOk ? 'correctly refused, reason "low contrast, needs a metal"' : 'WRONG: ' + JSON.stringify(why && why.problems)}</p>`;
+
+// Charges are centred in their space.
+const one = placeGroup(blob('or')).places[0];
+const centred = Math.abs(one.cx - 50) < 0.6 && one.cy > 46 && one.cy < 56;
+if (!centred) failures++;
+html += `<p class="${centred ? 'ok' : 'bad'}">A single charge is centred at (${one.cx.toFixed(1)}, ${one.cy.toFixed(1)}), size ${one.size.toFixed(1)}.</p>`;
+
+document.getElementById('out').innerHTML = html;
+document.getElementById('status').textContent = failures ? `FAIL: ${failures} problem(s), shown in red.` : 'PASS: everything agrees.';
+window.testSummary = { failures };
+</script>
+</body>
+</html>

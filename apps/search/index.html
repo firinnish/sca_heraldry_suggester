@@ -5,83 +5,117 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>What are you searching for?</title>
 <style>
-  :root { --ink: #2b2620; --paper: #faf6ee; --line: #d8cfba; --accent: #5b4b8a; --muted: #6b6252; }
+  :root { --ink: #2b2620; --paper: #faf6ee; --line: #d8cfba; --accent: #5b4b8a; --muted: #6b6252; --warn: #8a3b2a; }
   * { box-sizing: border-box; }
-  body { margin: 0; padding: 20px 16px 60px; font-family: Georgia, 'Iowan Old Style', serif; background: var(--paper); color: var(--ink); }
-  main { max-width: 1180px; margin: 0 auto; }
-  h1 { font-size: 1.6rem; margin: 0 0 18px; }
-  h2 { font-size: 1.1rem; margin: 0 0 12px; }
+  html, body { height: 100%; }
+  body { margin: 0; font-family: Georgia, 'Iowan Old Style', serif; background: var(--paper); color: var(--ink); }
 
-  /* Questions on the left (two thirds), the current shield on the right (one third). */
-  .layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 18px; align-items: start; }
-  .current { position: sticky; top: 16px; }
-  @media (max-width: 760px) {
-    .layout { grid-template-columns: minmax(0, 1fr); }
-    .current { position: static; }
+  /* Three areas: questions (top left, scrolls), the shield being built (top
+     right), and a row of suggestions along the bottom. */
+  .app { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px; height: 100vh; max-width: 1400px; margin: 0 auto; padding: 12px 16px; }
+  .app > * { min-width: 0; }   /* lets the suggestion row scroll sideways instead of widening the page */
+  .top { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; min-height: 0; }
+  .questions, .current { overflow-y: auto; min-height: 0; }
+  .questions { padding-right: 6px; }
+  /* On a narrow or short screen everything simply stacks and the page scrolls. */
+  @media (max-width: 760px), (max-height: 640px) {
+    html, body { height: auto; }
+    .app { display: block; height: auto; }
+    .top { display: block; }
+    .questions, .current { overflow: visible; }
+    .current, .suggestions { margin-bottom: 16px; }
   }
 
-  .panel { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; }
+  h1 { font-size: 1.45rem; margin: 0; }
+  h2 { font-size: 1.05rem; margin: 0 0 12px; }
+  .herald { font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+
+  .panel { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+  .current.panel, .suggestions.panel { margin-bottom: 0; }
   .row { display: flex; flex-wrap: wrap; gap: 10px; }
-  .row + .row { margin-top: 12px; }
-  .row-label { font-size: 0.8rem; color: var(--muted); margin: 14px 0 6px; }
+  .row-label { font-size: 0.8rem; color: var(--muted); margin: 12px 0 6px; }
+  .sets { display: flex; flex-wrap: wrap; gap: 10px 26px; }
+  .set { border-left: 3px solid var(--line); padding-left: 12px; }
+  .set .row-label { margin-top: 0; }
 
   button { font-family: inherit; color: var(--ink); cursor: pointer; }
   .swatch, .card {
     display: flex; flex-direction: column; align-items: center; gap: 5px;
     background: #fff; border: 2px solid var(--line); border-radius: 8px; padding: 8px 6px; font-size: 0.82rem;
   }
-  .swatch { width: 92px; }
-  .swatch svg { width: 44px; height: 44px; }
-  .swatch.small { width: 62px; padding: 6px 4px; font-size: 0.72rem; }
+  .swatch { width: 88px; }
+  .swatch svg { width: 42px; height: 42px; }
+  .swatch.small { width: 66px; padding: 6px 4px; font-size: 0.72rem; }
   .swatch.small svg { width: 30px; height: 30px; }
-  .swatch small, .card small { color: var(--muted); font-size: 0.74rem; text-align: center; }
+  .swatch small, .card small { color: var(--muted); font-size: 0.72rem; text-align: center; }
   .swatch .tick { height: 1em; font-size: 0.9rem; line-height: 1; color: var(--accent); }
-  .card { width: 112px; }
-  .card svg { width: 76px; height: auto; }
+  .card { width: 108px; }
+  .card svg { width: 72px; height: auto; }
   [aria-pressed="true"] { border-color: var(--accent); background: #f3f0fa; font-weight: bold; }
   button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  .plain-btn { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; font-size: 0.85rem; margin-bottom: 12px; }
-  .complex-card { justify-content: center; min-height: 128px; font-style: italic; }
+  .plain-btn { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 5px 11px; font-size: 0.82rem; }
+  .text-card { justify-content: center; min-height: 118px; font-style: italic; }
   .name-btn { background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 4px 11px; font-size: 0.82rem; }
 
-  .builder { display: grid; gap: 10px; }
-  .builder label, .inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.9rem; }
-  select, input[type="search"] { font-family: inherit; font-size: 0.9rem; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); max-width: 100%; }
-  input[type="search"] { width: 100%; margin-bottom: 12px; }
+  /* An option the rules do not allow: shown, but greyed, with the reason. */
+  .greyed svg { opacity: 0.3; filter: grayscale(0.7); }
+  .greyed { color: var(--muted); }
+  .greyed[aria-disabled="true"] { cursor: not-allowed; }
+  .why { color: var(--warn); font-size: 0.68rem; font-style: normal; font-weight: normal; text-align: center; line-height: 1.2; }
 
-  .current svg { display: block; width: 100%; max-width: 300px; height: auto; margin: 0 auto 14px; }
-  .blazon { font-size: 1.1rem; font-style: italic; margin: 0 0 14px; text-align: center; overflow-wrap: anywhere; }
+  .builder { display: grid; gap: 10px; margin-top: 14px; }
+  .builder label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.9rem; }
+  select, input[type="search"] { font-family: inherit; font-size: 0.9rem; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); max-width: 100%; }
+  input[type="search"] { width: 100%; margin: 12px 0; }
+
+  .current svg { display: block; width: 100%; max-width: 250px; height: auto; margin: 0 auto 12px; }
+  .blazon { font-size: 1.05rem; font-style: italic; margin: 0 0 12px; text-align: center; overflow-wrap: anywhere; }
   .search-link { display: block; text-align: center; background: var(--accent); color: #fff; text-decoration: none; padding: 10px 14px; border-radius: 6px; font-size: 0.95rem; }
   .search-link:hover { background: #453a6b; }
-  .note { font-size: 0.85rem; color: var(--muted); margin: 10px 0 0; }
-  details { margin-top: 12px; font-size: 0.82rem; color: var(--muted); }
+  .note { font-size: 0.82rem; color: var(--muted); margin: 10px 0 0; }
+  .problems { margin: 0 0 12px; padding: 8px 10px 8px 26px; border: 1px solid #e3c4b8; background: #fbf1ec; border-radius: 6px; color: var(--warn); font-size: 0.82rem; }
+  details { margin-top: 12px; font-size: 0.8rem; color: var(--muted); }
   code { display: block; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 6px; color: var(--ink); }
+
+  .suggestions { padding-bottom: 8px; }
+  .suggestions-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 8px; }
+  .suggestions-head h2 { margin: 0; }
+  .suggestion-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+  .suggestion { flex: none; width: 132px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 2px solid var(--line); border-radius: 8px; padding: 6px; background: #fff; }
+  .suggestion.pinned { border-color: var(--accent); background: #f3f0fa; }
+  .suggestion svg { width: 70px; height: auto; }
+  .suggestion p { margin: 0; font-size: 0.66rem; font-style: italic; text-align: center; line-height: 1.2; height: 3.6em; overflow: hidden; }
+  .suggestion button { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 5px; padding: 3px 4px; font-size: 0.68rem; }
 </style>
 </head>
 <body>
-<main>
-  <h1 id="title"></h1>
-  <div class="layout">
+<main class="app">
+  <header>
+    <h1 id="title"></h1>
+    <label class="herald"><input type="checkbox" id="herald"> <span id="heraldLabel"></span></label>
+  </header>
+  <div class="top">
     <div class="questions">
-      <section class="panel">
-        <h2 id="coloursHeading"></h2>
-        <div class="row" id="mainSwatches"></div>
-        <div class="row-label" id="fursLabel"></div>
-        <div class="row" id="furSwatches"></div>
-      </section>
-      <section class="panel" id="divisionPanel" hidden></section>
-      <section class="panel" id="chargePanel" hidden></section>
+      <section class="panel" id="shieldColoursPanel"></section>
+      <section class="panel" id="fieldColoursPanel"></section>
+      <section class="panel" id="divisionPanel"></section>
+      <section class="panel" id="chargePanel"></section>
     </div>
     <aside class="panel current" id="currentPanel" aria-live="polite"></aside>
   </div>
+  <section class="panel suggestions" id="suggestionsPanel"></section>
 </main>
 
 <script type="module">
-import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, divisionsWithParts } from '../../core/catalog.js';
-import { plain, divided, tincturesIn, blazon, ordinaryGroup, chargeGroupFromLibrary } from '../../core/shield.js';
-import { shieldSVG, swatchSVG } from '../../core/draw.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, familyOf } from '../../core/catalog.js';
+import { plain, divided, isComplete, isNested, leafTinctures, shieldTinctures, blazon, ordinaryGroup,
+         chargeGroupFromLibrary, COUNTERCHANGED } from '../../core/shield.js';
+import { shieldSVG, swatchSVG, counterchangedSwatchSVG } from '../../core/draw.js';
 import { shieldPatterns, complexSearchURL } from '../../core/oanda.js';
 import { loadLibrary } from '../../core/art.js';
+import { checkShield } from '../../core/rules.js';
+import { randomShield, randomShields, whyNot, randomFrom, shuffled } from '../../core/generate.js';
 
 // ---------------------------------------------------------------------------
 // ALL THE WORDS ON THE PAGE live here, so they can be rewritten in one place.
@@ -89,97 +123,228 @@ import { loadLibrary } from '../../core/art.js';
 // ---------------------------------------------------------------------------
 const TEXT = {
   title: 'What are you searching for?',
-  coloursHeading: 'What colours are in the background (on the field)?',
+  herald: "I'm a herald and I know what I'm doing. Enter options manually",
+  shieldColours: 'What colours are used in the shield?',
+  coloursLabel: 'Colours',                                              // DRAFT
+  metalsLabel: 'Metals',                                                // DRAFT
   fursLabel: 'Furs',                                                    // DRAFT
-  plainBackground: colour => `Plain ${colour} Background`,
+  fieldColours: 'What colours are used in the background?',
   dividedHeading: 'How is the background divided?',
+  plainBackground: colour => `Plain ${colour} Background`,
+  plainBackgroundAny: 'Plain Background',                               // DRAFT
   complexOption: 'more complex background',
   swap: 'Swap the two colours',                                         // DRAFT
   builderDivision: 'The background is divided',                         // DRAFT
   builderPart: n => `Part ${n} is`,                                     // DRAFT
   builderAnd: 'and',                                                    // DRAFT
   chargeHeading: 'What is the primary charge?',
+  chargeNumber: 'How many?',                                            // DRAFT
+  chargeColour: 'What colour is it?',                                   // DRAFT
+  counterchanged: 'counterchanged',
   chargeSearch: 'Type to find a charge',                                // DRAFT
   chargeNone: 'no charge',                                              // DRAFT
+  chargeOrdinaries: 'Ordinaries',                                       // DRAFT
+  chargePictures: 'Charges',                                            // DRAFT
   chargeNoPicture: 'Charges we have no picture of yet (shown as a blob)', // DRAFT
   chargeMore: n => `…and ${n} more. Type to narrow the list.`,          // DRAFT
   chargeNoMatch: 'No charge matches that.',                             // DRAFT
-  chargeNumber: 'How many?',                                            // DRAFT
-  chargeColour: 'What colour is it?',                                   // DRAFT
-  currentEmpty: 'Your shield will appear here.',                        // DRAFT
+  suggestions: 'Suggestions',                                           // DRAFT
+  reroll: 'Show different suggestions',                                 // DRAFT
+  pin: 'pin suggestion',
+  unpin: 'unpin',                                                       // DRAFT
+  select: 'select this shield',
+  fewSuggestions: 'Few shields are possible with these choices.',       // DRAFT
+  noSuggestions: 'No shield is possible with these choices.',           // DRAFT
   searchLink: 'Search the Ordinary & Armorial for this',               // DRAFT
   tincturesNotIndexed: 'The Ordinary & Armorial does not record which colours a three-part background uses, so this search finds every background divided this way.', // DRAFT
   patternsSummary: 'What gets filled in on the Complex Search Form',   // DRAFT
+  // Words used in the blazon for things not chosen yet.                 // DRAFT (all three)
+  placeholders: { tincture: '(any colour)', field: '(any background)', number: '(any number of)' },
+
+  // Why an option is greyed out, or what is wrong with the current shield.
+  lowContrastMetal: 'Low contrast - please choose a metal',
+  lowContrastColour: 'Low contrast - please choose a colour',           // DRAFT
+  rules: {                                                              // DRAFT (all of these)
+    'same-base': 'Two parts next to each other are too alike to tell apart',
+    'four-part-nested': 'A quarter can only be divided into a pattern like checky',
+    'charge-shares-tincture': 'The charge is the same colour as the background behind it',
+    'counterchange-field': 'Counterchanged needs a background divided into two colours',
+    'counterchange-many': 'Counterchanging over this many pieces needs period evidence',
+    'parallel-peripheral': 'A chief or base cannot go with a per fess background',
+    'single-tincture': 'One plain colour with nothing on it cannot be registered',
+    'complexity': 'Too many colours and charges',
+    'house-many-nested': 'Too complex: a pattern like this cannot have a divided part',
+    'house-too-deep': 'Too complex: a part of a part cannot be divided again',
+    'house-same-division': 'A part cannot be divided the same way as the whole',
+    'house-repeat-tincture': 'A colour cannot be used twice in a background this complex',
+    'not-possible': 'Not possible with the colours chosen',
+  },
 };
 
+const SUGGESTION_COUNT = 12;   // how many suggestions along the bottom
+const MAX_CARDS = 18;          // most option pictures in one group (3 rows of 6)
 const MAX_NAMES_SHOWN = 40;
+const ALL_TINCTURES = [...COLOUR_ORDER, ...METAL_ORDER, ...FUR_ORDER];
+const TWO_TINCTURE = Object.keys(DIVISIONS).filter(d => DIVISIONS[d].parts === 2);
+const THREE_TINCTURE = Object.keys(DIVISIONS).filter(d => DIVISIONS[d].parts === 3);
+// A fresh starting point for the random pictures each time the page is opened.
+const SEED = String(Math.floor(Math.random() * 1e9));
+
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const $ = id => document.getElementById(id);
+const toggle = (list, x) => (list.includes(x) ? list.filter(y => y !== x) : [...list, x]);
+const words = TEXT.placeholders;
 
-// ---- State -----------------------------------------------------------------
+// ---- What the user has chosen ------------------------------------------------
+// Anything left empty is "not chosen yet": the shield on the right shows it in
+// grey, and the suggestions fill it in at random.
 const state = {
-  picked: [],        // field tincture ids, in the order they were ticked
-  order: [],         // the same tinctures in the order used for the pictures
-  choice: null,      // { division, order } | 'complex' | null
-  builder: null,     // the "more complex background" form
-  charge: null,      // { kind: 'ordinary', id } | { kind: 'charge', id, file } | null
-  chargeNumber: 1,
-  chargeTincture: null,
+  herald: false,
+  shieldColours: [],     // question 1: tinctures that may be used anywhere
+  fieldColours: [],      // question 2: the background's tinctures, in order
+  division: null,        // null | 'plain' | a division id | 'complex'
+  builder: null,         // the "more complex background" form
+  charge: null,          // null | 'none' | { kind: 'ordinary', id } | { kind: 'charge', id, file }
+  chargeNumber: null,    // null | 1 | 2 | 3
+  chargeTincture: null,  // null | a tincture id | COUNTERCHANGED
   chargeFilter: '',
+  pinned: [],            // suggestions the user has pinned
+  epoch: 0,              // goes up when the user asks for different suggestions
 };
 let library = { charges: [], pictures: [] };   // filled in once charges/ has loaded
+let shown = [];                                // the suggestions on screen, by position
 
-function resetChoice() {
-  state.order = [...state.picked];
-  state.choice = state.picked.length >= 4 ? 'complex' : null;
-  state.builder = null;
+// Question 1 says which tinctures may be used. With two or more ticked, only
+// those are used. With just one ticked it must appear, but others may too
+// (otherwise the only possible shield would be one plain colour).
+const palette = () => (state.shieldColours.length >= 2 ? state.shieldColours : null);
+const mustInclude = () => (state.shieldColours.length === 1 ? state.shieldColours[0] : null);
+const offered = () => palette() || ALL_TINCTURES;
+
+// Keep the answers consistent with each other after any change.
+function tidy() {
+  // A colour used for the background or the charge is used in the shield.
+  if (state.shieldColours.length >= 2) {
+    for (const t of [...state.fieldColours, state.chargeTincture]) {
+      if (t && t !== COUNTERCHANGED && !state.shieldColours.includes(t)) state.shieldColours.push(t);
+    }
+  }
+  // With a "more complex background", the background's colours are whatever
+  // the form uses.
+  if (state.division === 'complex') state.fieldColours = [...new Set(leafTinctures(builderField()))];
+  // A division that cannot hold this many background colours is dropped.
+  const d = state.division, k = state.fieldColours.length;
+  if (d === 'plain' && k > 1) state.division = null;
+  else if (d && d !== 'plain' && d !== 'complex' && k > DIVISIONS[d].parts) state.division = null;
 }
 
-// ---- Working out the shield from the state ---------------------------------
+// ---- The shield described so far (parts not chosen are null) -----------------
 function currentField() {
-  const n = state.picked.length;
-  if (n === 0) return null;
-  if (n === 1) return plain(state.picked[0]);
-  if (state.choice === 'complex') return builderField();
-  if (state.choice) return divided(state.choice.division, state.choice.order.map(plain));
+  const fc = state.fieldColours, d = state.division;
+  if (d === 'complex') return builderField();
+  if (d === 'plain') return plain(fc[0] ?? null);
+  if (d) return divided(d, Array.from({ length: DIVISIONS[d].parts }, (_, i) => plain(fc[i] ?? null)));
+  if (fc.length === 1) return plain(fc[0]);     // one background colour and no division: plain
   return null;
 }
 
-function defaultBuilder() {
-  const t = state.picked;
-  const part = i => ({ kind: 'plain', tincture: t[i % t.length], a: t[0], b: t[1 % t.length] });
-  return { division: 'perPale', parts: [part(0), part(1), part(2)] };
-}
-
-function builderField() {
-  const b = state.builder || (state.builder = defaultBuilder());
-  const parts = b.parts.slice(0, DIVISIONS[b.division].parts).map(p =>
-    p.kind === 'plain' ? plain(p.tincture) : divided(p.kind, [plain(p.a), plain(p.b)]));
-  return divided(b.division, parts);
-}
-
-// A charge colour that shows up on this field: a metal on colours, a colour on metals.
-function contrastingTincture(field) {
-  const used = tincturesIn(field);
-  const tones = new Set(used.map(t => TINCTURES[t].tone));
-  const wanted = tones.has('dark') ? ['or', 'argent'] : ['sable', 'gules', 'azure', 'vert', 'purpure'];
-  return wanted.find(t => !used.includes(t)) || wanted[0];
-}
-
-// Build a charge group for a choice ({kind, id, file}) in a given tincture and number.
 function groupFor(choice, tincture, number) {
   if (choice.kind === 'ordinary') return ordinaryGroup(choice.id, tincture);
   const charge = library.charges.find(c => c.id === choice.id);
+  if (!charge) return null;
   const picture = choice.file ? library.pictures.find(p => p.file === choice.file) : null;
-  return chargeGroupFromLibrary(charge, picture, { tincture, number });
+  return chargeGroupFromLibrary(charge, picture || null, { tincture, number });
 }
 
-function currentGroups(field) {
-  if (!state.charge) return [];
-  const tincture = state.chargeTincture || contrastingTincture(field);
-  const number = state.charge.kind === 'ordinary' ? 1 : state.chargeNumber;
-  return [groupFor(state.charge, tincture, number)];
+function currentShield() {
+  const field = currentField();
+  const chosen = state.charge && state.charge !== 'none'
+    ? groupFor(state.charge, state.chargeTincture, state.chargeNumber) : null;
+  return { field, groups: chosen ? [chosen] : [], noCharge: state.charge === 'none' };
+}
+
+// What is fixed, in the form generate.js wants.
+function constraints() {
+  const field = currentField();
+  return {
+    palette: palette(),
+    mustInclude: mustInclude(),
+    fieldTinctures: state.fieldColours.length ? state.fieldColours : null,
+    division: state.division === 'complex' ? null : state.division,
+    field: isComplete(field) ? field : undefined,
+    charge: state.charge,
+    number: state.chargeNumber,
+    chargeTincture: state.chargeTincture,
+  };
+}
+
+// ---- Random options that stay put --------------------------------------------
+// Every random picture is worked out from the page's seed plus exactly what it
+// depends on, and remembered, so pictures only change when a relevant choice does.
+const remembered = new Map();
+function remember(key, make) {
+  if (remembered.size > 4000) remembered.clear();
+  if (!remembered.has(key)) remembered.set(key, make());
+  return remembered.get(key);
+}
+
+// An option to show: a random legal shield fitting `c`, or, if there is none,
+// an illegal example with the reason. Returns { shield, problems } or null.
+function option(tag, c) {
+  const key = `${SEED}|${tag}|${library.pictures.length}|${JSON.stringify(c)}`;
+  return remember(key, () => {
+    const shield = randomShield(c, key, library);
+    return shield ? { shield, problems: [] } : whyNot(c, key, library);
+  });
+}
+
+// ---- Explaining the rules -----------------------------------------------------
+function ruleText(problem) {
+  if (!problem) return TEXT.rules['not-possible'];
+  if (problem.hint) return problem.hint === 'metal' ? TEXT.lowContrastMetal : TEXT.lowContrastColour;
+  return TEXT.rules[problem.id] || problem.id;
+}
+// In herald mode nothing is blocked; the reason is still shown.
+const blocked = problems => problems.length > 0 && !state.herald;
+
+// ---- Drawing the page ---------------------------------------------------------
+function swatchButton(id, { on, attr, small = false, why = '' }) {
+  const counter = id === COUNTERCHANGED;
+  const t = counter ? null : TINCTURES[id];
+  const label = counter ? `<span>${esc(TEXT.counterchanged)}</span>`
+    : t.kind === 'fur' ? `<span>${esc(t.name)}</span>${small ? '' : `<small>${esc(t.plain)}</small>`}`
+    : `<span>${esc(t.plain)}</span><small>${esc(t.name)}</small>`;
+  const greyed = why ? ` greyed" aria-disabled="${!state.herald}` : '';
+  return `<button class="swatch${small ? ' small' : ''}${greyed}" type="button" ${attr}="${id}" aria-pressed="${on}">` +
+    `${counter ? counterchangedSwatchSVG() : swatchSVG(id)}${label}` +
+    (why ? `<span class="why">${esc(why)}</span>` : small ? '' : `<span class="tick" aria-hidden="true">${on ? '✓' : ''}</span>`) +
+    `</button>`;
+}
+
+// Colours and metals as two visibly separate sets, then furs.
+function swatchSets(ids, make) {
+  const set = (label, order) => {
+    const list = order.filter(id => ids.includes(id));
+    return list.length ? `<div class="set"><div class="row-label">${esc(label)}</div><div class="row">${list.map(make).join('')}</div></div>` : '';
+  };
+  return `<div class="sets">${set(TEXT.coloursLabel, COLOUR_ORDER)}${set(TEXT.metalsLabel, METAL_ORDER)}${set(TEXT.fursLabel, FUR_ORDER)}</div>`;
+}
+
+function renderColourPanels() {
+  $('shieldColoursPanel').innerHTML = `<h2>${esc(TEXT.shieldColours)}</h2>` +
+    swatchSets(ALL_TINCTURES, id => swatchButton(id, { on: state.shieldColours.includes(id), attr: 'data-q1' }));
+  $('fieldColoursPanel').innerHTML = `<h2>${esc(TEXT.fieldColours)}</h2>` +
+    swatchSets(offered(), id => swatchButton(id, { on: state.fieldColours.includes(id), attr: 'data-q2', small: true }));
+}
+
+function card({ attrs, shield, label, on, problems = [], why = null }) {
+  const reason = why || (problems.length ? ruleText(problems[0]) : '');
+  const greyed = reason ? ` greyed" aria-disabled="${!state.herald}` : '';
+  const title = shield ? blazon(shield.field, shield.groups, words) : '';
+  return `<button class="card${greyed}" type="button" ${attrs} aria-pressed="${!!on}">` +
+    (shield ? shieldSVG(shield.field, { charges: shield.groups, title }) : '') +
+    `<span>${esc(label)}</span>${reason ? `<span class="why">${esc(reason)}</span>` : ''}</button>`;
 }
 
 function permutations(list) {
@@ -187,204 +352,326 @@ function permutations(list) {
   return list.flatMap((x, i) => permutations([...list.slice(0, i), ...list.slice(i + 1)]).map(p => [x, ...p]));
 }
 
-// ---- Drawing the page ------------------------------------------------------
-function swatchButton(id, on, attr, small) {
-  const t = TINCTURES[id];
-  const label = t.kind === 'fur' ? `<span>${esc(t.name)}</span>${small ? '' : `<small>${esc(t.plain)}</small>`}`
-                                 : `<span>${esc(t.plain)}</span><small>${esc(t.name)}</small>`;
-  return `<button class="swatch${small ? ' small' : ''}" type="button" ${attr}="${id}" aria-pressed="${on}">` +
-    `${swatchSVG(id)}${label}${small ? '' : `<span class="tick" aria-hidden="true">${on ? '✓' : ''}</span>`}</button>`;
-}
-
-function renderSwatches() {
-  const make = id => swatchButton(id, state.picked.includes(id), 'data-tincture', false);
-  $('mainSwatches').innerHTML = [...COLOUR_ORDER, ...METAL_ORDER].map(make).join('');
-  $('furSwatches').innerHTML = FUR_ORDER.map(make).join('');
-}
-
-function divisionCard(division, order) {
-  const field = divided(division, order.map(plain));
-  const on = state.choice && state.choice !== 'complex' &&
-    state.choice.division === division && state.choice.order.join() === order.join();
-  return `<button class="card" type="button" data-division="${division}" data-order="${order.join(',')}" aria-pressed="${!!on}">` +
-    `${shieldSVG(field, { title: blazon(field) })}<span>${esc(DIVISIONS[division].name)}</span></button>`;
-}
-
+// "How is the background divided?": one picture per division. When the
+// background's colours are not all chosen, the colours shown are random ones
+// that the rules allow.
 function renderDivisionPanel() {
-  const panel = $('divisionPanel');
-  const n = state.picked.length;
-  panel.hidden = n === 0;
-  if (n === 0) { panel.innerHTML = ''; return; }
+  const fc = state.fieldColours, k = fc.length;
+  const base = { palette: palette(), mustInclude: mustInclude(), charge: 'none', allowBare: true };
+  const cards = [];
 
-  if (n === 1) {
-    const t = TINCTURES[state.picked[0]];
-    const word = t.kind === 'fur' ? t.name : cap(t.plain);
-    panel.innerHTML = `<h2>${esc(TEXT.plainBackground(word))}</h2>`;
-    return;
+  const randomCard = id => {
+    const found = option('division', { ...base, division: id, fieldTinctures: k ? fc : null });
+    const label = id === 'plain' ? (k ? plainLabel(fc[0]) : TEXT.plainBackgroundAny) : DIVISIONS[id].name;
+    const on = state.division === id || (id === 'plain' && !state.division && k === 1);
+    return card({ attrs: `data-division="${id}"`, shield: found && found.shield, label, on,
+                  problems: found ? found.problems : [], why: found ? null : TEXT.rules['not-possible'] });
+  };
+  const exactCard = (id, order) => {
+    const field = divided(id, order.map(plain));
+    const problems = checkShield({ field, groups: [] });
+    const on = state.division === id && fc.join() === order.join();
+    return card({ attrs: `data-division="${id}" data-order="${order.join(',')}"`, shield: { field, groups: [] },
+                  label: DIVISIONS[id].name, on, problems });
+  };
+
+  if (k <= 1) {
+    cards.push(randomCard('plain'), ...TWO_TINCTURE.map(randomCard), ...THREE_TINCTURE.map(randomCard));
+  } else if (k === 2) {
+    cards.push(...TWO_TINCTURE.map(id => exactCard(id, fc)));
+  } else if (k === 3) {
+    cards.push(...THREE_TINCTURE.flatMap(id => permutations(fc).map(order => exactCard(id, order))));
   }
+  cards.push(`<button class="card text-card" type="button" data-complex aria-pressed="${state.division === 'complex'}">${esc(TEXT.complexOption)}</button>`);
 
-  let html = `<h2>${esc(TEXT.dividedHeading)}</h2>`;
-  const complexCard = `<button class="card complex-card" type="button" data-complex aria-pressed="${state.choice === 'complex'}">${esc(TEXT.complexOption)}</button>`;
+  $('divisionPanel').innerHTML = `<h2>${esc(TEXT.dividedHeading)}</h2>` +
+    (k === 2 ? `<p style="margin:0 0 12px"><button class="plain-btn" type="button" data-swap>⇄ ${esc(TEXT.swap)}</button></p>` : '') +
+    `<div class="row">${cards.join('')}</div>` +
+    (state.division === 'complex' ? renderBuilder() : '');
+}
 
-  if (n === 2) {
-    html += `<button class="plain-btn" type="button" data-swap>⇄ ${esc(TEXT.swap)}</button>`;
-    html += `<div class="row">${divisionsWithParts(2).map(d => divisionCard(d, state.order)).join('')}${complexCard}</div>`;
-  } else if (n === 3) {
-    const cards = divisionsWithParts(3).flatMap(d => permutations(state.picked).map(o => divisionCard(d, o)));
-    html += `<div class="row">${cards.join('')}${complexCard}</div>`;
+function plainLabel(tincture) {
+  const t = TINCTURES[tincture];
+  return TEXT.plainBackground(t.kind === 'fur' ? t.name : cap(t.plain));
+}
+
+// ---- The "more complex background" form ---------------------------------------
+function builderToField(b) {
+  const parts = b.parts.slice(0, DIVISIONS[b.division].parts).map(p =>
+    p.kind === 'plain' ? plain(p.tincture) : divided(p.kind, [plain(p.a), plain(p.b)]));
+  return divided(b.division, parts);
+}
+
+function builderFromField(field) {
+  const parts = field.parts.map(p => (p.type === 'plain'
+    ? { kind: 'plain', tincture: p.tincture, a: p.tincture, b: p.tincture }
+    : { kind: p.division, tincture: p.parts[0].tincture, a: p.parts[0].tincture, b: p.parts[1].tincture }));
+  while (parts.length < 3) parts.push({ ...parts[0] });
+  return { division: field.division, parts };
+}
+
+// Any tincture allowed in the shield can be used in the form; whatever the
+// form ends up using becomes the answer to "colours used in the background".
+const builderTinctures = offered;
+
+// Start the form on a random background the rules allow, using the
+// background colours already chosen (and adding others if more are needed).
+function defaultBuilder() {
+  const chosen = [...state.fieldColours];
+  const pool = offered().filter(t => !chosen.includes(t) && TINCTURES[t].kind !== 'fur');
+  for (let i = 0; i < 40; i++) {
+    const key = `${SEED}|builder|${i}|${chosen.join()}`;
+    const extra = shuffled(randomFrom(key), pool);
+    const set = [...chosen, ...extra].slice(0, Math.max(3, Math.min(chosen.length, 4)));
+    const found = set.length >= 3 && randomShield({ fieldTinctures: set, charge: 'none', allowBare: true }, key, library);
+    if (found && isNested(found.field)) return builderFromField(found.field);
   }
-  if (state.choice === 'complex') html += renderBuilder();
-  panel.innerHTML = html;
+  const t = [...chosen, ...pool, ...ALL_TINCTURES];
+  return builderFromField(divided('perPale', [plain(t[0]), divided('checky', [plain(t[1]), plain(t[2])])]));
+}
+
+function builderField() {
+  return builderToField(state.builder || (state.builder = defaultBuilder()));
 }
 
 function renderBuilder() {
   const b = state.builder || (state.builder = defaultBuilder());
-  const tinctureOptions = sel => state.picked.map(id =>
-    `<option value="${id}"${id === sel ? ' selected' : ''}>${esc(TINCTURES[id].plain)} (${esc(TINCTURES[id].name)})</option>`).join('');
-  const divisionOptions = (ids, sel) => ids.map(id =>
-    `<option value="${id}"${id === sel ? ' selected' : ''}>${esc(DIVISIONS[id].name)}</option>`).join('');
+  const parts = DIVISIONS[b.division].parts;
+  // Would this change leave a background the rules allow?
+  const allowed = change => {
+    if (state.herald) return true;
+    const trial = { division: b.division, parts: b.parts.map(p => ({ ...p })) };
+    change(trial);
+    return checkShield({ field: builderToField(trial), groups: [] }).length === 0;
+  };
+  const opt = (value, label, selected, ok) =>
+    `<option value="${value}"${selected ? ' selected' : ''}${ok || selected ? '' : ' disabled'}>${esc(label)}</option>`;
+  const tinctureLabel = id => `${TINCTURES[id].plain} (${TINCTURES[id].name})`;
 
-  let html = `<div class="builder" style="margin-top:16px">`;
-  html += `<label>${esc(TEXT.builderDivision)} <select data-b="division">${divisionOptions(Object.keys(DIVISIONS), b.division)}</select></label>`;
-  for (let i = 0; i < DIVISIONS[b.division].parts; i++) {
+  // The first choice leaves out patterns of many pieces (checky, lozengy...):
+  // a part of those cannot sensibly be divided again.
+  const tops = Object.keys(DIVISIONS).filter(id => state.herald || familyOf(id) !== 'many' || id === b.division);
+  let html = `<div class="builder"><label>${esc(TEXT.builderDivision)} <select data-b="division">` +
+    tops.map(id => opt(id, DIVISIONS[id].name, id === b.division, allowed(t => { t.division = id; }))).join('') + `</select></label>`;
+  for (let i = 0; i < parts; i++) {
     const p = b.parts[i];
-    const kindOptions =
-      state.picked.map(id => `<option value="plain:${id}"${p.kind === 'plain' && p.tincture === id ? ' selected' : ''}>${esc(TINCTURES[id].plain)} (${esc(TINCTURES[id].name)})</option>`).join('') +
-      divisionsWithParts(2).map(id => `<option value="${id}"${p.kind === id ? ' selected' : ''}>${esc(DIVISIONS[id].name)}…</option>`).join('');
-    html += `<label>${esc(TEXT.builderPart(i + 1))} <select data-b="kind" data-i="${i}">${kindOptions}</select>`;
+    const kinds =
+      builderTinctures().map(id => opt('plain:' + id, tinctureLabel(id), p.kind === 'plain' && p.tincture === id,
+        allowed(t => { t.parts[i].kind = 'plain'; t.parts[i].tincture = id; }))).join('') +
+      TWO_TINCTURE.map(id => opt(id, DIVISIONS[id].name + '…', p.kind === id, allowed(t => { t.parts[i].kind = id; }))).join('');
+    html += `<label>${esc(TEXT.builderPart(i + 1))} <select data-b="kind" data-i="${i}">${kinds}</select>`;
     if (p.kind !== 'plain') {
-      html += `<select data-b="a" data-i="${i}">${tinctureOptions(p.a)}</select> ${esc(TEXT.builderAnd)} ` +
-              `<select data-b="b" data-i="${i}">${tinctureOptions(p.b)}</select>`;
+      const side = which => `<select data-b="${which}" data-i="${i}">` + builderTinctures().map(id =>
+        opt(id, tinctureLabel(id), p[which] === id, allowed(t => { t.parts[i][which] = id; }))).join('') + `</select>`;
+      html += `${side('a')} ${esc(TEXT.builderAnd)} ${side('b')}`;
     }
     html += `</label>`;
   }
   return html + `</div>`;
 }
 
-// One card in the charge picker: the current field with that charge on it.
-function chargeCard(field, choice, label, tincture) {
-  const on = state.charge && state.charge.kind === choice.kind && state.charge.id === choice.id &&
-    (state.charge.file || '') === (choice.file || '');
-  const group = groupFor(choice, tincture, 1);
-  return `<button class="card" type="button" data-charge="${choice.kind}:${esc(choice.id)}:${esc(choice.file || '')}" aria-pressed="${!!on}">` +
-    `${shieldSVG(field, { charges: [group], title: blazon(field, [group]) })}<span>${esc(label)}</span></button>`;
-}
-
+// ---- "What is the primary charge?" --------------------------------------------
 function renderChargePanel() {
-  const panel = $('chargePanel');
-  const field = currentField();
-  panel.hidden = !field;
-  if (!field) { panel.innerHTML = ''; return; }
-
-  const tincture = state.chargeTincture || contrastingTincture(field);
+  const c = constraints();
   const q = state.chargeFilter.trim().toLowerCase();
   const matches = name => !q || name.toLowerCase().includes(q);
+  const picked = state.charge && state.charge !== 'none' ? state.charge : null;
+  const isPicked = choice => !!picked && picked.kind === choice.kind && picked.id === choice.id &&
+    (picked.file || '') === (choice.file || '');
 
-  // Charges we can draw: ordinaries, then every picture in the library.
-  const cards = [];
-  for (const [id, o] of Object.entries(ORDINARIES)) {
-    if (matches(o.name)) cards.push(chargeCard(field, { kind: 'ordinary', id }, o.name, tincture));
-  }
-  const withPicture = new Set();
-  for (const p of library.pictures) {
-    withPicture.add(p.charge_id);
-    const label = [p.charge.name.toLowerCase(), p.posture].filter(Boolean).join(' ');
-    if (matches(label)) cards.push(chargeCard(field, { kind: 'charge', id: p.charge_id, file: p.file }, label, tincture));
-  }
-  // Charges with no picture yet: a list of names (drawn as blobs once chosen).
+  // Each option is drawn on a shield that fits everything else chosen so far.
+  const chargeCard = (choice, label) => {
+    const found = option('charge', { ...c, charge: choice, number: choice.kind === 'ordinary' ? null : (state.chargeNumber || 1) });
+    return card({ attrs: `data-charge="${choice.kind}:${esc(choice.id)}:${esc(choice.file || '')}"`, shield: found && found.shield,
+                  label, on: isPicked(choice), problems: found ? found.problems : [], why: found ? null : TEXT.rules['not-possible'] });
+  };
+
+  const ordinaries = Object.entries(ORDINARIES).filter(([, o]) => matches(o.name))
+    .map(([id, o]) => chargeCard({ kind: 'ordinary', id }, o.name));
+  const withPicture = new Set(library.pictures.map(p => p.charge_id));
+  const pictures = library.pictures
+    .map(p => ({ p, label: [p.charge.name.toLowerCase(), p.posture].filter(Boolean).join(' ') }))
+    .filter(x => matches(x.label));
+  const pictureCards = pictures.slice(0, MAX_CARDS)
+    .map(x => chargeCard({ kind: 'charge', id: x.p.charge_id, file: x.p.file }, x.label));
   const ordinaryNames = new Set(Object.values(ORDINARIES).map(o => o.name));
-  const names = library.charges.filter(c =>
-    !withPicture.has(c.id) && !ordinaryNames.has(c.name.toLowerCase()) && matches(c.name));
-  const shown = names.slice(0, MAX_NAMES_SHOWN);
+  const names = library.charges.filter(ch =>
+    !withPicture.has(ch.id) && !ordinaryNames.has(ch.name.toLowerCase()) && matches(ch.name));
+  const namesShown = names.slice(0, MAX_NAMES_SHOWN);
 
-  const noneOn = !state.charge;
-  let html = `<h2>${esc(TEXT.chargeHeading)}</h2>` +
-    `<input type="search" id="chargeFilter" value="${esc(state.chargeFilter)}" placeholder="${esc(TEXT.chargeSearch)}" aria-label="${esc(TEXT.chargeSearch)}">` +
-    `<div class="row"><button class="card complex-card" type="button" data-charge="none" aria-pressed="${noneOn}">${esc(TEXT.chargeNone)}</button>${cards.join('')}</div>`;
-  if (shown.length) {
-    html += `<div class="row-label">${esc(TEXT.chargeNoPicture)}</div><div class="row">` +
-      shown.map(c => {
-        const on = state.charge && state.charge.kind === 'charge' && state.charge.id === c.id && !state.charge.file;
-        return `<button class="name-btn" type="button" data-charge="charge:${esc(c.id)}:" aria-pressed="${!!on}">${esc(c.name.toLowerCase())}</button>`;
-      }).join('') + `</div>`;
-    if (names.length > shown.length) html += `<p class="note">${esc(TEXT.chargeMore(names.length - shown.length))}</p>`;
-  }
-  if (!cards.length && !shown.length) html += `<p class="note">${esc(TEXT.chargeNoMatch)}</p>`;
+  let html = `<h2>${esc(TEXT.chargeHeading)}</h2>`;
 
-  if (state.charge) {
-    if (state.charge.kind === 'charge') {
-      html += `<div class="row-label">${esc(TEXT.chargeNumber)}</div><div class="row">` +
+  // How many, and what colour: asked first so they are not missed below the list.
+  if (state.charge !== 'none') {
+    if (!picked || picked.kind === 'charge') {
+      html += `<div class="row-label" style="margin-top:0">${esc(TEXT.chargeNumber)}</div><div class="row">` +
         [1, 2, 3].map(n => `<button class="name-btn" type="button" data-number="${n}" aria-pressed="${state.chargeNumber === n}">${n}</button>`).join('') + `</div>`;
     }
-    html += `<div class="row-label">${esc(TEXT.chargeColour)}</div><div class="row">` +
-      [...COLOUR_ORDER, ...METAL_ORDER, ...FUR_ORDER].map(id => swatchButton(id, id === tincture, 'data-charge-tincture', true)).join('') + `</div>`;
+    // A colour is greyed if no shield fitting the other choices could use it.
+    const colourButton = id => {
+      const found = option('charge-colour', { ...c, chargeTincture: id });
+      const why = found && !found.problems.length ? '' : ruleText(found && found.problems[0]);
+      return swatchButton(id, { on: state.chargeTincture === id, attr: 'data-charge-tincture', small: true, why });
+    };
+    html += `<div class="row-label">${esc(TEXT.chargeColour)}</div>` +
+      swatchSets(offered(), colourButton) + `<div class="row" style="margin-top:10px">${colourButton(COUNTERCHANGED)}</div>`;
   }
-  panel.innerHTML = html;
+
+  html += `<input type="search" id="chargeFilter" value="${esc(state.chargeFilter)}" placeholder="${esc(TEXT.chargeSearch)}" aria-label="${esc(TEXT.chargeSearch)}">`;
+  html += `<div class="row"><button class="card text-card" type="button" data-charge="none" aria-pressed="${state.charge === 'none'}">${esc(TEXT.chargeNone)}</button></div>`;
+  if (ordinaries.length) html += `<div class="row-label">${esc(TEXT.chargeOrdinaries)}</div><div class="row">${ordinaries.join('')}</div>`;
+  if (pictureCards.length) {
+    html += `<div class="row-label">${esc(TEXT.chargePictures)}</div><div class="row">${pictureCards.join('')}</div>`;
+    if (pictures.length > MAX_CARDS) html += `<p class="note">${esc(TEXT.chargeMore(pictures.length - MAX_CARDS))}</p>`;
+  }
+  if (namesShown.length) {
+    html += `<div class="row-label">${esc(TEXT.chargeNoPicture)}</div><div class="row">` +
+      namesShown.map(ch => `<button class="name-btn" type="button" data-charge="charge:${esc(ch.id)}:" ` +
+        `aria-pressed="${isPicked({ kind: 'charge', id: ch.id })}">${esc(ch.name.toLowerCase())}</button>`).join('') + `</div>`;
+    if (names.length > namesShown.length) html += `<p class="note">${esc(TEXT.chargeMore(names.length - namesShown.length))}</p>`;
+  }
+  if (!ordinaries.length && !pictureCards.length && !namesShown.length) html += `<p class="note">${esc(TEXT.chargeNoMatch)}</p>`;
+  $('chargePanel').innerHTML = html;
 }
 
+// ---- The shield being built (top right) ----------------------------------------
 function renderCurrent() {
-  const panel = $('currentPanel');
-  const field = currentField();
-  if (!field) { panel.innerHTML = `<p class="note" style="margin:0">${esc(TEXT.currentEmpty)}</p>`; return; }
-  const groups = currentGroups(field);
-  const text = blazon(field, groups);
-  const patterns = shieldPatterns(field, groups);
-  const noTinctures = field.type === 'divided' && DIVISIONS[field.division].tincturesIndexed === false;
-  panel.innerHTML =
-    shieldSVG(field, { charges: groups, title: text }) +
+  const shield = currentShield();
+  const text = blazon(shield.field, shield.groups, words);
+  const patterns = shieldPatterns(shield.field, shield.groups, { noCharge: shield.noCharge });
+  const problems = checkShield(shield);
+  const f = shield.field;
+  const noTinctures = f && f.type === 'divided' && DIVISIONS[f.division].tincturesIndexed === false;
+  $('currentPanel').innerHTML =
+    shieldSVG(f, { charges: shield.groups, title: text }) +
     `<p class="blazon">${esc(text)}</p>` +
-    `<a class="search-link" href="${esc(complexSearchURL(patterns))}" target="_blank" rel="noopener">${esc(TEXT.searchLink)} →</a>` +
+    (problems.length ? `<ul class="problems">${problems.map(p =>
+      `<li>${esc(ruleText(p))}${p.sena ? ` (SENA ${esc(p.sena)})` : ''}</li>`).join('')}</ul>` : '') +
+    (patterns.length ? `<a class="search-link" href="${esc(complexSearchURL(patterns))}" target="_blank" rel="noopener">${esc(TEXT.searchLink)} →</a>` : '') +
     (noTinctures ? `<p class="note">${esc(TEXT.tincturesNotIndexed)}</p>` : '') +
-    `<details><summary>${esc(TEXT.patternsSummary)}</summary><code>${esc(patterns.join('\n'))}</code></details>`;
+    (patterns.length ? `<details><summary>${esc(TEXT.patternsSummary)}</summary><code>${esc(patterns.join('\n'))}</code></details>` : '');
+}
+
+// ---- Suggestions (along the bottom) ---------------------------------------------
+function renderSuggestions() {
+  const c = constraints();
+  const key = `${SEED}|suggest|${state.epoch}|${library.pictures.length}|${JSON.stringify(c)}`;
+  const pinnedText = new Set(state.pinned.map(s => blazon(s.field, s.groups)));
+  const fresh = remember(key, () => randomShields(c, key, library, SUGGESTION_COUNT + state.pinned.length))
+    .filter(s => !pinnedText.has(blazon(s.field, s.groups))).slice(0, SUGGESTION_COUNT);
+  shown = [...state.pinned, ...fresh];
+
+  const suggestion = (s, i) => {
+    const text = blazon(s.field, s.groups);
+    const pinned = i < state.pinned.length;
+    return `<div class="suggestion${pinned ? ' pinned' : ''}">${shieldSVG(s.field, { charges: s.groups, title: text })}` +
+      `<p title="${esc(text)}">${esc(text)}</p>` +
+      `<button type="button" data-select="${i}">${esc(TEXT.select)}</button>` +
+      `<button type="button" data-pin="${i}">${esc(pinned ? TEXT.unpin : TEXT.pin)}</button></div>`;
+  };
+  const note = !fresh.length ? TEXT.noSuggestions : fresh.length < SUGGESTION_COUNT / 2 ? TEXT.fewSuggestions : '';
+  $('suggestionsPanel').innerHTML =
+    `<div class="suggestions-head"><h2>${esc(TEXT.suggestions)}</h2>` +
+    `<button class="plain-btn" type="button" data-reroll>↻ ${esc(TEXT.reroll)}</button>` +
+    (note ? `<span class="note" style="margin:0">${esc(note)}</span>` : '') + `</div>` +
+    `<div class="suggestion-row">${shown.map(suggestion).join('')}</div>`;
 }
 
 function render() {
-  renderSwatches();
+  renderColourPanels();
   renderDivisionPanel();
   renderChargePanel();
   renderCurrent();
+  renderSuggestions();
 }
 
-// ---- Reacting to clicks and typing ------------------------------------------
+// ---- "select this shield": copy a suggestion into the questions ------------------
+function adopt(shield) {
+  const { field, groups } = shield;
+  state.fieldColours = [...new Set(leafTinctures(field))];
+  if (field.type === 'plain') { state.division = 'plain'; state.builder = null; }
+  else if (isNested(field)) { state.division = 'complex'; state.builder = builderFromField(field); }
+  else { state.division = field.division; state.builder = null; state.fieldColours = leafTinctures(field); }
+  const g = groups[0];
+  if (!g) { state.charge = 'none'; state.chargeNumber = null; state.chargeTincture = null; }
+  else {
+    state.charge = g.kind === 'ordinary' ? { kind: 'ordinary', id: g.ordinary, file: null } : { kind: 'charge', id: g.charge, file: g.art };
+    state.chargeNumber = g.kind === 'ordinary' ? null : g.number;
+    state.chargeTincture = g.tincture;
+  }
+  // Every colour the shield uses is ticked in the first question too.
+  state.shieldColours = [...new Set([...state.shieldColours, ...shieldTinctures(field, groups)])];
+}
+
+// ---- Reacting to clicks and typing -------------------------------------------------
 document.addEventListener('click', e => {
   const btn = e.target.closest('button');
   if (!btn) return;
+  // Greyed options do nothing unless "I'm a herald" is ticked.
+  if (btn.getAttribute('aria-disabled') === 'true') return;
   const d = btn.dataset;
   let refocus = null;
-  if (d.tincture) {
-    state.picked = state.picked.includes(d.tincture) ? state.picked.filter(x => x !== d.tincture) : [...state.picked, d.tincture];
-    resetChoice();
-    refocus = `[data-tincture="${d.tincture}"]`;
+  if (d.q1) {
+    const removing = state.shieldColours.includes(d.q1);
+    state.shieldColours = toggle(state.shieldColours, d.q1);
+    if (removing) {
+      // A colour no longer used in the shield cannot be in the background or on the charge.
+      state.fieldColours = state.fieldColours.filter(t => t !== d.q1);
+      if (state.chargeTincture === d.q1) state.chargeTincture = null;
+      state.builder = null;
+    }
+    refocus = `[data-q1="${d.q1}"]`;
+  } else if (d.q2) {
+    state.fieldColours = toggle(state.fieldColours, d.q2);
+    state.builder = null;
+    refocus = `[data-q2="${d.q2}"]`;
   } else if (d.division) {
-    state.choice = { division: d.division, order: d.order.split(',') };
-    refocus = `[data-division="${d.division}"][data-order="${d.order}"]`;
+    // Clicking the chosen division again un-chooses it.
+    const order = d.order ? d.order.split(',') : null;
+    const same = state.division === d.division && (!order || order.join() === state.fieldColours.join());
+    state.division = same ? null : d.division;
+    if (order && !same) state.fieldColours = order;
+    refocus = `[data-division="${d.division}"]` + (d.order ? `[data-order="${d.order}"]` : '');
   } else if ('complex' in d) {
-    state.choice = 'complex';
+    state.division = state.division === 'complex' ? null : 'complex';
     refocus = '[data-complex]';
   } else if ('swap' in d) {
-    state.order.reverse();
-    if (state.choice && state.choice !== 'complex') state.choice.order = [...state.order];
+    state.fieldColours = [...state.fieldColours].reverse();
     refocus = '[data-swap]';
   } else if (d.charge) {
-    if (d.charge === 'none') state.charge = null;
+    if (d.charge === 'none') state.charge = state.charge === 'none' ? null : 'none';
     else {
       const [kind, id, file] = d.charge.split(':');
-      state.charge = { kind, id, file: file || null };
+      const same = state.charge && state.charge !== 'none' && state.charge.kind === kind &&
+        state.charge.id === id && (state.charge.file || '') === file;
+      state.charge = same ? null : { kind, id, file: file || null };
     }
     refocus = `[data-charge="${d.charge}"]`;
   } else if (d.number) {
-    state.chargeNumber = Number(d.number);
+    const n = Number(d.number);
+    state.chargeNumber = state.chargeNumber === n ? null : n;
     refocus = `[data-number="${d.number}"]`;
   } else if (d.chargeTincture) {
-    state.chargeTincture = d.chargeTincture;
+    state.chargeTincture = state.chargeTincture === d.chargeTincture ? null : d.chargeTincture;
     refocus = `[data-charge-tincture="${d.chargeTincture}"]`;
+  } else if (d.select) {
+    adopt(shown[Number(d.select)]);
+  } else if (d.pin) {
+    const i = Number(d.pin);
+    if (i < state.pinned.length) state.pinned.splice(i, 1);
+    else state.pinned.push(shown[i]);
+  } else if ('reroll' in d) {
+    state.epoch++;
+    refocus = '[data-reroll]';
   } else return;
+  tidy();
   render();
   // preventScroll: keep the page where it is instead of jumping to the button.
   if (refocus) document.querySelector(refocus)?.focus({ preventScroll: true });
 });
 
 document.addEventListener('change', e => {
+  if (e.target.id === 'herald') { state.herald = e.target.checked; render(); return; }
   const sel = e.target.closest('select[data-b]');
   if (!sel) return;
   const b = state.builder, i = Number(sel.dataset.i);
@@ -394,6 +681,7 @@ document.addEventListener('change', e => {
     else b.parts[i].kind = sel.value;
   } else b.parts[i][sel.dataset.b] = sel.value;
   const key = `select[data-b="${sel.dataset.b}"]` + (sel.dataset.i ? `[data-i="${sel.dataset.i}"]` : '');
+  tidy();
   render();
   document.querySelector(key)?.focus({ preventScroll: true });
 });
@@ -410,8 +698,7 @@ document.addEventListener('input', e => {
 });
 
 $('title').textContent = TEXT.title;
-$('coloursHeading').textContent = TEXT.coloursHeading;
-$('fursLabel').textContent = TEXT.fursLabel;
+$('heraldLabel').textContent = TEXT.herald;
 render();
 
 // The charge library loads in the background; the page works before it arrives

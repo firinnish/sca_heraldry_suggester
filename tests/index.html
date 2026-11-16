@@ -23,7 +23,7 @@ A few percent of misses is normal (the index has its own inconsistencies).</p>
 
 <script type="module">
 import { TINCTURES, DIVISIONS, ORDINARIES, divisionsWithParts } from '../core/catalog.js';
-import { plain, divided, ordinaryGroup, chargeGroup, blazon as blazonShield } from '../core/shield.js';
+import { plain, divided, ordinaryGroup, chargeGroup, blazon as blazonShield, COUNTERCHANGED } from '../core/shield.js';
 import { shieldSVG } from '../core/draw.js';
 import { shieldPatterns, complexSearchURL } from '../core/oanda.js';
 
@@ -101,11 +101,26 @@ for (const kind of chargeKinds) {
   }
 }
 
+// Counterchanged charges, and backgrounds with nothing on them (field only).
+const DARK = ['gules', 'vert', 'azure', 'sable', 'purpure'], LIGHT = ['or', 'argent'];
+for (const d of ['perPale', 'perFess', 'perBend', 'perBendSinister', 'perChevron', 'quarterly', 'perSaltire']) {
+  for (const a of DARK) for (const b of LIGHT) for (const [x, y] of [[a, b], [b, a]]) {
+    const field = divided(d, [plain(x), plain(y)]);
+    for (const number of [1, 2, 3]) {
+      for (const [name, category] of [['roundel', 'ROUNDEL'], ['mullet', 'STAR'], ['rose', 'ROSE']]) {
+        cases.push({ group: 'counterchanged', field, exact: true,
+                     groups: [chargeGroup({ charge: name, category, number, tincture: COUNTERCHANGED })] });
+      }
+    }
+    cases.push({ group: 'nothing on the field', field, groups: [], exact: true, noCharge: true });
+  }
+}
+
 const totals = {}, misses = [];
 let drawErrors = 0;
 for (const c of cases) {
   const blazon = blazonShield(c.field, c.groups || []).toLowerCase();
-  const patterns = shieldPatterns(c.field, c.groups || []);
+  const patterns = shieldPatterns(c.field, c.groups || [], { noCharge: !!c.noCharge });
   try { shieldSVG(c.field, { charges: c.groups || [] }); complexSearchURL(patterns); } catch (e) { drawErrors++; misses.push('ERROR ' + blazon + ': ' + e.message); }
   const t = totals[c.group] || (totals[c.group] = { records: 0, matched: 0 });
   for (const r of records) {
