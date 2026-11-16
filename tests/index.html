@@ -22,10 +22,10 @@ A few percent of misses is normal (the index has its own inconsistencies).</p>
 <pre id="misses"></pre>
 
 <script type="module">
-import { TINCTURES, DIVISIONS, divisionsWithParts } from '../core/catalog.js';
-import { plain, divided, blazonField } from '../core/shield.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, divisionsWithParts } from '../core/catalog.js';
+import { plain, divided, ordinaryGroup, chargeGroup, blazon as blazonShield } from '../core/shield.js';
 import { shieldSVG } from '../core/draw.js';
-import { fieldPatterns, complexSearchURL } from '../core/oanda.js';
+import { shieldPatterns, complexSearchURL } from '../core/oanda.js';
 
 // A division passes if at least 80% of its records match every pattern.
 // The rest are records the O&A indexed differently from its own usual habit
@@ -36,12 +36,17 @@ const PASS_MARK = 0.8;
 // Does one indexed description satisfy one search pattern?
 // "multicolor" also matches "multicolor neutral/dark/light", "~and fur" any fur.
 const FURS = ['ermine', 'counterermine', 'erminois', 'pean'];
+const POSTURES = ['rampant', 'passant', 'statant', 'sejant', 'couchant', 'courant', 'salient', 'dormant'];
 function satisfies(desc, pattern) {
   const [dHead, ...dFeat] = desc.split(':');
   const [pHead, ...pFeat] = pattern.split(':');
   if (dHead !== pHead) return false;
   return pFeat.every(f => dFeat.includes(f) ||
     (f === 'multicolor' && dFeat.some(x => x.startsWith('multicolor'))) ||
+    // "primary" covers sole primary (spa, spna) and group primary (gpa, g2pa, g3pna...)
+    (f === 'primary' && dFeat.some(x => /^(spn?a|g\d?pn?a|sole primary|group primary)$/.test(x))) ||
+    // a posture covers its "to dexter" / "to sinister" forms
+    (POSTURES.includes(f) && dFeat.some(x => x.startsWith(f + ' to '))) ||
     (f === '~and fur' && FURS.some(x => dFeat.includes('~and ' + x))));
 }
 
@@ -73,22 +78,45 @@ for (const d of divisionsWithParts(3)) {
   cases.push({ group: DIVISIONS[d].name, field: divided(d, [plain('argent'), plain('sable'), plain('gules')]), prefixOnly: DIVISIONS[d].name + ' ' });
 }
 
+// Charges: a plain field with one group of charges and nothing else, so the
+// whole blazon must match exactly ("Gules, a lion rampant Or.").
+const plainTinctures = ['gules', 'vert', 'azure', 'sable', 'purpure', 'or', 'argent'];
+const chargeKinds = [
+  ...Object.keys(ORDINARIES).map(id => ({ group: 'a ' + ORDINARIES[id].name, make: t => ordinaryGroup(id, t) })),
+  { group: 'a lion rampant', make: t => chargeGroup({ charge: 'lion', category: 'CAT', posture: 'rampant', tincture: t }) },
+  { group: 'a lion passant', make: t => chargeGroup({ charge: 'lion', category: 'CAT', posture: 'passant', tincture: t }) },
+  { group: 'a fleur-de-lys', make: t => chargeGroup({ charge: 'fleur-de-lys', category: 'FDL', tincture: t }) },
+  { group: 'three fleurs-de-lys', make: t => chargeGroup({ charge: 'fleur-de-lys', plural: 'fleurs-de-lys', category: 'FDL', number: 3, tincture: t }) },
+  { group: 'three crescents', make: t => chargeGroup({ charge: 'crescent', category: 'CRESCENT', number: 3, tincture: t }) },
+  { group: 'two/three swords', make: t => chargeGroup({ charge: 'sword', category: 'SWORD', number: 3, tincture: t }), numbers: [2, 3] },
+];
+for (const kind of chargeKinds) {
+  for (const f of plainTinctures) for (const t of ids) {
+    if (f === t) continue;
+    for (const number of kind.numbers || [null]) {
+      const g = kind.make(t);
+      if (number) g.number = number;
+      cases.push({ group: kind.group, field: plain(f), groups: [g], exact: true });
+    }
+  }
+}
+
 const totals = {}, misses = [];
 let drawErrors = 0;
 for (const c of cases) {
-  const blazon = blazonField(c.field).toLowerCase();
-  const patterns = fieldPatterns(c.field);
-  try { shieldSVG(c.field); complexSearchURL(patterns); } catch (e) { drawErrors++; misses.push('ERROR ' + blazon + ': ' + e.message); }
+  const blazon = blazonShield(c.field, c.groups || []).toLowerCase();
+  const patterns = shieldPatterns(c.field, c.groups || []);
+  try { shieldSVG(c.field, { charges: c.groups || [] }); complexSearchURL(patterns); } catch (e) { drawErrors++; misses.push('ERROR ' + blazon + ': ' + e.message); }
   const t = totals[c.group] || (totals[c.group] = { records: 0, matched: 0 });
   for (const r of records) {
-    const hit = c.prefixOnly
+    const hit = c.exact ? r.blazon === blazon + '.' : c.prefixOnly
       ? r.blazon.startsWith(c.prefixOnly) && !r.blazon.startsWith(c.prefixOnly + 'inverted')
       : r.blazon.startsWith(blazon + ',') || r.blazon.startsWith(blazon + '.');
     if (!hit) continue;
     t.records++;
     const ok = patterns.every(p => r.descs.some(d => satisfies(d, p)));
     if (ok) t.matched++;
-    else if ((t.shown = (t.shown || 0) + 1) <= 4) misses.push(`${blazon}\n   wanted: ${patterns.join(' | ')}\n   record: ${r.descs.filter(d => /^(FIELD|P[A-Z]+:|QLY|GYRONNY)/.test(d)).join(' | ')}`);
+    else if ((t.shown = (t.shown || 0) + 1) <= 4) misses.push(`${blazon}\n   wanted: ${patterns.join(' | ')}\n   record: ${r.descs.filter(d => c.exact || /^(FIELD|P[A-Z]+:|QLY|GYRONNY)/.test(d)).join(' | ')}`);
   }
 }
 

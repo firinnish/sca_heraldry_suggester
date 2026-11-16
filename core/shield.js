@@ -17,7 +17,7 @@
 // Still to come: charge groups (which charge, how many, tincture, and whether
 // it is primary / secondary / tertiary / overall / peripheral).
 
-import { TINCTURES, DIVISIONS } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES } from './catalog.js';
 
 export function plain(tincture) {
   if (!TINCTURES[tincture]) throw new Error('Unknown tincture: ' + tincture);
@@ -33,19 +33,51 @@ export function divided(division, parts, line = 'plain') {
   return { type: 'divided', division, line, parts };
 }
 
-// A CHARGE GROUP is a set of identical charges:
+// A CHARGE GROUP is a set of identical charges. Two kinds:
 //
-//   { charge: 'lion', art: 'lion-rampant-1.png', number: 1, tincture: 'or', mirror: false }
+//   { kind: 'ordinary', ordinary: 'chevron', number: 1, tincture: 'or' }
 //
-// charge:  the id from charges/charges.csv.
-// art:     a file from charges/art/, or null to draw a blob.
-// number:  how many (1, 2 or 3 so far).
-// mirror:  true to face sinister.
-// Still to come: role (primary / secondary / tertiary / overall), posture,
-// arrangement, and the blazon and O&A search patterns for charges.
-export function chargeGroup({ charge, art = null, number = 1, tincture, mirror = false }) {
+//   { kind: 'charge', charge: 'lion', name: 'lion', plural: 'lions',
+//     category: 'CAT', posture: 'rampant', inverted: false, mirror: false,
+//     art: 'lion-rampant-1.png', artInverted: false,
+//     number: 1, tincture: 'or' }
+//
+// charge / name / plural / category come from charges/charges.csv
+//   (category is the O&A category code).
+// posture:     the O&A's word for it ('rampant'), or '' if none.
+// inverted:    true if the charge is upside down on the shield.
+// mirror:      true if it faces sinister.
+// art:         a picture from charges/art/, or null to draw a blob.
+// artInverted: true if that picture was drawn upside down; the drawing code
+//              turns it over as needed, so one picture serves both ways up.
+// number:      how many (1, 2 or 3 so far).
+//
+// For now every group is treated as the primary charge group.
+// Still to come: secondary / tertiary / overall groups, and arrangements.
+export function ordinaryGroup(ordinary, tincture) {
+  if (!ORDINARIES[ordinary]) throw new Error('Unknown ordinary: ' + ordinary);
   if (!TINCTURES[tincture]) throw new Error('Unknown tincture: ' + tincture);
-  return { charge, art, number, tincture, mirror };
+  return { kind: 'ordinary', ordinary, number: 1, tincture };
+}
+
+export function chargeGroup({ charge, name = charge, plural = '', category = '', posture = '',
+                              inverted = false, mirror = false, art = null, artInverted = false,
+                              number = 1, tincture }) {
+  if (!TINCTURES[tincture]) throw new Error('Unknown tincture: ' + tincture);
+  return { kind: 'charge', charge, name, plural, category, posture, inverted, mirror,
+           art, artInverted, number, tincture };
+}
+
+// A charge group made from a row of charges.csv and (optionally) a picture
+// row from art.csv, as returned by loadLibrary() in art.js.
+export function chargeGroupFromLibrary(charge, picture, options) {
+  return chargeGroup({
+    charge: charge.id, name: charge.name, plural: charge.plural, category: charge.oanda_category,
+    posture: picture ? picture.posture : '',
+    art: picture ? picture.file : null,
+    artInverted: picture ? picture.inverted : false,
+    ...options,
+  });
 }
 
 // Every tincture used anywhere in a field, without repeats.
@@ -69,4 +101,26 @@ function fieldWords(field) {
 export function blazonField(field) {
   const words = fieldWords(field);
   return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+const NUMBER_WORDS = { 2: 'two', 3: 'three' };
+
+// "a lion rampant Or", "three fleurs-de-lys azure", "a chevron ermine"
+export function blazonGroup(group) {
+  const one = (group.kind === 'ordinary' ? ORDINARIES[group.ordinary].name : group.name).toLowerCase();
+  let words;
+  if (group.number === 1) {
+    words = (/^[aeiou]/.test(one) ? 'an ' : 'a ') + one;
+  } else {
+    words = NUMBER_WORDS[group.number] + ' ' + (group.plural ? group.plural.toLowerCase() : one + 's');
+  }
+  if (group.posture) words += ' ' + group.posture;
+  if (group.inverted) words += ' inverted';
+  if (group.mirror) words += ' contourny';
+  return words + ' ' + TINCTURES[group.tincture].name;
+}
+
+// The whole blazon: "Gules, a lion rampant Or"
+export function blazon(field, groups = []) {
+  return [blazonField(field), ...groups.map(blazonGroup)].join(', ');
 }

@@ -27,6 +27,8 @@ then open:
 | `tools/` | `check_charges.py` (checks the charge library for mistakes), `rank_charges.py` (rebuilds the two generated lists), `build_charges_data.py` (feeds the old charge picker from `data/charges.csv`). |
 | `tests/` | A page that checks `core/oanda.js` against every matching record in the O&A database. |
 
+What is planned next is in [ROADMAP.md](ROADMAP.md).
+
 ## Not in this repository
 
 Two things are deliberately kept off GitHub:

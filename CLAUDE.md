@@ -83,14 +83,24 @@ O&A Complex Search Form (`apps/search`), and a heraldry suggester / generator
   has some rows with shifted columns). `charges/charges.csv` was seeded from
   it in November 2026 and is the one to use and edit from now on.
 - Recolouring is built in `core/draw.js` (tincture painted through a mask of
-  the picture's white areas, lines drawn on top, grey lines on black charges)
-  and proven on the first six pictures: see `tests/charges.html`, which draws
-  every picture in every tincture. Check it after changing charge drawing.
-- Charge groups (`chargeGroup` in `core/shield.js`) so far have only charge,
-  art, number (1-3), tincture and mirror. The layouts in `draw.js` are draft
-  positions. Not built yet: roles (primary/secondary/...), blazon and O&A
-  search patterns for charges, and the charges section of the search page.
-- Never commit a picture whose `artist` and `permission` are empty.
+  the picture's white areas, lines drawn on top, grey lines on black charges).
+  `tests/charges.html` draws every picture in every tincture and every
+  ordinary: look at it after changing charge drawing.
+- Pictures are measured in the browser (`core/art.js`), so pages must
+  `await loadLibrary()` (or `loadPicture`) before drawing charges; anything
+  not loaded is drawn as a blob. No build step is needed when art is added.
+- Sizing rule (maintainer's): a charge fills 95% of the space it is in and
+  never touches the edge. `fit()` in `draw.js` works from the picture's real
+  outline and "a space"; spaces left by other charges are not worked out yet.
+- One picture serves several orientations: `inverted` in art.csv's `variant`
+  means drawn upside down, and the code flips it as needed. Extend this idea
+  (not more art) for other orientations.
+- Charge groups are `ordinaryGroup` / `chargeGroup` in `core/shield.js`; for
+  now every group is treated as primary. Ordinaries are in `catalog.js`
+  (`ORDINARIES`) and drawn by code. See ROADMAP.md for what comes next.
+- Never commit a picture whose `artist` and `permission` are empty. The
+  maintainer's own tracings of medieval sources are recorded as
+  "public domain".
 
 ## Open questions
 - `apps/suggester/heraldry_mvp.html` still has its own older, guessed link

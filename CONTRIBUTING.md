@@ -37,6 +37,10 @@ automatically, which only works if every picture follows the same rules.
 - One charge per picture, on its own: no shield, no field, no other charges.
 - Upright, in its default heraldic position, facing dexter (the viewer's left)
   where that applies. The tools make the mirrored and rotated versions.
+- If your picture is the other way up from the default (for example a sword
+  drawn point down), that is fine: put `inverted` in the `variant` column and
+  the tools turn it over whenever the usual way up is wanted. There is no
+  need to supply both.
 - Keep lines bold enough to survive being shrunk to the size of a small charge
   on a shield. Fine hatching and tiny details disappear.
 - Every enclosed area should be closed, so that the white fill does not leak
@@ -78,11 +82,11 @@ One line per picture:
 | `file` | The file name, exactly | `lion-rampant-1.png` |
 | `charge_id` | The charge's `id` from `charges.csv` | `lion` |
 | `posture` | The posture or orientation, using the O&A's own words; empty if none | `rampant` |
-| `variant` | Anything else that distinguishes this drawing; usually empty | `queue-forchy` |
+| `variant` | Anything else that distinguishes this drawing; usually empty. The word `inverted` here means the picture is drawn upside down | `queue-forchy` |
 | `default` | `TRUE` for the one picture that best represents the charge; otherwise empty | `TRUE` |
 | `artist` | Who drew it (SCA name or legal name, as the artist prefers) | |
 | `source` | Where it came from, if not drawn fresh for this project; otherwise empty | |
-| `permission` | `own work`, or who gave permission and how | `own work` |
+| `permission` | `own work`, `public domain`, or who gave permission and how | `own work` |
 | `notes` | Anything else worth knowing | |
 
 Postures must be ones the O&A uses, such as `rampant`, `passant`, `statant`,

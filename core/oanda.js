@@ -22,7 +22,7 @@
 //    divided is "multicolor" on both lines, and gets its own division line.
 //  * Three-part divisions (per pall) do not record their tinctures at all.
 
-import { TINCTURES, DIVISIONS } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES } from './catalog.js';
 
 const FORM_URL = 'https://oanda.sca.org/oanda_complex.cgi';
 export const MAX_PATTERNS = 10;
@@ -82,6 +82,39 @@ export function fieldPatterns(field) {
     fieldBits[2] = 'multicolor';
   }
   return [divisionLine(field), fieldBits.join(':'), ...nestedDivisionLines(field)];
+}
+
+// ---- Charges ---------------------------------------------------------------
+// Checked against real records (tests/index.html):
+//  * A charge is   <category>:<number>:<tincture>:primary[:<posture>]
+//    e.g. "Gules, a lion rampant Or" is indexed CAT:1:or:rampant to dexter:spa,
+//    and "primary" and "rampant" match those more specific words.
+//  * An ordinary is the same plus "pl" (plain line). Crosses and saltires
+//    carry no number.
+//  * A chief, bordure or base is never primary: it is just <code>:<tincture>:pl,
+//    and armory with nothing else on it is also marked PO (peripheral only).
+
+function groupPattern(group) {
+  if (group.kind === 'ordinary') {
+    const def = ORDINARIES[group.ordinary];
+    const bits = [def.code];
+    if (def.numbered) bits.push(String(group.number));
+    bits.push(group.tincture, 'pl');
+    if (!def.peripheral) bits.push('primary');
+    return bits.join(':');
+  }
+  const bits = [group.category, String(group.number), group.tincture, 'primary'];
+  if (group.posture) bits.push(group.posture);
+  return bits.join(':');
+}
+
+const isPeripheral = g => g.kind === 'ordinary' && ORDINARIES[g.ordinary].peripheral;
+
+// All the search patterns for a whole shield: the field, then each charge group.
+export function shieldPatterns(field, groups = []) {
+  const patterns = [...fieldPatterns(field), ...groups.map(groupPattern)];
+  if (groups.length && groups.every(isPeripheral)) patterns.push('PO');
+  return patterns;
 }
 
 // A ready-to-click Complex Search Form link for a list of patterns.

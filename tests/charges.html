@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Charge art: recolouring check</title>
+<title>Charge art: drawing check</title>
 <style>
   body { font-family: Georgia, serif; margin: 20px 16px; color: #2b2620; background: #faf6ee; }
   h2 { font-size: 1rem; margin: 26px 0 8px; }
@@ -13,36 +13,17 @@
 </style>
 </head>
 <body>
-<h1>Charge art: recolouring check</h1>
+<h1>Charge art: drawing check</h1>
 <p>Every picture listed in <code>charges/art.csv</code>, drawn in each tincture on a
-contrasting field, then in twos and threes, facing the other way, and as the
-"blob" used when a charge has no picture.</p>
+contrasting field, then in twos and threes, facing the other way, upside down, and
+as the "blob" used when a charge has no picture. Then every ordinary.</p>
 <div id="out"></div>
 
 <script type="module">
-import { TINCTURES } from '../core/catalog.js';
-import { plain, divided, chargeGroup } from '../core/shield.js';
+import { TINCTURES, ORDINARIES } from '../core/catalog.js';
+import { plain, divided, chargeGroupFromLibrary, ordinaryGroup, blazon } from '../core/shield.js';
 import { shieldSVG } from '../core/draw.js';
-
-// A small CSV reader (handles quoted cells).
-function parseCSV(text) {
-  const rows = [];
-  let row = [], cell = '', quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (quoted) {
-      if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
-      else if (c === '"') quoted = false;
-      else cell += c;
-    } else if (c === '"') quoted = true;
-    else if (c === ',') { row.push(cell); cell = ''; }
-    else if (c === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
-    else if (c !== '\r') cell += c;
-  }
-  if (cell || row.length) { row.push(cell); rows.push(row); }
-  const [head, ...body] = rows;
-  return body.filter(r => r.some(Boolean)).map(r => Object.fromEntries(head.map((h, i) => [h, r[i] || ''])));
-}
+import { loadLibrary } from '../core/art.js';
 
 // [charge tincture, field] pairs to try.
 const PAIRS = [
@@ -54,21 +35,29 @@ const PAIRS = [
 ];
 
 const figure = (svg, caption) => `<figure>${svg}<figcaption>${caption}</figcaption></figure>`;
-const art = parseCSV(await (await fetch('../charges/art.csv')).text());
+const show = (field, group, caption) => figure(shieldSVG(field, { charges: [group], title: blazon(field, [group]) }), caption);
+
+const library = await loadLibrary();
 let html = '';
-for (const a of art) {
-  const group = extra => chargeGroup({ charge: a.charge_id, art: a.file, tincture: 'or', ...extra });
-  html += `<h2>${a.file}  (${a.charge_id}${a.posture ? ' ' + a.posture : ''})</h2><div class="row">`;
-  for (const [tincture, field] of PAIRS) {
-    html += figure(shieldSVG(field, { charges: [group({ tincture })] }), TINCTURES[tincture].name);
-  }
-  html += figure(shieldSVG(plain('gules'), { charges: [group({ number: 2 })] }), 'two');
-  html += figure(shieldSVG(plain('gules'), { charges: [group({ number: 3 })] }), 'three');
-  html += figure(shieldSVG(plain('gules'), { charges: [group({ mirror: true })] }), 'facing sinister');
-  html += figure(shieldSVG(plain('gules'), { charges: [group({ art: null, number: 3 })] }), 'no picture (blobs)');
+for (const picture of library.pictures) {
+  const group = extra => chargeGroupFromLibrary(picture.charge, picture, { tincture: 'or', ...extra });
+  html += `<h2>${picture.file}  (${picture.charge_id}${picture.posture ? ' ' + picture.posture : ''}${picture.inverted ? ', drawn inverted' : ''})</h2><div class="row">`;
+  for (const [tincture, field] of PAIRS) html += show(field, group({ tincture }), TINCTURES[tincture].name);
+  html += show(plain('gules'), group({ number: 2 }), 'two');
+  html += show(plain('gules'), group({ number: 3 }), 'three');
+  html += show(plain('gules'), group({ mirror: true }), 'facing sinister');
+  html += show(plain('gules'), group({ inverted: true }), 'inverted');
+  html += show(plain('gules'), chargeGroupFromLibrary(picture.charge, null, { tincture: 'or', number: 3 }), 'no picture (blobs)');
   html += '</div>';
 }
-document.getElementById('out').innerHTML = html || '<p>No pictures are listed in charges/art.csv yet.</p>';
+html += '<h2>Ordinaries</h2><div class="row">';
+for (const id of Object.keys(ORDINARIES)) {
+  html += show(plain('azure'), ordinaryGroup(id, 'or'), ORDINARIES[id].name);
+  html += show(plain('gules'), ordinaryGroup(id, 'ermine'), ORDINARIES[id].name + ' ermine');
+}
+html += '</div>';
+document.getElementById('out').innerHTML = html;
+window.done = true;
 </script>
 </body>
 </html>

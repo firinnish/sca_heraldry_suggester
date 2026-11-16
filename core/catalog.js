@@ -65,6 +65,28 @@ export const DIVISIONS = {
   perPallInverted:    { name: 'per pall inverted',    parts: 3, code: 'FIELD DIV.-PER PALL*7', fieldWord: 'divided pallwise inverted', ordered: true, plainLine: true, tincturesIndexed: false },
 };
 
+// ---- Ordinaries ------------------------------------------------------------
+// Simple geometric charges that draw.js draws itself (no picture needed).
+// code:       the O&A category code (checked against real records).
+// numbered:   false = the O&A does not record a number for it (cross, saltire).
+// peripheral: true  = sits at the edge of the shield and is never the primary
+//                     charge; armory with nothing else is "peripheral only" (PO).
+export const ORDINARIES = {
+  pale:            { name: 'pale',             code: 'PALE',      numbered: true },
+  fess:            { name: 'fess',             code: 'FESS',      numbered: true },
+  bend:            { name: 'bend',             code: 'BEND',      numbered: true },
+  bendSinister:    { name: 'bend sinister',    code: 'BS',        numbered: true },
+  chevron:         { name: 'chevron',          code: 'CHEVRON',   numbered: true },
+  chevronInverted: { name: 'chevron inverted', code: 'CHEVRON*7', numbered: true },
+  cross:           { name: 'cross',            code: 'CROSS',     numbered: false },
+  saltire:         { name: 'saltire',          code: 'SALTIRE',   numbered: false },
+  pall:            { name: 'pall',             code: 'PALL',      numbered: true },
+  pile:            { name: 'pile',             code: 'PILE',      numbered: true },
+  chief:           { name: 'chief',            code: 'CHIEF',     numbered: false, peripheral: true },
+  bordure:         { name: 'bordure',          code: 'BORDURE',   numbered: false, peripheral: true },
+  base:            { name: 'base',             code: 'BASE',      numbered: false, peripheral: true },
+};
+
 export function divisionsWithParts(n) {
   return Object.keys(DIVISIONS).filter(id => DIVISIONS[id].parts === n);
 }
