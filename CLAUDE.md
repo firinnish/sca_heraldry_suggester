@@ -82,9 +82,15 @@ O&A Complex Search Form (`apps/search`), and a heraldry suggester / generator
 - `data/charges.csv` is the OLD list (it only feeds the old charge picker and
   has some rows with shifted columns). `charges/charges.csv` was seeded from
   it in November 2026 and is the one to use and edit from now on.
-- Not built yet: recolouring/placing the PNGs in `core/draw.js`. Plan: mask
-  by the image's transparency, multiply the tincture into the white fill,
-  lighten the lines on sable. Prove it on a ~10 image pilot first.
+- Recolouring is built in `core/draw.js` (tincture painted through a mask of
+  the picture's white areas, lines drawn on top, grey lines on black charges)
+  and proven on the first six pictures: see `tests/charges.html`, which draws
+  every picture in every tincture. Check it after changing charge drawing.
+- Charge groups (`chargeGroup` in `core/shield.js`) so far have only charge,
+  art, number (1-3), tincture and mirror. The layouts in `draw.js` are draft
+  positions. Not built yet: roles (primary/secondary/...), blazon and O&A
+  search patterns for charges, and the charges section of the search page.
+- Never commit a picture whose `artist` and `permission` are empty.
 
 ## Open questions
 - `apps/suggester/heraldry_mvp.html` still has its own older, guessed link

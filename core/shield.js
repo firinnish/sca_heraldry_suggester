@@ -33,6 +33,21 @@ export function divided(division, parts, line = 'plain') {
   return { type: 'divided', division, line, parts };
 }
 
+// A CHARGE GROUP is a set of identical charges:
+//
+//   { charge: 'lion', art: 'lion-rampant-1.png', number: 1, tincture: 'or', mirror: false }
+//
+// charge:  the id from charges/charges.csv.
+// art:     a file from charges/art/, or null to draw a blob.
+// number:  how many (1, 2 or 3 so far).
+// mirror:  true to face sinister.
+// Still to come: role (primary / secondary / tertiary / overall), posture,
+// arrangement, and the blazon and O&A search patterns for charges.
+export function chargeGroup({ charge, art = null, number = 1, tincture, mirror = false }) {
+  if (!TINCTURES[tincture]) throw new Error('Unknown tincture: ' + tincture);
+  return { charge, art, number, tincture, mirror };
+}
+
 // Every tincture used anywhere in a field, without repeats.
 export function tincturesIn(field) {
   if (field.type === 'plain') return [field.tincture];

@@ -28,7 +28,8 @@ CHARGE_COLUMNS = ['id', 'name', 'plural', 'plain_name', 'oanda_category', 'type'
 ART_COLUMNS = ['file', 'charge_id', 'posture', 'variant', 'default', 'artist',
                'source', 'permission', 'notes']
 
-MIN_LONGEST_SIDE = 1000     # pixels
+MIN_LONGEST_SIDE = 1000     # pixels: what we ask for (smaller gets a warning)
+TOO_SMALL = 500             # pixels: below this the image is refused
 MAX_MARGIN = 0.05           # empty space allowed around the charge, per side
 MAX_COLOURED = 0.02         # share of pixels allowed to be neither black, white nor grey
 
@@ -85,8 +86,11 @@ def check_image(path, problems, warnings, name):
         problems.append(f'{name}: is a {img.format} file, not a PNG')
         return True
     w, h = img.size
-    if max(w, h) < MIN_LONGEST_SIDE:
-        problems.append(f'{name}: is {w}x{h} pixels; the longest side must be at least {MIN_LONGEST_SIDE}')
+    if max(w, h) < TOO_SMALL:
+        problems.append(f'{name}: is {w}x{h} pixels; the longest side must be at least {TOO_SMALL}')
+    elif max(w, h) < MIN_LONGEST_SIDE:
+        warnings.append(f'{name}: is {w}x{h} pixels; fine on screen, but {MIN_LONGEST_SIDE}+ on the '
+                        f'longest side is better for anything printed')
     rgba = img.convert('RGBA')
     alpha = rgba.getchannel('A')
     lo, hi = alpha.getextrema()

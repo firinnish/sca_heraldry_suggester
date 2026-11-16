@@ -156,10 +156,66 @@ function drawField(field, ctx) {
   }).join('');
 }
 
+// ---- Charges ---------------------------------------------------------------
+//
+// Charge pictures are PNGs in charges/art/: black lines on a white fill, with
+// a transparent background (see CONTRIBUTING.md). To draw one in a tincture:
+//   1. paint the tincture (or fur pattern) through a mask made from the
+//      picture, so it only shows where the picture is white;
+//   2. draw the picture's lines on top, using a filter that keeps only the
+//      dark parts. On a black charge the lines are drawn in grey instead.
+// A charge with no picture is drawn as a blob of the right tincture.
+
+const ART_BASE = new URL('../charges/art/', import.meta.url).href;
+const LINE_COLOUR = [17, 17, 17];
+const LINE_COLOUR_ON_DARK = [165, 165, 165];
+const DARK_CHARGES = new Set(['sable', 'counterermine', 'pean']);
+const BLOB = 'M50 4 C78 2 98 22 94 50 C99 78 74 98 48 95 C22 99 2 76 6 50 C1 24 22 3 50 4 Z';
+
+// Where the charges of a group go, by how many there are (boxes in the
+// 100 x 120 shield space). DRAFT positions: one in the middle, two side by
+// side, three "two and one".
+const LAYOUTS = {
+  1: [[21, 16, 58, 70]],
+  2: [[8, 26, 39, 50], [53, 26, 39, 50]],
+  3: [[10, 10, 36, 40], [54, 10, 36, 40], [32, 60, 36, 42]],
+};
+
+function drawCharge(group, [x, y, w, h], ctx) {
+  const paint = fill(group.tincture, ctx);
+  let out;
+  if (!group.art) {
+    out = `<path d="${BLOB}" transform="translate(${x + w * 0.08} ${y + h * 0.08}) scale(${w * 0.0084} ${h * 0.0084})" ` +
+          `fill="${paint}" stroke="rgb(${LINE_COLOUR})" stroke-width="2.5"/>`;
+  } else {
+    const n = ctx.clips++;
+    const maskId = `${ctx.id}-m${n}`, linesId = `${ctx.id}-l${n}`;
+    const [r, g, b] = (DARK_CHARGES.has(group.tincture) ? LINE_COLOUR_ON_DARK : LINE_COLOUR).map(v => (v / 255).toFixed(3));
+    const image = `<image href="${ART_BASE}${encodeURIComponent(group.art)}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet"`;
+    ctx.defs.push(
+      `<mask id="${maskId}">${image}/></mask>` +
+      // keeps the picture's dark lines only: colour = line colour, opacity = opacity - brightness
+      `<filter id="${linesId}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" ` +
+      `values="0 0 0 0 ${r}  0 0 0 0 ${g}  0 0 0 0 ${b}  -1 0 0 1 0"/></filter>`);
+    out = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${paint}" mask="url(#${maskId})"/>` +
+          `${image} filter="url(#${linesId})"/>`;
+  }
+  // Mirrored charges (facing sinister) are flipped about their own centre.
+  return group.mirror ? `<g transform="translate(${2 * x + w} 0) scale(-1 1)">${out}</g>` : out;
+}
+
+function drawChargeGroup(group, ctx) {
+  const boxes = LAYOUTS[group.number || 1];
+  if (!boxes) throw new Error(`No layout yet for ${group.number} charges`);
+  return boxes.map(box => drawCharge(group, box, ctx)).join('');
+}
+
 // The whole shield as an SVG string. `title` is read out by screen readers.
-export function shieldSVG(field, { title = '' } = {}) {
+// `charges` is a list of charge groups (see shield.js); for now each group is
+// simply drawn in the middle of the shield.
+export function shieldSVG(field, { title = '', charges = [] } = {}) {
   const ctx = { id: 's' + nextId++, defs: [], furs: new Set(), clips: 0 };
-  const body = drawField(field, ctx);
+  const body = drawField(field, ctx) + charges.map(g => drawChargeGroup(g, ctx)).join('');
   const safeTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;');
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">` +
     (title ? `<title>${safeTitle}</title>` : '') +
