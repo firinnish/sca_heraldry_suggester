@@ -1,0 +1,10 @@
+# LibreOffice lock files (appear while a CSV is open)
+.~lock.*#
+__pycache__/
+
+# Kept on the maintainer's machine only, NOT on GitHub:
+# - Traceable Heraldic Art images (not to be published until the maintainer
+#   has agreed terms with their creator and labelled them properly)
+# - the O&A database (SCA copyright; only used by the checks in tests/)
+SVG/
+data/oanda.db

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SCA Heraldry Ideation Tool — MVP</title>
+<style>
+  :root {
+    --or: #F2C029;
+    --argent: #F5F5F0;
+    --gules: #C8102E;
+    --sable: #1A1A1A;
+    --azure: #0056A8;
+    --vert: #157F3B;
+    --purpure: #7B2D8B;
+    --ink: #2b2620;
+    --paper: #faf6ee;
+    --line: #d8cfba;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, 'Iowan Old Style', serif;
+    background: var(--paper);
+    color: var(--ink);
+    padding: 24px;
+  }
+  h1 { font-size: 1.4rem; margin: 0 0 4px 0; }
+  p.sub { margin: 0 0 20px 0; color: #6b6252; font-size: 0.92rem; max-width: 640px; }
+  .panel {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 22px;
+  }
+  .panel h2 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #8a7f68;
+    margin: 0 0 12px 0;
+  }
+  .charge-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .charge-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 84px;
+    padding: 8px 6px;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.78rem;
+    color: var(--ink);
+  }
+  .charge-btn svg { width: 40px; height: 40px; }
+  .charge-btn.selected {
+    border-color: var(--gules);
+    background: #fff6f6;
+    font-weight: bold;
+  }
+  .results-count {
+    font-size: 0.85rem;
+    color: #6b6252;
+    margin-bottom: 12px;
+  }
+  .shield-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 18px;
+  }
+  .shield-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .shield-card svg { width: 100%; height: auto; display: block; margin-bottom: 8px; }
+  .blazon {
+    font-size: 0.82rem;
+    font-style: italic;
+    line-height: 1.3;
+    min-height: 2.6em;
+    margin-bottom: 8px;
+  }
+  .herald-link {
+    display: inline-block;
+    font-size: 0.75rem;
+    text-decoration: none;
+    color: #fff;
+    background: #5b4b8a;
+    padding: 5px 9px;
+    border-radius: 5px;
+  }
+  .herald-link:hover { background: #453a6b; }
+  .empty-msg {
+    color: #8a7f68;
+    font-style: italic;
+    padding: 20px 0;
+  }
+  .note {
+    font-size: 0.78rem;
+    color: #8a7f68;
+    margin-top: 26px;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+    max-width: 700px;
+  }
+</style>
+</head>
+<body>
+
+<h1>SCA Heraldry Ideation Tool — MVP</h1>
+<p class="sub">Pick a charge below. The tool shows every legal metal/colour pairing for a single central charge (metal on colour, or colour on metal — no illegal colour-on-colour or metal-on-metal combinations, and no non-heraldic tinctures). Each design links to a pre-filled Complex Search Form query so a human herald can start a real conflict check.</p>
+
+<div class="panel">
+  <h2>1. Choose a charge</h2>
+  <div class="charge-grid" id="chargeGrid"></div>
+</div>
+
+<div class="panel">
+  <h2>2. Legal single-charge designs</h2>
+  <div class="results-count" id="resultsCount"></div>
+  <div class="shield-grid" id="shieldGrid"></div>
+</div>
+
+<div class="note">
+  <strong>About this MVP:</strong> charge artwork below is simple placeholder line-art I drew to demonstrate the mechanic — swap in real Traceable Art / DrawShield SVGs by URL once you've picked your actual asset set (same &lt;img&gt;/&lt;svg&gt; structure, no other change needed).
+  Herald-check links use assumed my.cat charge codes (charge name, uppercased) — verify these against the real <code>my.cat</code> file before relying on them.
+  This tool suggests <em>probably</em>-clear designs for ideation only; always confirm with a human herald before submission.
+</div>
+
+<script>
+// ---- Tincture definitions ----
+const METALS = [
+  { code: 'OR', name: 'Or (yellow/gold)', hex: 'var(--or)' },
+  { code: 'AR', name: 'Argent (white/silver)', hex: 'var(--argent)' },
+];
+const COLORS = [
+  { code: 'GU', name: 'Gules (red)', hex: 'var(--gules)' },
+  { code: 'SA', name: 'Sable (black)', hex: 'var(--sable)' },
+  { code: 'AZ', name: 'Azure (blue)', hex: 'var(--azure)' },
+  { code: 'VT', name: 'Vert (green)', hex: 'var(--vert)' },
+  { code: 'PU', name: 'Purpure (purple)', hex: 'var(--purpure)' },
+];
+
+// ---- Charge library (placeholder art; swap for real SVG URLs later) ----
+// Each charge provides a silhouette path (or group of paths) filled via currentColor.
+const CHARGES = {
+  rabbit: {
+    label: 'Rabbit',
+    code: 'RABBIT',
+    path: `<g>
+      <ellipse cx="50" cy="66" rx="22" ry="16"/>
+      <ellipse cx="34" cy="52" rx="10" ry="9"/>
+      <path d="M40 30 C36 10, 44 8, 46 30 Z"/>
+      <path d="M52 30 C50 8, 58 10, 54 30 Z"/>
+      <circle cx="70" cy="72" r="4"/>
+    </g>`
+  },
+  key: {
+    label: 'Key',
+    code: 'KEY',
+    path: `<g>
+      <circle cx="30" cy="30" r="14" fill="none" stroke-width="7"/>
+      <rect x="28" y="42" width="7" height="42"/>
+      <rect x="35" y="70" width="10" height="7"/>
+      <rect x="35" y="80" width="14" height="7"/>
+    </g>`
+  },
+  sword: {
+    label: 'Sword',
+    code: 'SWORD',
+    path: `<g>
+      <polygon points="47,6 53,6 55,60 45,60"/>
+      <rect x="30" y="60" width="40" height="7"/>
+      <rect x="46" y="67" width="8" height="26"/>
+      <rect x="42" y="90" width="16" height="6"/>
+    </g>`
+  },
+  sun: {
+    label: 'Sun',
+    code: 'SUN',
+    path: `<g>
+      <circle cx="50" cy="50" r="16"/>
+      ${Array.from({length:12}).map((_,i)=>{
+        const a = (i * 30) * Math.PI/180;
+        const x1 = 50 + 22*Math.sin(a), y1 = 50 - 22*Math.cos(a);
+        const x2 = 50 + 38*Math.sin(a), y2 = 50 - 38*Math.cos(a);
+        const perp = a + Math.PI/2;
+        const w = 4;
+        const bx1 = x1 + w*Math.sin(perp), by1 = y1 - w*Math.cos(perp);
+        const bx2 = x1 - w*Math.sin(perp), by2 = y1 + w*Math.cos(perp);
+        return `<polygon points="${bx1},${by1} ${bx2},${by2} ${x2},${y2}"/>`;
+      }).join('')}
+    </g>`
+  },
+  star: {
+    label: 'Mullet (star)',
+    code: 'MULLET',
+    path: `<g>
+      ${(function(){
+        const pts = [];
+        for (let i=0;i<5;i++){
+          const a1 = (i*72-90)*Math.PI/180;
+          const a2 = ((i*72)+36-90)*Math.PI/180;
+          pts.push([50+38*Math.cos(a1), 50+38*Math.sin(a1)]);
+          pts.push([50+16*Math.cos(a2), 50+16*Math.sin(a2)]);
+        }
+        return `<polygon points="${pts.map(p=>p.join(',')).join(' ')}"/>`;
+      })()}
+    </g>`
+  },
+  crescent: {
+    label: 'Crescent',
+    code: 'CRESCENT',
+    path: `<path d="M50 10 A40 40 0 1 0 50 90 A30 40 0 1 1 50 10 Z"/>`
+  }
+};
+
+let selectedCharge = 'sword';
+
+function chargeThumbSVG(chargeKey, colorVar) {
+  const c = CHARGES[chargeKey];
+  return `<svg viewBox="0 0 100 100" style="color:${colorVar || '#444'}" fill="currentColor" stroke="currentColor">${c.path}</svg>`;
+}
+
+function renderChargePicker() {
+  const grid = document.getElementById('chargeGrid');
+  grid.innerHTML = '';
+  Object.keys(CHARGES).forEach(key => {
+    const btn = document.createElement('button');
+    btn.className = 'charge-btn' + (key === selectedCharge ? ' selected' : '');
+    btn.innerHTML = chargeThumbSVG(key, '#4a4030') + `<span>${CHARGES[key].label}</span>`;
+    btn.onclick = () => { selectedCharge = key; renderChargePicker(); renderResults(); };
+    grid.appendChild(btn);
+  });
+}
+
+// ---- Shield SVG (field tincture + one central charge in charge tincture) ----
+function shieldSVG(fieldTincture, charge, chargeTincture) {
+  const fieldFill = fieldTincture.hex;
+  const chargeFill = chargeTincture.hex;
+  const chargeMarkup = CHARGES[charge].path;
+  return `
+  <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <clipPath id="clip-${fieldTincture.code}-${chargeTincture.code}-${charge}">
+        <path d="M2 2 H98 V60 C98 95 70 112 50 118 C30 112 2 95 2 60 Z"/>
+      </clipPath>
+    </defs>
+    <g clip-path="url(#clip-${fieldTincture.code}-${chargeTincture.code}-${charge})">
+      <rect x="0" y="0" width="100" height="120" fill="${fieldFill}"/>
+      <g transform="translate(0,10) scale(1)" fill="${chargeFill}" stroke="${chargeFill}">
+        ${chargeMarkup}
+      </g>
+    </g>
+    <path d="M2 2 H98 V60 C98 95 70 112 50 118 C30 112 2 95 2 60 Z"
+          fill="none" stroke="#3a3226" stroke-width="2"/>
+  </svg>`;
+}
+
+// ---- Blazon text ----
+function blazonText(fieldTincture, charge, chargeTincture) {
+  const article = /^[aeiou]/i.test(CHARGES[charge].label) ? 'an' : 'a';
+  return `${fieldTincture.name.split(' (')[0]}, ${article} ${CHARGES[charge].label.toLowerCase()} ${chargeTincture.name.split(' (')[0].toLowerCase()}`;
+}
+
+// ---- Complex Search Form link builder ----
+// Mirrors the pattern: field tincture code alone on one line,
+// CHARGE:1:primary on the next, CHARGE:tincture on the next.
+function complexSearchURL(fieldTincture, charge, chargeTincture) {
+  const chargeCode = CHARGES[charge].code;
+  const lines = [
+    fieldTincture.code,
+    `${chargeCode}:1:primary`,
+    `${chargeCode}:${chargeTincture.code}`,
+  ];
+  const base = 'https://oanda.sca.org/oanda_complex.cgi';
+  const params = new URLSearchParams();
+  for (let i = 1; i <= 10; i++) {
+    params.set(`w${i}`, '1');
+    params.set(`m${i}`, 'armory description');
+    params.set(`p${i}`, lines[i-1] || '');
+  }
+  params.set('l', '500');
+  params.set('s', 'score and blazon');
+  params.set('d', 'modern');
+  params.set('g', 'disabled');
+  params.set('a', 'disabled');
+  params.set('raw', 'disabled');
+  params.set('rs', 'all items');
+  return base + '?' + params.toString();
+}
+
+// ---- Generate all legal metal/colour pairings for a single central charge ----
+function generateDesigns(charge) {
+  const designs = [];
+  METALS.forEach(metal => {
+    COLORS.forEach(color => {
+      // metal field, colour charge
+      designs.push({ field: metal, chargeT: color });
+      // colour field, metal charge
+      designs.push({ field: color, chargeT: metal });
+    });
+  });
+  return designs;
+}
+
+function renderResults() {
+  const grid = document.getElementById('shieldGrid');
+  const countEl = document.getElementById('resultsCount');
+  grid.innerHTML = '';
+  const designs = generateDesigns(selectedCharge);
+  countEl.textContent = `${designs.length} legal tincture combinations for a single central ${CHARGES[selectedCharge].label.toLowerCase()}.`;
+
+  designs.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'shield-card';
+    const blazon = blazonText(d.field, selectedCharge, d.chargeT);
+    const url = complexSearchURL(d.field, selectedCharge, d.chargeT);
+    card.innerHTML = `
+      ${shieldSVG(d.field, selectedCharge, d.chargeT)}
+      <div class="blazon">${blazon}</div>
+      <a class="herald-link" href="${url}" target="_blank" rel="noopener">Start herald check →</a>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+renderChargePicker();
+renderResults();
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+# Notes for Claude (SCA heraldry tools)
+
+One project, several tools that share one core: a simple front end for the
+O&A Complex Search Form (`apps/search`), and a heraldry suggester / generator
+(`apps/suggester`). Read README.md for the layout.
+
+## Architecture (decided with the maintainer, November 2026)
+- **One shared description of a shield** (`core/shield.js`): a field is plain,
+  or a division whose parts are themselves fields (so nesting is free).
+  Charge groups are still to be added to it.
+- **Everything else translates that description** and must not know about any
+  particular app: `core/draw.js` (SVG picture), `core/shield.js` (blazon),
+  `core/oanda.js` (Complex Search patterns + link). Planned: contrast rules,
+  blazon text -> description, and the generator (which just produces many
+  descriptions and reuses the rest).
+- **Vocabulary is data** in `core/catalog.js` (tinctures, divisions, their
+  O&A codes and conventions). Adding a division = one catalog entry plus one
+  shape in `draw.js`. Apps never hard-code tinctures or divisions.
+- Plain HTML + JavaScript modules, no build step, no dependencies. Node is not
+  installed on the maintainer's machine; tests run in the browser.
+- Only ordinaries will get real drawings; other charges are shown as blobs in
+  the right place (no image library is assumed), though `SVG/` holds the
+  Traceable Art collection used by the charge picker.
+
+## How the O&A indexes things (verified, do not guess)
+- `data/mycat.txt` is the official category list; `data/oanda.db` is the whole
+  armorial as text: `name|date|type|blazon|notes|description|description...`.
+  Always derive or check an encoding against real records before using it.
+- `tests/index.html` checks `core/oanda.js` against every matching record.
+  Run it after any change to `core/` (needs the local server, see below).
+- Field rules are written at the top of `core/oanda.js`. Both category codes
+  (`PPALE`) and category names (`field division, per pale`) work in patterns.
+- The live form is https://oanda.sca.org/oanda_complex.cgi (GET; parameters
+  `w1..w10`, `m1..m10`, `p1..p10`, plus `l`, `s`, `d`, `g`, `a`, `raw`, `rs`).
+
+## Working with the maintainer
+- **The maintainer writes all text shown to users.** Use their wording
+  verbatim. If new UI needs words, put a draft in the page's `TEXT` block
+  marked `// DRAFT` and tell them; point out (don't silently fix) issues in
+  their text.
+- **UI changes: test locally first, push only after the maintainer has tried
+  them.** They run `python -m http.server 8767` in this folder and open
+  http://localhost:8767/apps/search/ (pages must be served, not opened as
+  files, because they use JavaScript modules).
+- Explain in plain language; the maintainer is a herald, not a confident git
+  user. Say clearly when something is waiting for their OK.
+- Citations for heraldic rules must come from official SCA sources (SENA, the
+  O&A itself, Laurel precedents), not third-party summaries.
+
+## Environment (maintainer's Windows machine)
+- PowerShell 5.1. `git` is not on PATH: use GitHub Desktop's bundled git,
+  `%LOCALAPPDATA%\GitHubDesktop\app-<version>\resources\app\git\cmd\git.exe`.
+- This repo belongs to the GitHub account `firinnish` (the maintainer's other
+  repo, scamap, is under `khs`): pushing needs that login.
+- `python -c "..."` with nested quotes gets mangled by PowerShell: write a
+  script file to the scratchpad instead.
+- The maintainer edits CSVs (`data/charges.csv`, `data/taxonomy.csv`) in
+  LibreOffice. Check for `.~lock.*#` files before writing to them and never
+  overwrite their edits.
+
+## Never commit (kept on the maintainer's machine only, see .gitignore)
+- `SVG/` (Traceable Heraldic Art). Not to be published or used in anything
+  public until the maintainer has talked to its creator and labelled it
+  properly. Until then charges are drawn as blobs; the maintainer will supply
+  charge art gradually. The charge picker only shows pictures locally.
+- `data/oanda.db` (SCA copyright). Only `tests/` needs it; nothing users see
+  may depend on it being present.
+- The repository is public (GitHub Pages on a free account needs that) and
+  other contributors are joining: keep it limited to what belongs there.
+
+## Open questions
+- `apps/suggester/heraldry_mvp.html` still has its own older, guessed link
+  builder; it should be moved onto `core/` when the suggester is next worked on.

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Heraldry core: checks against the real armorial</title>
+<style>
+  body { font-family: Georgia, serif; margin: 20px; color: #2b2620; background: #faf6ee; }
+  table { border-collapse: collapse; margin: 12px 0; }
+  td, th { border: 1px solid #d8cfba; padding: 4px 10px; text-align: left; font-size: 0.9rem; }
+  .bad { background: #fde3e3; } .ok { background: #e8f5e4; }
+  pre { white-space: pre-wrap; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<h1>Checks against the real armorial</h1>
+<p>For every background the tools can describe, this finds the registered armory in
+<code>data/oanda.db</code> whose blazon starts with it, and checks that the search
+patterns from <code>core/oanda.js</code> match how the O&amp;A really indexed it.
+A few percent of misses is normal (the index has its own inconsistencies).</p>
+<p id="status">Loading data/oanda.db…</p>
+<div id="out"></div>
+<pre id="misses"></pre>
+
+<script type="module">
+import { TINCTURES, DIVISIONS, divisionsWithParts } from '../core/catalog.js';
+import { plain, divided, blazonField } from '../core/shield.js';
+import { shieldSVG } from '../core/draw.js';
+import { fieldPatterns, complexSearchURL } from '../core/oanda.js';
+
+// A division passes if at least 80% of its records match every pattern.
+// The rest are records the O&A indexed differently from its own usual habit
+// (e.g. tinctures not in alphabetical order); those still match one of the
+// two lines, so they still appear in a real search, just with a lower score.
+const PASS_MARK = 0.8;
+
+// Does one indexed description satisfy one search pattern?
+// "multicolor" also matches "multicolor neutral/dark/light", "~and fur" any fur.
+const FURS = ['ermine', 'counterermine', 'erminois', 'pean'];
+function satisfies(desc, pattern) {
+  const [dHead, ...dFeat] = desc.split(':');
+  const [pHead, ...pFeat] = pattern.split(':');
+  if (dHead !== pHead) return false;
+  return pFeat.every(f => dFeat.includes(f) ||
+    (f === 'multicolor' && dFeat.some(x => x.startsWith('multicolor'))) ||
+    (f === '~and fur' && FURS.some(x => dFeat.includes('~and ' + x))));
+}
+
+// oanda.db is not kept on GitHub (SCA copyright), so this page only works on a
+// machine that has its own copy at data/oanda.db.
+const response = await fetch('../data/oanda.db');
+if (!response.ok) {
+  document.getElementById('status').textContent =
+    'data/oanda.db was not found. It is not stored on GitHub; these checks only run on a machine that has a copy of the O&A database in the data folder.';
+  throw new Error('data/oanda.db not found');
+}
+const buf = await response.arrayBuffer();
+const lines = new TextDecoder('latin1').decode(buf).split('\n');
+const records = [];
+for (const line of lines) {
+  const p = line.split('|');
+  if (p.length >= 6 && (p[2] === 'd' || p[2] === 'b')) records.push({ blazon: p[3].toLowerCase(), descs: p.slice(5) });
+}
+
+// Every field to check: plain ones, and each two-part division in each order.
+const ids = Object.keys(TINCTURES);
+const cases = ids.map(t => ({ group: 'plain', field: plain(t) }));
+for (const d of divisionsWithParts(2)) {
+  for (const a of ids) for (const b of ids) {
+    if (a !== b) cases.push({ group: DIVISIONS[d].name, field: divided(d, [plain(a), plain(b)]) });
+  }
+}
+for (const d of divisionsWithParts(3)) {
+  cases.push({ group: DIVISIONS[d].name, field: divided(d, [plain('argent'), plain('sable'), plain('gules')]), prefixOnly: DIVISIONS[d].name + ' ' });
+}
+
+const totals = {}, misses = [];
+let drawErrors = 0;
+for (const c of cases) {
+  const blazon = blazonField(c.field).toLowerCase();
+  const patterns = fieldPatterns(c.field);
+  try { shieldSVG(c.field); complexSearchURL(patterns); } catch (e) { drawErrors++; misses.push('ERROR ' + blazon + ': ' + e.message); }
+  const t = totals[c.group] || (totals[c.group] = { records: 0, matched: 0 });
+  for (const r of records) {
+    const hit = c.prefixOnly
+      ? r.blazon.startsWith(c.prefixOnly) && !r.blazon.startsWith(c.prefixOnly + 'inverted')
+      : r.blazon.startsWith(blazon + ',') || r.blazon.startsWith(blazon + '.');
+    if (!hit) continue;
+    t.records++;
+    const ok = patterns.every(p => r.descs.some(d => satisfies(d, p)));
+    if (ok) t.matched++;
+    else if ((t.shown = (t.shown || 0) + 1) <= 4) misses.push(`${blazon}\n   wanted: ${patterns.join(' | ')}\n   record: ${r.descs.filter(d => /^(FIELD|P[A-Z]+:|QLY|GYRONNY)/.test(d)).join(' | ')}`);
+  }
+}
+
+let allOk = drawErrors === 0, html = '<table><tr><th>Background</th><th>Records</th><th>Matched</th><th>%</th></tr>';
+for (const [group, t] of Object.entries(totals)) {
+  const pct = t.records ? t.matched / t.records : 1;
+  const ok = pct >= PASS_MARK;
+  if (!ok) allOk = false;
+  html += `<tr class="${ok ? 'ok' : 'bad'}"><td>${group}</td><td>${t.records}</td><td>${t.matched}</td><td>${(pct * 100).toFixed(1)}</td></tr>`;
+}
+document.getElementById('out').innerHTML = html + '</table>';
+document.getElementById('status').textContent =
+  `${allOk ? 'PASS' : 'FAIL'}: ${cases.length} backgrounds checked against ${records.length} armory records; ${drawErrors} drawing errors.`;
+document.getElementById('misses').textContent = 'First few records that did not match:\n\n' + misses.join('\n\n');
+window.testSummary = { allOk, totals, drawErrors };
+</script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What are you searching for?</title>
+<style>
+  :root { --ink: #2b2620; --paper: #faf6ee; --line: #d8cfba; --accent: #5b4b8a; --muted: #6b6252; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px 16px 60px; font-family: Georgia, 'Iowan Old Style', serif; background: var(--paper); color: var(--ink); }
+  main { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin: 0 0 18px; }
+  h2 { font-size: 1.1rem; margin: 0 0 12px; }
+  .panel { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .row + .row { margin-top: 12px; }
+  .row-label { font-size: 0.8rem; color: var(--muted); margin: 14px 0 6px; }
+
+  button { font-family: inherit; color: var(--ink); cursor: pointer; }
+  .swatch, .card {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    background: #fff; border: 2px solid var(--line); border-radius: 8px; padding: 8px 6px; font-size: 0.82rem;
+  }
+  .swatch { width: 92px; }
+  .swatch svg { width: 44px; height: 44px; }
+  .swatch small, .card small { color: var(--muted); font-size: 0.74rem; text-align: center; }
+  .swatch .tick { height: 1em; font-size: 0.9rem; line-height: 1; color: var(--accent); }
+  .card { width: 112px; }
+  .card svg { width: 76px; height: auto; }
+  .swatch[aria-pressed="true"], .card[aria-pressed="true"] { border-color: var(--accent); background: #f3f0fa; font-weight: bold; }
+  .swatch:focus-visible, .card:focus-visible, .plain-btn:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .plain-btn { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; font-size: 0.85rem; margin-bottom: 12px; }
+  .complex-card { justify-content: center; min-height: 128px; font-style: italic; }
+
+  .builder { display: grid; gap: 10px; }
+  .builder label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.9rem; }
+  select { font-family: inherit; font-size: 0.9rem; padding: 5px 6px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); max-width: 100%; }
+
+  .result { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+  .result svg { width: 150px; height: auto; flex: none; }
+  .blazon { font-size: 1.15rem; font-style: italic; margin: 0 0 12px; }
+  .search-link { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; padding: 10px 16px; border-radius: 6px; font-size: 0.95rem; }
+  .search-link:hover { background: #453a6b; }
+  .note { font-size: 0.85rem; color: var(--muted); margin: 10px 0 0; }
+  details { margin-top: 12px; font-size: 0.82rem; color: var(--muted); }
+  code { display: block; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 6px; color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title"></h1>
+  <section class="panel">
+    <h2 id="coloursHeading"></h2>
+    <div class="row" id="mainSwatches"></div>
+    <div class="row-label" id="fursLabel"></div>
+    <div class="row" id="furSwatches"></div>
+  </section>
+  <section class="panel" id="divisionPanel" hidden></section>
+  <section class="panel" id="resultPanel" hidden aria-live="polite"></section>
+</main>
+
+<script type="module">
+import { TINCTURES, DIVISIONS, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, divisionsWithParts } from '../../core/catalog.js';
+import { plain, divided, blazonField } from '../../core/shield.js';
+import { shieldSVG, swatchSVG } from '../../core/draw.js';
+import { fieldPatterns, complexSearchURL } from '../../core/oanda.js';
+
+// ---------------------------------------------------------------------------
+// ALL THE WORDS ON THE PAGE live here, so they can be rewritten in one place.
+// Lines marked DRAFT were placeholders written while building: please rewrite.
+// ---------------------------------------------------------------------------
+const TEXT = {
+  title: 'What are you searching for?',
+  coloursHeading: 'What colours are in the background (on the field)?',
+  fursLabel: 'Furs',                                                    // DRAFT
+  plainBackground: colour => `Plain ${colour} Background`,
+  dividedHeading: 'How is the background divided?',
+  complexOption: 'more complex background',
+  swap: 'Swap the two colours',                                         // DRAFT
+  builderDivision: 'The background is divided',                         // DRAFT
+  builderPart: n => `Part ${n} is`,                                     // DRAFT
+  builderAnd: 'and',                                                    // DRAFT
+  searchLink: 'Search the Ordinary & Armorial for this',               // DRAFT
+  tincturesNotIndexed: 'The Ordinary & Armorial does not record which colours a three-part background uses, so this search finds every background divided this way.', // DRAFT
+  patternsSummary: 'What gets filled in on the Complex Search Form',   // DRAFT
+};
+
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+const $ = id => document.getElementById(id);
+
+// ---- State -----------------------------------------------------------------
+const state = {
+  picked: [],        // tincture ids, in the order they were ticked
+  order: [],         // the same tinctures in the order used for the pictures
+  choice: null,      // { division, order } | 'complex' | null
+  builder: null,     // the "more complex background" form
+};
+
+function resetChoice() {
+  state.order = [...state.picked];
+  state.choice = state.picked.length >= 4 ? 'complex' : null;
+  state.builder = null;
+}
+
+// ---- Working out the field from the state ----------------------------------
+function currentField() {
+  const n = state.picked.length;
+  if (n === 0) return null;
+  if (n === 1) return plain(state.picked[0]);
+  if (state.choice === 'complex') return builderField();
+  if (state.choice) return divided(state.choice.division, state.choice.order.map(plain));
+  return null;
+}
+
+function defaultBuilder() {
+  const t = state.picked;
+  const part = i => ({ kind: 'plain', tincture: t[i % t.length], a: t[0], b: t[1 % t.length] });
+  return { division: 'perPale', parts: [part(0), part(1), part(2)] };
+}
+
+function builderField() {
+  const b = state.builder || (state.builder = defaultBuilder());
+  const parts = b.parts.slice(0, DIVISIONS[b.division].parts).map(p =>
+    p.kind === 'plain' ? plain(p.tincture) : divided(p.kind, [plain(p.a), plain(p.b)]));
+  return divided(b.division, parts);
+}
+
+function permutations(list) {
+  if (list.length <= 1) return [list];
+  return list.flatMap((x, i) => permutations([...list.slice(0, i), ...list.slice(i + 1)]).map(p => [x, ...p]));
+}
+
+// ---- Drawing the page ------------------------------------------------------
+function renderSwatches() {
+  const make = id => {
+    const t = TINCTURES[id];
+    const on = state.picked.includes(id);
+    const label = t.kind === 'fur' ? `<span>${esc(t.name)}</span><small>${esc(t.plain)}</small>`
+                                   : `<span>${esc(t.plain)}</span><small>${esc(t.name)}</small>`;
+    return `<button class="swatch" type="button" data-tincture="${id}" aria-pressed="${on}">` +
+      `${swatchSVG(id)}${label}<span class="tick" aria-hidden="true">${on ? '✓' : ''}</span></button>`;
+  };
+  $('mainSwatches').innerHTML = [...COLOUR_ORDER, ...METAL_ORDER].map(make).join('');
+  $('furSwatches').innerHTML = FUR_ORDER.map(make).join('');
+}
+
+function divisionCard(division, order) {
+  const field = divided(division, order.map(plain));
+  const on = state.choice && state.choice !== 'complex' &&
+    state.choice.division === division && state.choice.order.join() === order.join();
+  return `<button class="card" type="button" data-division="${division}" data-order="${order.join(',')}" aria-pressed="${!!on}">` +
+    `${shieldSVG(field, { title: blazonField(field) })}<span>${esc(DIVISIONS[division].name)}</span></button>`;
+}
+
+function renderDivisionPanel() {
+  const panel = $('divisionPanel');
+  const n = state.picked.length;
+  panel.hidden = n === 0;
+  if (n === 0) { panel.innerHTML = ''; return; }
+
+  if (n === 1) {
+    const t = TINCTURES[state.picked[0]];
+    const word = t.kind === 'fur' ? t.name : cap(t.plain);
+    panel.innerHTML = `<h2>${esc(TEXT.plainBackground(word))}</h2>`;
+    return;
+  }
+
+  let html = `<h2>${esc(TEXT.dividedHeading)}</h2>`;
+  const complexCard = `<button class="card complex-card" type="button" data-complex aria-pressed="${state.choice === 'complex'}">${esc(TEXT.complexOption)}</button>`;
+
+  if (n === 2) {
+    html += `<button class="plain-btn" type="button" data-swap>⇄ ${esc(TEXT.swap)}</button>`;
+    html += `<div class="row">${divisionsWithParts(2).map(d => divisionCard(d, state.order)).join('')}${complexCard}</div>`;
+  } else if (n === 3) {
+    const cards = divisionsWithParts(3).flatMap(d => permutations(state.picked).map(o => divisionCard(d, o)));
+    html += `<div class="row">${cards.join('')}${complexCard}</div>`;
+  }
+  if (state.choice === 'complex') html += renderBuilder();
+  panel.innerHTML = html;
+}
+
+function renderBuilder() {
+  const b = state.builder || (state.builder = defaultBuilder());
+  const tinctureOptions = sel => state.picked.map(id =>
+    `<option value="${id}"${id === sel ? ' selected' : ''}>${esc(TINCTURES[id].plain)} (${esc(TINCTURES[id].name)})</option>`).join('');
+  const divisionOptions = (ids, sel) => ids.map(id =>
+    `<option value="${id}"${id === sel ? ' selected' : ''}>${esc(DIVISIONS[id].name)}</option>`).join('');
+
+  let html = `<div class="builder" style="margin-top:16px">`;
+  html += `<label>${esc(TEXT.builderDivision)} <select data-b="division">${divisionOptions(Object.keys(DIVISIONS), b.division)}</select></label>`;
+  for (let i = 0; i < DIVISIONS[b.division].parts; i++) {
+    const p = b.parts[i];
+    const kindOptions =
+      state.picked.map(id => `<option value="plain:${id}"${p.kind === 'plain' && p.tincture === id ? ' selected' : ''}>${esc(TINCTURES[id].plain)} (${esc(TINCTURES[id].name)})</option>`).join('') +
+      divisionsWithParts(2).map(id => `<option value="${id}"${p.kind === id ? ' selected' : ''}>${esc(DIVISIONS[id].name)}…</option>`).join('');
+    html += `<label>${esc(TEXT.builderPart(i + 1))} <select data-b="kind" data-i="${i}">${kindOptions}</select>`;
+    if (p.kind !== 'plain') {
+      html += `<select data-b="a" data-i="${i}">${tinctureOptions(p.a)}</select> ${esc(TEXT.builderAnd)} ` +
+              `<select data-b="b" data-i="${i}">${tinctureOptions(p.b)}</select>`;
+    }
+    html += `</label>`;
+  }
+  return html + `</div>`;
+}
+
+function renderResult() {
+  const panel = $('resultPanel');
+  const field = currentField();
+  panel.hidden = !field;
+  if (!field) { panel.innerHTML = ''; return; }
+  const blazon = blazonField(field);
+  const patterns = fieldPatterns(field);
+  const noTinctures = field.type === 'divided' && DIVISIONS[field.division].tincturesIndexed === false;
+  panel.innerHTML =
+    `<div class="result">${shieldSVG(field, { title: blazon })}<div>` +
+    `<p class="blazon">${esc(blazon)}</p>` +
+    `<a class="search-link" href="${esc(complexSearchURL(patterns))}" target="_blank" rel="noopener">${esc(TEXT.searchLink)} →</a>` +
+    (noTinctures ? `<p class="note">${esc(TEXT.tincturesNotIndexed)}</p>` : '') +
+    `<details><summary>${esc(TEXT.patternsSummary)}</summary><code>${esc(patterns.join('\n'))}</code></details>` +
+    `</div></div>`;
+}
+
+function render() {
+  renderSwatches();
+  renderDivisionPanel();
+  renderResult();
+}
+
+// ---- Reacting to clicks ----------------------------------------------------
+document.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  let refocus = null;
+  if (btn.dataset.tincture) {
+    const id = btn.dataset.tincture;
+    state.picked = state.picked.includes(id) ? state.picked.filter(x => x !== id) : [...state.picked, id];
+    resetChoice();
+    refocus = `[data-tincture="${id}"]`;
+  } else if (btn.dataset.division) {
+    state.choice = { division: btn.dataset.division, order: btn.dataset.order.split(',') };
+    refocus = `[data-division="${btn.dataset.division}"][data-order="${btn.dataset.order}"]`;
+  } else if ('complex' in btn.dataset) {
+    state.choice = 'complex';
+    refocus = '[data-complex]';
+  } else if ('swap' in btn.dataset) {
+    state.order.reverse();
+    if (state.choice && state.choice !== 'complex') state.choice.order = [...state.order];
+    refocus = '[data-swap]';
+  } else return;
+  render();
+  // preventScroll: keep the page where it is instead of jumping to the button.
+  if (refocus) document.querySelector(refocus)?.focus({ preventScroll: true });
+});
+
+document.addEventListener('change', e => {
+  const sel = e.target.closest('select[data-b]');
+  if (!sel) return;
+  const b = state.builder, i = Number(sel.dataset.i);
+  if (sel.dataset.b === 'division') b.division = sel.value;
+  else if (sel.dataset.b === 'kind') {
+    if (sel.value.startsWith('plain:')) { b.parts[i].kind = 'plain'; b.parts[i].tincture = sel.value.slice(6); }
+    else b.parts[i].kind = sel.value;
+  } else b.parts[i][sel.dataset.b] = sel.value;
+  const key = `select[data-b="${sel.dataset.b}"]` + (sel.dataset.i ? `[data-i="${sel.dataset.i}"]` : '');
+  render();
+  document.querySelector(key)?.focus({ preventScroll: true });
+});
+
+$('title').textContent = TEXT.title;
+$('coloursHeading').textContent = TEXT.coloursHeading;
+$('fursLabel').textContent = TEXT.fursLabel;
+render();
+</script>
+</body>
+</html>
