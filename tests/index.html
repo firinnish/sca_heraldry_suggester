@@ -25,7 +25,7 @@ A few percent of misses is normal (the index has its own inconsistencies).</p>
 import { TINCTURES, DIVISIONS, ORDINARIES, divisionsWithParts } from '../core/catalog.js';
 import { plain, divided, ordinaryGroup, chargeGroup, blazon as blazonShield, COUNTERCHANGED } from '../core/shield.js';
 import { shieldSVG } from '../core/draw.js';
-import { shieldPatterns, complexSearchURL } from '../core/oanda.js';
+import { shieldPatterns, fieldDescription, complexSearchURL } from '../core/oanda.js';
 
 // A division passes if at least 80% of its records match every pattern.
 // The rest are records the O&A indexed differently from its own usual habit
@@ -120,8 +120,10 @@ const totals = {}, misses = [];
 let drawErrors = 0;
 for (const c of cases) {
   const blazon = blazonShield(c.field, c.groups || []).toLowerCase();
-  const patterns = shieldPatterns(c.field, c.groups || [], { noCharge: !!c.noCharge });
-  try { shieldSVG(c.field, { charges: c.groups || [] }); complexSearchURL(patterns); } catch (e) { drawErrors++; misses.push('ERROR ' + blazon + ': ' + e.message); }
+  const searched = shieldPatterns(c.field, c.groups || [], { noCharge: !!c.noCharge });
+  // Check the search lines and the fuller field description together.
+  const patterns = [...new Set([...searched, ...fieldDescription(c.field)])];
+  try { shieldSVG(c.field, { charges: c.groups || [] }); complexSearchURL(searched); } catch (e) { drawErrors++; misses.push('ERROR ' + blazon + ': ' + e.message); }
   const t = totals[c.group] || (totals[c.group] = { records: 0, matched: 0 });
   for (const r of records) {
     const hit = c.exact ? r.blazon === blazon + '.' : c.prefixOnly
@@ -131,7 +133,8 @@ for (const c of cases) {
     t.records++;
     const ok = patterns.every(p => r.descs.some(d => satisfies(d, p)));
     if (ok) t.matched++;
-    else if ((t.shown = (t.shown || 0) + 1) <= 4) misses.push(`${blazon}\n   wanted: ${patterns.join(' | ')}\n   record: ${r.descs.filter(d => c.exact || /^(FIELD|P[A-Z]+:|QLY|GYRONNY)/.test(d)).join(' | ')}`);
+    // Counterchanged misses are all listed, for the maintainer to look into.
+    else if ((t.shown = (t.shown || 0) + 1) <= 4 || c.group === 'counterchanged') misses.push(`${blazon}\n   wanted: ${patterns.join(' | ')}\n   record: ${r.descs.filter(d => c.exact || /^(FIELD|P[A-Z]+:|QLY|GYRONNY)/.test(d)).join(' | ')}`);
   }
 }
 

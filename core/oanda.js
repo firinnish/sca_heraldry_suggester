@@ -10,7 +10,11 @@
 // The rules below were worked out from the real records in data/oanda.db and
 // are checked against them by tests/index.html:
 //
-//  * A plain field is            FIELD:<tincture>:solid
+// SEARCHING uses only ONE line for the field (see fieldPatterns below): AZ
+// for a plain azure field, or the division line. The fuller description
+// (fieldDescription) is kept so the tests can check all of it.
+//
+//  * A plain field is            FIELD:<tincture>:solid, and also AZ, OR...
 //  * A two-part division gets two lines:
 //      <division code>:<main tincture>:pl:~and <other tincture>
 //      FIELD:<divided ...>:<multicolor class>:~ <tincture>:~and <tincture>
@@ -81,11 +85,32 @@ function nestedDivisionLines(field) {
     .flatMap(p => [divisionLine(p), ...nestedDivisionLines(p)]);
 }
 
-// All the search patterns describing a field (none if nothing is chosen).
+// The category for a plain field of each tincture (my.cat: "azure field|AZ").
+// The O&A gives plain fields both this and FIELD:<tincture>:solid.
+const PLAIN_FIELD_CODES = {
+  argent: 'AR', azure: 'AZ', counterermine: 'CE', ermine: 'ER', erminois: 'ES',
+  gules: 'GU', or: 'OR', pean: 'PE', purpure: 'PU', sable: 'SA', vert: 'VT',
+};
+
+// The search pattern for the field: ONE line (the maintainer, November 2026).
+// The Complex Search scores one point per matching line, and the field is
+// worth one point of difference, so it must not get more lines than that.
+//   plain:   the tincture's own category, e.g. AZ
+//   divided: the division line, e.g. PPALE:azure:pl:~and argent
+// (A part that is itself divided shows as "multicolor" on that line.)
 export function fieldPatterns(field) {
   if (!field) return [];
-  if (field.type === 'plain') return field.tincture === null ? ['FIELD:solid'] : [`FIELD:${field.tincture}:solid`];
+  if (field.type === 'plain') return field.tincture === null ? ['FIELD:solid'] : [PLAIN_FIELD_CODES[field.tincture]];
+  return [divisionLine(field)];
+}
 
+// The fuller description of a field, as two or more lines: the division line,
+// the general FIELD line and a line for each divided part. Not used for
+// searching; kept because tests/index.html checks it against the records.
+export function fieldDescription(field) {
+  if (!field || field.type === 'plain') {
+    return !field ? [] : field.tincture === null ? ['FIELD:solid'] : [`FIELD:${field.tincture}:solid`];
+  }
   const def = DIVISIONS[field.division];
   const fieldBits = ['FIELD', def.fieldWord];
   if (def.tincturesIndexed === false) {
@@ -120,21 +145,30 @@ function tinctureFeatures(group, field) {
   return ['multicolor neutral', '~ ' + names[0], '~and ' + names[1]];
 }
 
-function groupPattern(group, field) {
+// THE PRIMARY CHARGE GROUP gets one line per thing about it (the maintainer,
+// November 2026), so that the search scores each one separately:
+// "Azure, a lion rampant argent" is
+//   CAT:1:primary   CAT:rampant:primary   CAT:argent:primary
+// (an ordinary also gets a line for its plain line of division, e.g.
+// PALE:pl:primary). Anything not chosen yet gets no line; if nothing about it
+// is chosen, it is just CAT:primary.
+// EVERY OTHER GROUP (a chief, bordure or base; later secondary and tertiary
+// charges) gets a single line with everything on it, e.g. CHIEF:or:pl.
+function groupPatterns(group, field) {
   const tincture = tinctureFeatures(group, field);
-  if (group.kind === 'ordinary') {
-    const def = ORDINARIES[group.ordinary];
-    const bits = [def.code];
-    if (def.numbered) bits.push(String(group.number));
-    bits.push(...tincture, 'pl');
-    if (!def.peripheral) bits.push('primary');
-    return bits.join(':');
-  }
-  const bits = [group.category];
-  if (group.number !== null) bits.push(String(group.number));
-  bits.push(...tincture, 'primary');
-  if (group.posture) bits.push(group.posture);
-  return bits.join(':');
+  const def = group.kind === 'ordinary' ? ORDINARIES[group.ordinary] : null;
+  const code = def ? def.code : group.category;
+  const number = (!def || def.numbered) && group.number !== null ? String(group.number) : null;
+
+  if (def && def.peripheral) return [[code, ...tincture, 'pl'].join(':')];
+
+  const lines = [];
+  if (number) lines.push([code, number, 'primary']);
+  if (tincture.length) lines.push([code, ...tincture, 'primary']);
+  if (def) lines.push([code, 'pl', 'primary']);
+  if (group.posture) lines.push([code, group.posture, 'primary']);
+  if (!lines.length) lines.push([code, 'primary']);
+  return lines.map(bits => bits.join(':'));
 }
 
 const isPeripheral = g => g.kind === 'ordinary' && ORDINARIES[g.ordinary].peripheral;
@@ -142,7 +176,7 @@ const isPeripheral = g => g.kind === 'ordinary' && ORDINARIES[g.ordinary].periph
 // All the search patterns for a whole shield: the field, then each charge
 // group. `noCharge` true means the user has said nothing is on the field.
 export function shieldPatterns(field, groups = [], { noCharge = false } = {}) {
-  const patterns = [...fieldPatterns(field), ...groups.map(g => groupPattern(g, field))];
+  const patterns = [...fieldPatterns(field), ...groups.flatMap(g => groupPatterns(g, field))];
   if (groups.length && groups.every(isPeripheral)) patterns.push('PO');
   if (!groups.length && noCharge) patterns.push('FO');
   return patterns;
