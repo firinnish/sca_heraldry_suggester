@@ -22,10 +22,11 @@ export const FILL = 0.95;
 
 // Default arrangements (confirmed by the maintainer as the heraldic defaults):
 // one in the middle, two side by side, three "two and one".
+// (Boxes on the standard escutcheon; the fess line is at 50.)
 const SPACES = {
-  1: [[2, 2, 98, 118]],
-  2: [[2, 2, 50, 118], [50, 2, 98, 118]],
-  3: [[2, 2, 50, 52], [50, 2, 98, 52], [10, 52, 90, 118]],
+  1: [[1, 1, 99, 118.5]],
+  2: [[1, 1, 50, 118.5], [50, 1, 99, 118.5]],
+  3: [[1, 1, 50, 50], [50, 1, 99, 50], [1, 50, 99, 118.5]],
 };
 export const MAX_NUMBER = 3;
 

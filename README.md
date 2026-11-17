@@ -16,6 +16,7 @@ then open:
 - http://localhost:8767/tests/ : checks the search patterns against the real armorial
 - http://localhost:8767/tests/rules.html : checks the rules against SENA's own examples, and the random generator
 - http://localhost:8767/tests/charges.html : draws every charge picture in every tincture
+- http://localhost:8767/tests/alignment.html : draws every ordinary on every field division, to check their lines meet cleanly
 
 ## What is where
 

@@ -24,6 +24,13 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   - `core/generate.js`: random shields within constraints. It guesses and asks
     `rules.js`, so it can never disagree with the rules; add rules there, not here.
   - `core/art.js`, `core/csv.js`: the charge library and its pictures.
+- The shield is the SCA standard escutcheon (traced from Traceable Heraldic
+  Art's "Plain" device form, with the maintainer's permission for this use).
+  All shapes follow THA's device forms: fess point (50, 50), every diagonal
+  45 degrees, stripes sized so ordinaries cover whole pieces. Read the notes
+  at the top of `geometry.js` before changing any shape, and check
+  `tests/alignment.html` afterwards: a division and an ordinary on it must
+  never leave a sliver of field along the ordinary's edge (maintainer's rule).
 - Adding a division = a catalog entry + a shape in `geometry.js`. Adding an
   ordinary = the same. Both then appear in the page, the rules and the generator.
 - Plain HTML + JavaScript modules, no build step, no dependencies. Node is not

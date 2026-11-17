@@ -12,7 +12,39 @@
 // DIVISION_SHAPES here. To add an ordinary: catalog.js and ORDINARY_SHAPES.
 
 export const W = 100, H = 120;
-export const SHIELD_PATH = 'M2 2 H98 V60 C98 95 70 112 50 118 C30 112 2 95 2 60 Z';
+
+// ---- The shield's outline --------------------------------------------------
+// The SCA's standard escutcheon, traced from the "Plain" device form in
+// Traceable Heraldic Art (Vol. 2) and scaled to this box: straight sides for
+// the top third, then two curves meeting at the point.
+export const SHIELD_PATH = 'M1 1 H99 V40.2 C99 68 76 100.3 50 118.5 C24 100.3 1 68 1 40.2 Z';
+
+// ---- How everything lines up ---------------------------------------------------
+// All of these follow Traceable Heraldic Art's device forms, so that a field
+// division and an ordinary on it share their lines and never leave slivers:
+//  * The FESS POINT, the centre of the shield, is (50, 50). Per pale, per
+//    fess, quarterly, per saltire, gyronny, per pall, the pale, fess, cross,
+//    bend, saltire and pall are all centred on it.
+//  * Every diagonal is at 45 degrees. Per bend runs corner to corner through
+//    the fess point; a bend and a saltire lie along the same lines.
+//  * A chevron's arms are parallel to those diagonals and close enough that
+//    a per bend or per saltire line under a chevron is hidden by its arm.
+//    Per chevron runs along the middle of the chevron.
+//  * Straight stripes (paly, barry, checky) are a sixth of the shield's width,
+//    so a pale, fess, cross, chief or base covers whole stripes. Diagonal
+//    patterns (bendy, chevronelly, lozengy) are likewise spaced so that the
+//    matching ordinary covers whole pieces.
+export const FESS_POINT = [50, 50];
+const C = 50;                       // the fess point, both ways
+const UNIT = 98 / 6;                // a pallet, bar or square of checky: 16.33
+const STRAIGHT_HALF = UNIT;         // half the width of a pale, fess or cross
+const DIAGONAL_HALF = 1.5 * UNIT;   // half a bend, saltire or pall, measured straight up: 24.5
+// Per chevron's point touches the top of a fess and the bottom of a chief.
+const CHEVRON_APEX = C - UNIT;      // per chevron, and the middle of a chevron: 33.67
+const CHEVRON_INV_APEX = C + UNIT;  // per chevron inverted, and a chevron inverted: 66.33
+const CHEVRON_HALF = 22.75;         // half a chevron, measured straight up
+const CHIEF_BOTTOM = C - UNIT;      // 33.67
+const BASE_TOP = C + 2 * UNIT;      // 82.67
 
 // ---- Helpers ---------------------------------------------------------------
 const rect = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
@@ -24,9 +56,29 @@ function band(x1, y1, x2, y2, hw) {
   return [[x1 + nx, y1 + ny], [x2 + nx, y2 + ny], [x2 - nx, y2 - ny], [x1 - nx, y1 - ny]];
 }
 
+// The strip between two lines parallel to the bend (y - x = a and y - x = b),
+// or to the bend sinister (y + x - 100 = a and = b). Far bigger than the
+// shield; the outline trims it.
+const FAR = 200;
+const bendStrip = (a, b) => [[-FAR, -FAR + a], [FAR, FAR + a], [FAR, FAR + b], [-FAR, -FAR + b]];
+const sinisterStrip = (a, b) => bendStrip(a, b).map(([x, y]) => [W - x, y]);
+
+// The strip between two chevron-shaped lines (y - |x - 50| = a and = b), and
+// the same for chevrons inverted (y + |x - 50| = a and = b).
+const chevronStrip = (a, b) => [[C - FAR, a + FAR], [C, a], [C + FAR, a + FAR], [C + FAR, b + FAR], [C, b], [C - FAR, b + FAR]];
+const chevronInvStrip = (a, b) => [[C - FAR, a - FAR], [C, a], [C + FAR, a - FAR], [C + FAR, b - FAR], [C, b], [C - FAR, b - FAR]];
+
+// Make every polygon run the same way round, so that overlapping polygons in
+// one path (a saltire's two bands) add together instead of cancelling out.
+function clockwise(p) {
+  let area = 0;
+  for (let i = 0, j = p.length - 1; i < p.length; j = i++) area += (p[j][0] - p[i][0]) * (p[j][1] + p[i][1]);
+  return area < 0 ? [...p].reverse() : p;
+}
+
 // Polygons -> the text of an SVG path.
 export function pathOf(polygons) {
-  return polygons.map(p => 'M' + p.map(q => q.map(n => +n.toFixed(2)).join(' ')).join(' L') + ' Z').join(' ');
+  return polygons.map(p => 'M' + clockwise(p).map(q => q.map(n => +n.toFixed(2)).join(' ')).join(' L') + ' Z').join(' ');
 }
 
 export function pointInPolygon(x, y, pts) {
@@ -39,114 +91,89 @@ export function pointInPolygon(x, y, pts) {
 }
 const inAny = (x, y, polygons) => polygons.some(p => pointInPolygon(x, y, p));
 
-// ---- The shield's outline --------------------------------------------------
-function curve(p0, p1, p2, p3, steps = 14) {
+function curve(p0, p1, p2, p3, steps = 16) {
   return Array.from({ length: steps }, (_, i) => {
     const t = (i + 1) / steps, u = 1 - t;
     return [0, 1].map(k => u * u * u * p0[k] + 3 * u * u * t * p1[k] + 3 * u * t * t * p2[k] + t * t * t * p3[k]);
   });
 }
-export const SHIELD_POLYGON = [[2, 2], [98, 2], [98, 60],
-  ...curve([98, 60], [98, 95], [70, 112], [50, 118]),
-  ...curve([50, 118], [30, 112], [2, 95], [2, 60])];
+export const SHIELD_POLYGON = [[1, 1], [99, 1], [99, 40.2],
+  ...curve([99, 40.2], [99, 68], [76, 100.3], [50, 118.5]),
+  ...curve([50, 118.5], [24, 100.3], [1, 68], [1, 40.2])];
 export const insideShield = (x, y) => pointInPolygon(x, y, SHIELD_POLYGON);
 
 // ---- Field divisions -------------------------------------------------------
-// A diagonal runs from the top corner down to this height on the far side.
-const DIAG = 110;
 
-// Alternating stripes: stripe 0 to part 0, stripe 1 to part 1, and so on.
-function alternate(shapes) {
+// Stripes between boundaries start, start + step, ...: stripe 0 to part 0,
+// stripe 1 to part 1, and so on, from `first` (the first stripe of part 0)
+// to `last`.
+function stripes(make, first, last, step) {
   const parts = [[], []];
-  shapes.forEach((polygon, i) => parts[i % 2].push(polygon));
+  for (let a = first, i = 0; a < last; a += step, i++) parts[i % 2].push(make(a, a + step));
   return parts;
-}
-
-function bendStripes(mirror) {
-  const w = 27.5, shapes = [];
-  const x = v => (mirror ? W - v : v);
-  for (let c = -DIAG; c < H; c += w) {
-    shapes.push([[x(0), c], [x(W), c + DIAG], [x(W), c + DIAG + w], [x(0), c + w]]);
-  }
-  return alternate(shapes.reverse());
 }
 
 // Each entry returns one list of polygons per part, in blazon order.
 const DIVISION_SHAPES = {
-  perPale: () => [[rect(0, 0, 50, H)], [rect(50, 0, 50, H)]],
-  perFess: () => [[rect(0, 0, W, 54)], [rect(0, 54, W, H - 54)]],
-  perBend: () => [
-    [[[0, 0], [W, 0], [W, DIAG]]],
-    [[[0, 0], [W, DIAG], [W, H], [0, H]]],
-  ],
-  perBendSinister: () => [
-    [[[0, 0], [W, 0], [0, DIAG]]],
-    [[[W, 0], [W, H], [0, H], [0, DIAG]]],
-  ],
-  perChevron: () => [
-    [[[0, 0], [W, 0], [W, 88], [50, 42], [0, 88]]],
-    [[[0, 88], [50, 42], [W, 88], [W, H], [0, H]]],
-  ],
-  perChevronInverted: () => [
-    [[[0, 0], [W, 0], [W, 28], [50, 74], [0, 28]]],
-    [[[0, 28], [50, 74], [W, 28], [W, H], [0, H]]],
-  ],
+  perPale: () => [[rect(-FAR, -FAR, FAR + C, 3 * FAR)], [rect(C, -FAR, FAR, 3 * FAR)]],
+  perFess: () => [[rect(-FAR, -FAR, 3 * FAR, FAR + C)], [rect(-FAR, C, 3 * FAR, FAR)]],
+  perBend: () => [[bendStrip(-3 * FAR, 0)], [bendStrip(0, 3 * FAR)]],
+  perBendSinister: () => [[sinisterStrip(-3 * FAR, 0)], [sinisterStrip(0, 3 * FAR)]],
+  perChevron: () => [[chevronStrip(-3 * FAR, CHEVRON_APEX)], [chevronStrip(CHEVRON_APEX, 3 * FAR)]],
+  perChevronInverted: () => [[chevronInvStrip(-3 * FAR, CHEVRON_INV_APEX)], [chevronInvStrip(CHEVRON_INV_APEX, 3 * FAR)]],
   perSaltire: () => [
-    [[[0, 0], [W, 0], [50, 55]], [[0, DIAG], [50, 55], [W, DIAG], [W, H], [0, H]]],
-    [[[0, 0], [50, 55], [0, DIAG]], [[W, 0], [W, DIAG], [50, 55]]],
+    [[[-FAR, -FAR], [W + FAR, -FAR], [C, C]], [[-FAR, W + FAR], [C, C], [W + FAR, W + FAR]]],
+    [[[-FAR, -FAR], [C, C], [-FAR, W + FAR]], [[W + FAR, -FAR], [W + FAR, W + FAR], [C, C]]],
   ],
   quarterly: () => [
-    [rect(0, 0, 50, 54), rect(50, 54, 50, H - 54)],
-    [rect(50, 0, 50, 54), rect(0, 54, 50, H - 54)],
+    [rect(-FAR, -FAR, FAR + C, FAR + C), rect(C, C, FAR, FAR)],
+    [rect(C, -FAR, FAR, FAR + C), rect(-FAR, C, FAR + C, FAR)],
   ],
+  // Gyronny of eight: the lines of quarterly and per saltire together.
   gyronny: () => {
-    const c = [50, 55];
-    const rim = [[0, 0], [50, 0], [W, 0], [W, 55], [W, DIAG], [50, H], [0, DIAG], [0, 55]];
-    return alternate(rim.map((p, i) => [c, p, rim[(i + 1) % rim.length]]));
+    const f = FAR;
+    const rim = [[-f, -f], [C, -f], [W + f, -f], [W + f, C], [W + f, W + f], [C, W + f], [-f, W + f], [-f, C]];
+    const parts = [[], []];
+    rim.forEach((p, i) => parts[i % 2].push([[C, C], p, rim[(i + 1) % rim.length]]));
+    return parts;
   },
   checky: () => {
-    const n = 6, s = W / n, parts = [[], []];
-    for (let row = 0; row * s < H; row++) {
-      for (let col = 0; col < n; col++) parts[(row + col) % 2].push(rect(col * s, row * s, s, s));
+    const parts = [[], []];
+    for (let row = -1; row < 9; row++) {
+      for (let col = -1; col < 8; col++) parts[(row + col + 2) % 2].push(rect(1 + col * UNIT, 1 + row * UNIT, UNIT, UNIT));
     }
     return parts;
   },
+  // Lozenges are squares turned 45 degrees, a sixth of the shield wide, with
+  // one in the middle of the shield, so their sides line up with a bend.
   lozengy: () => {
-    const a = 10, b = 15, parts = [[], []];   // half-width and half-height of a lozenge
-    for (let m = 0; m * a <= W; m++) {
-      for (let n = m % 2; n * b <= H; n += 2) {
-        const x = m * a, y = n * b;
-        parts[m % 2].push([[x, y - b], [x + a, y], [x, y + b], [x - a, y]]);
+    const parts = [[], []];
+    const at = (u, v) => [C + (u - v) / 2, C + (u + v) / 2];
+    for (let i = -9; i <= 9; i++) {
+      for (let j = -9; j <= 9; j++) {
+        const u0 = (i - 0.5) * UNIT, v0 = (j - 0.5) * UNIT, u1 = u0 + UNIT, v1 = v0 + UNIT;
+        parts[Math.abs(i + j) % 2].push([at(u0, v0), at(u1, v0), at(u1, v1), at(u0, v1)]);
       }
     }
     return parts;
   },
-  paly: () => {
-    const n = 6, s = W / n;
-    return alternate(Array.from({ length: n }, (_, i) => rect(i * s, 0, s, H)));
-  },
-  barry: () => {
-    const n = 6, s = 118 / n;
-    return alternate(Array.from({ length: n + 1 }, (_, i) => rect(0, i * s, W, s)));
-  },
-  bendy: () => bendStripes(false),
-  bendySinister: () => bendStripes(true),
-  chevronelly: () => {
-    const w = 17, rise = 45, shapes = [];
-    for (let c = -rise - w; c < H; c += w) {
-      shapes.push([[0, c + rise], [50, c], [W, c + rise], [W, c + rise + w], [50, c + w], [0, c + rise + w]]);
-    }
-    return alternate(shapes);
-  },
+  paly: () => stripes((a, b) => rect(a, -FAR, b - a, 3 * FAR), 1 - 2 * UNIT, W + FAR, UNIT),
+  barry: () => stripes((a, b) => rect(-FAR, a, 3 * FAR, b - a), 1 - 2 * UNIT, H + FAR, UNIT),
+  // Bendy: a bend covers exactly two pieces. The first piece is in the
+  // sinister chief corner.
+  bendy: () => stripes(bendStrip, -98 - 4 * DIAGONAL_HALF, 3 * FAR, DIAGONAL_HALF),
+  bendySinister: () => stripes(sinisterStrip, -98 - 4 * DIAGONAL_HALF, 3 * FAR, DIAGONAL_HALF),
+  // Chevronelly: a chevron covers exactly two pieces.
+  chevronelly: () => stripes(chevronStrip, CHEVRON_APEX - 4 * CHEVRON_HALF, 3 * FAR, CHEVRON_HALF),
   perPall: () => [
-    [[[0, 0], [W, 0], [50, 50]]],
-    [[[0, 0], [50, 50], [50, H], [0, H]]],
-    [[[W, 0], [W, H], [50, H], [50, 50]]],
+    [[[-FAR, -FAR], [W + FAR, -FAR], [C, C]]],
+    [[[-FAR, -FAR], [C, C], [C, H + FAR], [-FAR, H + FAR]]],
+    [[[W + FAR, -FAR], [W + FAR, H + FAR], [C, H + FAR], [C, C]]],
   ],
   perPallInverted: () => [
-    [[[0, 0], [50, 0], [50, 58], [0, 108]]],
-    [[[50, 0], [W, 0], [W, 108], [50, 58]]],
-    [[[0, 108], [50, 58], [W, 108], [W, H], [0, H]]],
+    [[[-FAR, -FAR], [C, -FAR], [C, C], [-FAR, W + FAR]]],
+    [[[C, -FAR], [W + FAR, -FAR], [W + FAR, W + FAR], [C, C]]],
+    [[[-FAR, W + FAR], [C, C], [W + FAR, W + FAR], [W + FAR, H + FAR], [-FAR, H + FAR]]],
   ],
 };
 
@@ -164,20 +191,27 @@ export function divisionShapes(division) {
 // shield's outline). The bordure is special: a strip along the shield's edge.
 export const BORDURE_WIDTH = 11;
 
+const DIAGONAL_PERP = DIAGONAL_HALF / Math.SQRT2;   // half a bend measured across it
 const ORDINARY_SHAPES = {
-  pale: () => [rect(35, -5, 30, 130)],
-  fess: () => [rect(-5, 38, 110, 32)],
-  bend: () => [band(-20, -22, 120, 132, 14)],
-  bendSinister: () => [band(120, -22, -20, 132, 14)],
-  chevron: () => [[[50, 34], [106, 90], [106, 116], [50, 60], [-6, 116], [-6, 90]]],
-  chevronInverted: () => [[[50, 84], [106, 28], [106, 2], [50, 58], [-6, 2], [-6, 28]]],
-  cross: () => [[[38, -5], [62, -5], [62, 40], [105, 40], [105, 64], [62, 64], [62, 125],
-                 [38, 125], [38, 64], [-5, 64], [-5, 40], [38, 40]]],
-  saltire: () => [band(-20, -22, 120, 132, 11), band(120, -22, -20, 132, 11)],
-  pall: () => [band(-10, -10.4, 50, 52, 10), band(110, -10.4, 50, 52, 10), band(50, 52, 50, 130, 10)],
-  pile: () => [[[20, -2], [80, -2], [50, 104]]],
-  chief: () => [rect(-5, -5, 110, 35)],
-  base: () => [rect(-5, 92, 110, 40)],
+  pale: () => [rect(C - STRAIGHT_HALF, -10, 2 * STRAIGHT_HALF, H + 20)],
+  fess: () => [rect(-10, C - STRAIGHT_HALF, W + 20, 2 * STRAIGHT_HALF)],
+  bend: () => [bendStrip(-DIAGONAL_HALF, DIAGONAL_HALF)],
+  bendSinister: () => [sinisterStrip(-DIAGONAL_HALF, DIAGONAL_HALF)],
+  chevron: () => [chevronStrip(CHEVRON_APEX - CHEVRON_HALF, CHEVRON_APEX + CHEVRON_HALF)],
+  chevronInverted: () => [chevronInvStrip(CHEVRON_INV_APEX - CHEVRON_HALF, CHEVRON_INV_APEX + CHEVRON_HALF)],
+  cross: () => {
+    const a = C - STRAIGHT_HALF, b = C + STRAIGHT_HALF;
+    return [[[a, -10], [b, -10], [b, a], [W + 10, a], [W + 10, b], [b, b], [b, H + 10],
+             [a, H + 10], [a, b], [-10, b], [-10, a], [a, a]]];
+  },
+  saltire: () => [bendStrip(-DIAGONAL_HALF, DIAGONAL_HALF), sinisterStrip(-DIAGONAL_HALF, DIAGONAL_HALF)],
+  // Three arms along the lines of per pall, meeting at the fess point. The
+  // upper arms run a little past it so the join has no notch.
+  pall: () => [band(-20, -20, C + 12, C + 12, DIAGONAL_PERP), band(W + 20, -20, C - 12, C + 12, DIAGONAL_PERP),
+               rect(C - DIAGONAL_PERP, C - 5, 2 * DIAGONAL_PERP, H)],
+  pile: () => [[[C - 1.5 * UNIT, -2], [C + 1.5 * UNIT, -2], [C, 115.6]]],
+  chief: () => [rect(-10, -10, W + 20, CHIEF_BOTTOM + 10)],
+  base: () => [rect(-10, BASE_TOP, W + 20, H)],
 };
 
 export function ordinaryShapes(ordinary) {
