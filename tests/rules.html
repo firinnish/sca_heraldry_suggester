@@ -39,7 +39,8 @@ const CASES = [
   ['yes', two('perPale', 'or', 'ermine'), [], {}, 'A3B3a'],
   ['no', two('perPale', 'argent', 'ermine'), [], {}, 'A3B3a'],
   ['no', D('perPale', [P('sable'), two('perFess', 'gules', 'azure')]), [], {}, 'A3B3a'],
-  ['house', D('perFess', [P('azure'), two('lozengy', 'argent', 'azure')]), [], {}, 'A3B3a'],
+  ['yes', D('perFess', [P('azure'), two('lozengy', 'argent', 'azure')]), [], {}, 'A3B3a'],
+  ['yes', D('perPale', [P('or'), two('perFess', 'gules', 'azure')]), [], {}, 'A3B3a (metal against two colours)'],
   // A3B3b: three parts
   ['yes', D('perPall', [P('azure'), P('vert'), P('argent')]), [], {}, 'A3B3b'],
   ['yes', D('perPall', [P('azure'), P('vert'), two('checky', 'sable', 'argent')]), [], {}, 'A3B3b'],
@@ -56,7 +57,7 @@ const CASES = [
   ['no', two('paly', 'azure', 'purpure'), [], {}, 'A3B3d'],
   ['yes', two('checky', 'argent', 'gules'), [], {}, 'A3B3d'],
   ['no', two('checky', 'azure', 'gules'), [], {}, 'A3B3d'],
-  ['house', D('barry', [P('azure'), two('checky', 'gules', 'argent')]), [], {}, 'A3B3d'],
+  ['yes', D('barry', [P('azure'), two('checky', 'gules', 'argent')]), [], {}, 'A3B3d'],
   ['yes', D('perFess', [P('argent'), two('perPale', 'azure', 'or')]), [], {}, 'A3B3d'],
   ['no', D('perFess', [P('argent'), two('perPale', 'azure', 'ermine')]), [], {}, 'A3B3d'],
   // A3B4a: charges against the part of the field they lie on
@@ -83,11 +84,11 @@ const CASES = [
   ['no', two('perPale', 'azure', 'gules'), [blob(COUNTERCHANGED)], {}, 'A3B4a'],
   ['no', P('azure'), [blob(COUNTERCHANGED)], {}, 'A3F4'],
   // The maintainer's own examples
-  ['house', D('perSaltire', [P('gules'), two('lozengy', 'argent', 'gules')]), [], {}, 'house: no tincture twice'],
+  ['yes', D('perSaltire', [P('gules'), two('lozengy', 'argent', 'gules')]), [], {}, 'A3B3c (SENA allows a tincture twice)'],
   ['no', D('perPale', [P('or'), two('barry', 'gules', 'azure')]), [], {}, 'A3B3d inside'],
   ['yes', D('perPale', [P('gules'), two('barry', 'or', 'azure')]), [], {}, 'maintainer'],
   ['yes', D('perBend', [P('azure'), two('checky', 'argent', 'gules')]), [], {}, 'maintainer'],
-  ['house', D('checky', [P('azure'), two('perBend', 'argent', 'gules')]), [], {}, 'house: too complex'],
+  ['yes', D('checky', [P('azure'), two('perBend', 'argent', 'gules')]), [], {}, 'A3B3d (like Barry azure and checky)'],
 ];
 
 let failures = 0;

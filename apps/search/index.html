@@ -74,6 +74,7 @@
   .search-link { display: block; text-align: center; background: var(--accent); color: #fff; text-decoration: none; padding: 10px 14px; border-radius: 6px; font-size: 0.95rem; }
   .search-link:hover { background: #453a6b; }
   .note { font-size: 0.82rem; color: var(--muted); margin: 10px 0 0; }
+  .help { font-size: 0.88rem; color: var(--muted); margin: -4px 0 12px; }
   .problems { margin: 0 0 12px; padding: 8px 10px 8px 26px; border: 1px solid #e3c4b8; background: #fbf1ec; border-radius: 6px; color: var(--warn); font-size: 0.82rem; }
   details { margin-top: 12px; font-size: 0.8rem; color: var(--muted); }
   code { display: block; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 6px; color: var(--ink); }
@@ -114,7 +115,7 @@ import { plain, divided, isComplete, isNested, leafTinctures, shieldTinctures, b
 import { shieldSVG, swatchSVG, counterchangedSwatchSVG } from '../../core/draw.js';
 import { shieldPatterns, complexSearchURL } from '../../core/oanda.js';
 import { loadLibrary } from '../../core/art.js';
-import { checkShield } from '../../core/rules.js';
+import { checkShield, paletteLacks } from '../../core/rules.js';
 import { randomShield, randomShields, whyNot, randomFrom, shuffled } from '../../core/generate.js';
 
 // ---------------------------------------------------------------------------
@@ -125,10 +126,12 @@ const TEXT = {
   title: 'What are you searching for?',
   herald: "I'm a herald and I know what I'm doing. Enter options manually",
   shieldColours: 'What colours are used in the shield?',
+  shieldColoursHelp: 'Pick all the colours you want to be considered in suggestions, to narrow down the options in the future questions',
   coloursLabel: 'Colours',                                              // DRAFT
   metalsLabel: 'Metals',                                                // DRAFT
   fursLabel: 'Furs',                                                    // DRAFT
   fieldColours: 'What colours are used in the background?',
+  fieldColoursHelp: "If you're not sure what counts as background (field) in heraldry, use the question above to select colours and scroll down for more questions",
   dividedHeading: 'How is the background divided?',
   plainBackground: colour => `Plain ${colour} Background`,
   plainBackgroundAny: 'Plain Background',                               // DRAFT
@@ -153,6 +156,10 @@ const TEXT = {
   pin: 'pin suggestion',
   unpin: 'unpin',                                                       // DRAFT
   select: 'select this shield',
+  // When few suggestions can be made, the most likely reason:
+  fewMoreColours: 'Few shields are possible - please pick some more colours',
+  fewNeedMetal: 'Few shields are possible - please pick a metal',       // DRAFT
+  fewNeedColour: 'Few shields are possible - please pick a colour',     // DRAFT
   fewSuggestions: 'Few shields are possible with these choices.',       // DRAFT
   noSuggestions: 'No shield is possible with these choices.',           // DRAFT
   searchLink: 'Search the Ordinary & Armorial for this',               // DRAFT
@@ -173,10 +180,8 @@ const TEXT = {
     'parallel-peripheral': 'A chief or base cannot go with a per fess background',
     'single-tincture': 'One plain colour with nothing on it cannot be registered',
     'complexity': 'Too many colours and charges',
-    'house-many-nested': 'Too complex: a pattern like this cannot have a divided part',
     'house-too-deep': 'Too complex: a part of a part cannot be divided again',
     'house-same-division': 'A part cannot be divided the same way as the whole',
-    'house-repeat-tincture': 'A colour cannot be used twice in a background this complex',
     'not-possible': 'Not possible with the colours chosen',
   },
 };
@@ -332,9 +337,9 @@ function swatchSets(ids, make) {
 }
 
 function renderColourPanels() {
-  $('shieldColoursPanel').innerHTML = `<h2>${esc(TEXT.shieldColours)}</h2>` +
+  $('shieldColoursPanel').innerHTML = `<h2>${esc(TEXT.shieldColours)}</h2><p class="help">${esc(TEXT.shieldColoursHelp)}</p>` +
     swatchSets(ALL_TINCTURES, id => swatchButton(id, { on: state.shieldColours.includes(id), attr: 'data-q1' }));
-  $('fieldColoursPanel').innerHTML = `<h2>${esc(TEXT.fieldColours)}</h2>` +
+  $('fieldColoursPanel').innerHTML = `<h2>${esc(TEXT.fieldColours)}</h2><p class="help">${esc(TEXT.fieldColoursHelp)}</p>` +
     swatchSets(offered(), id => swatchButton(id, { on: state.fieldColours.includes(id), attr: 'data-q2', small: true }));
 }
 
@@ -448,9 +453,9 @@ function renderBuilder() {
     `<option value="${value}"${selected ? ' selected' : ''}${ok || selected ? '' : ' disabled'}>${esc(label)}</option>`;
   const tinctureLabel = id => `${TINCTURES[id].plain} (${TINCTURES[id].name})`;
 
-  // The first choice leaves out patterns of many pieces (checky, lozengy...):
-  // a part of those cannot sensibly be divided again.
-  const tops = Object.keys(DIVISIONS).filter(id => state.herald || familyOf(id) !== 'many' || id === b.division);
+  // Every division may be the first choice: SENA allows a pattern of many
+  // pieces with a divided part ("Barry azure and checky gules and argent").
+  const tops = Object.keys(DIVISIONS);
   let html = `<div class="builder"><label>${esc(TEXT.builderDivision)} <select data-b="division">` +
     tops.map(id => opt(id, DIVISIONS[id].name, id === b.division, allowed(t => { t.division = id; }))).join('') + `</select></label>`;
   for (let i = 0; i < parts; i++) {
@@ -569,12 +574,24 @@ function renderSuggestions() {
       `<button type="button" data-select="${i}">${esc(TEXT.select)}</button>` +
       `<button type="button" data-pin="${i}">${esc(pinned ? TEXT.unpin : TEXT.pin)}</button></div>`;
   };
-  const note = !fresh.length ? TEXT.noSuggestions : fresh.length < SUGGESTION_COUNT / 2 ? TEXT.fewSuggestions : '';
+  const note = !fresh.length ? TEXT.noSuggestions : fresh.length < SUGGESTION_COUNT / 2 || (palette() && paletteLacks(palette())) ? fewReason() : '';
   $('suggestionsPanel').innerHTML =
     `<div class="suggestions-head"><h2>${esc(TEXT.suggestions)}</h2>` +
     `<button class="plain-btn" type="button" data-reroll>↻ ${esc(TEXT.reroll)}</button>` +
     (note ? `<span class="note" style="margin:0">${esc(note)}</span>` : '') + `</div>` +
     `<div class="suggestion-row">${shown.map(suggestion).join('')}</div>`;
+}
+
+// Why only a few suggestions can be made: the most useful thing to change.
+function fewReason() {
+  const p = palette();
+  if (p) {
+    const lacks = paletteLacks(p);
+    if (lacks === 'metal') return TEXT.fewNeedMetal;
+    if (lacks === 'colour') return TEXT.fewNeedColour;
+    if (p.length <= 3) return TEXT.fewMoreColours;
+  }
+  return TEXT.fewSuggestions;
 }
 
 function render() {

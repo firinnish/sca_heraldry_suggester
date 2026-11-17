@@ -124,29 +124,21 @@ function checkField(field, problems, depth = 0) {
   // (Two parts, or quarterly / per saltire, with both parts plain: SENA allows
   //  "any two tinctures or furs", so there is nothing more to check.)
 
-  // House rules for backgrounds where a part is itself divided. SENA is more
-  // generous here, but only "as long as identifiability is maintained", which
-  // depends on exactly how it is drawn.
+  // The maintainer decided (November 2026) that SENA is the final authority:
+  // the tools follow SENA and add no stricter rules of their own about
+  // colours. So "per fess azure and lozengy argent and azure" (a tincture
+  // used twice), "Barry azure and checky gules and argent" (a pattern with a
+  // divided part) and "per pale Or and per fess gules and azure" (a divided
+  // part of two colours) are all allowed, as SENA's own examples say.
+  //
+  // Two limits remain, about what the tools can draw and name, not about
+  // colours:
   if (nested.length) {
-    // "Checky, azure and per bend argent and gules" is ridiculous complexity
-    // (SENA itself allows "Barry azure and checky gules and argent").
-    if (family === 'many') problems.push({ id: 'house-many-nested', sena: null, level: 'house' });
-    // Only one level of dividing.
+    // Only one level of dividing (the builder and blazon handle one).
     if (depth > 0 || nested.some(isNested)) problems.push({ id: 'house-too-deep', sena: null, level: 'house' });
-    // A part divided the same way as the whole cannot be drawn sensibly
-    // ("per pale azure and per pale Or and gules").
+    // A part divided the same way as the whole ("per pale azure and per pale
+    // Or and gules") is really a different division (tierced in pale).
     if (nested.some(p => p.division === field.division)) problems.push({ id: 'house-same-division', sena: null, level: 'house' });
-    // No tincture twice. (SENA allows "per fess azure and lozengy argent and
-    // azure" provided the azure lozenges do not run into the azure half.)
-    const bases = leafTinctures(field).map(baseTincture);
-    if (new Set(bases).size < bases.length) problems.push({ id: 'house-repeat-tincture', sena: null, level: 'house' });
-    // The divided part must itself be a metal and a colour. (SENA would allow
-    // "per pale Or and per fess gules and azure": Or against all-colour.)
-    for (const p of nested) {
-      if (familyOf(p.division) !== 'many' && !goodContrast(...p.parts.map(fieldClass))) {
-        problems.push({ id: 'house-sub-low-contrast', sena: null, level: 'house', hint: hintAgainst(fieldClass(p.parts[0])) });
-      }
-    }
   }
   for (const p of nested) checkField(p, problems, depth + 1);
 }
