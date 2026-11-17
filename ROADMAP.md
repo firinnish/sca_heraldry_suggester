@@ -72,9 +72,6 @@ here were made with the maintainer; add to it as things are decided.
   builds as well as searches.
 - **Draft wording** throughout the `TEXT` block of `apps/search/index.html`,
   including every rule message except "Low contrast - please choose a metal".
-- **Three house rules are stricter than SENA** (see CLAUDE.md): SENA's own
-  examples allow "per fess azure and lozengy argent and azure" and "barry
-  azure and checky gules and argent". Keep them strict, or follow SENA?
 
 ## Smaller things noted along the way
 

@@ -45,11 +45,12 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   only registerable if drawn just so). The maintainer's rule of thumb: if
   unsure whether something is allowed, do not generate it, but let people who
   tick "I'm a herald and I know what I'm doing" choose it.
-- House rules so far (all about a background where a part is itself divided):
-  no pattern of many pieces at the top level; no tincture twice; the divided
-  part must be a metal and a colour; one level of nesting; not the same
-  division inside itself. SENA is more generous on the first three: tell the
-  maintainer if a request needs them relaxed, don't relax them silently.
+- **SENA is the final authority** (maintainer, November 2026): no rule may be
+  stricter than SENA about what is allowed. The only house rules left are
+  about what the tools can draw and name: one level of nesting, and not the
+  same division inside itself. The other "house" case is an ordinary sharing
+  a tincture with a field of many pieces (SENA allows it only if drawn so the
+  shared tinctures don't touch, which the drawing doesn't yet guarantee).
 - Contrast for a charge is judged against the part of the field it actually
   lies on (worked out from geometry + layout), which is how SENA treats a
   chief on a per pall field or two charges side by side on per pale.
