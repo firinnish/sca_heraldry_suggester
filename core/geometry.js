@@ -255,7 +255,8 @@ export function samplesInBox([x0, y0, x1, y1]) {
   return out;
 }
 
-function distanceToEdge(x, y) {
+// How far a point is from the shield's outline.
+export function distanceToEdge(x, y) {
   let best = Infinity;
   for (let i = 0, j = SHIELD_POLYGON.length - 1; i < SHIELD_POLYGON.length; j = i++) {
     const [ax, ay] = SHIELD_POLYGON[j], [bx, by] = SHIELD_POLYGON[i];

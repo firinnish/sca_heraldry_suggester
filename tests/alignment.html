@@ -38,7 +38,20 @@ for (const d of divisions) {
   }
   html += '</tr>';
 }
-document.getElementById('out').innerHTML = html + '</table>';
+html += '</table>';
+
+// Furs: every spot should sit wholly inside its own piece of the field.
+html += '<h2>Furs on every division</h2><p>Each ermine spot should be whole, never cut by a line of the field.</p><table><tr>';
+const furPairs = [['ermine', 'azure'], ['vert', 'ermine'], ['counterermine', 'or'], ['erminois', 'gules']];
+for (const d of Object.keys(DIVISIONS).filter(d => DIVISIONS[d].parts === 2)) {
+  for (const [a, b] of furPairs) {
+    const f = divided(d, [plain(a), plain(b)]);
+    html += `<td>${shieldSVG(f, { title: blazon(f, []) })}</td>`;
+  }
+  if (d === 'perChevronInverted' || d === 'gyronny' || d === 'lozengy' || d === 'barry' || d === 'bendySinister') html += '</tr><tr>';
+}
+html += `<td>${shieldSVG(plain('ermine'))}</td><td>${shieldSVG(plain('pean'))}</td>`;
+document.getElementById('out').innerHTML = html + '</tr></table>';
 window.done = true;
 </script>
 </body>

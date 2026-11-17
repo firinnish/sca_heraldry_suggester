@@ -11,6 +11,7 @@ import { TINCTURES } from './catalog.js';
 import { COUNTERCHANGED, counterchangedField } from './shield.js';
 import { W, H, SHIELD_PATH, BORDURE_WIDTH, pathOf, divisionShapes, ordinaryShapes } from './geometry.js';
 import { placeGroup } from './layout.js';
+import { scatter } from './scatter.js';
 
 const OUTLINE = '#3a3226';
 const LINE = '#111111';
@@ -51,7 +52,16 @@ function paintFor(tincture, ctx) {
 
 // ---- The field -------------------------------------------------------------
 
-function drawField(field, ctx) {
+// `regions` and `key` say which piece of the shield this field fills (a part
+// of a division, a part of that part...), so that a fur's spots can be placed
+// whole inside it rather than cut by its edges.
+function drawField(field, ctx, regions = [], key = 'whole') {
+  if (field && field.type === 'plain' && field.tincture !== null && TINCTURES[field.tincture].fur) {
+    const t = TINCTURES[field.tincture];
+    const spots = TINCTURES[t.fur.spots].hex;
+    return `<rect width="${W}" height="${H}" fill="${TINCTURES[t.fur.field].hex}"/>` +
+      scatter(key, regions).map(([x, y]) => ermineSpot(x, y - 4, spots)).join('');
+  }
   if (!field || field.type === 'plain') {
     const paint = field && field.tincture !== null
       ? paintFor(field.tincture, ctx)
@@ -61,7 +71,7 @@ function drawField(field, ctx) {
   return divisionShapes(field.division).map((polygons, i) => {
     const clipId = `${ctx.id}-c${ctx.clips++}`;
     ctx.defs.push(`<clipPath id="${clipId}"><path d="${pathOf(polygons)}"/></clipPath>`);
-    return `<g clip-path="url(#${clipId})">${drawField(field.parts[i], ctx)}</g>`;
+    return `<g clip-path="url(#${clipId})">${drawField(field.parts[i], ctx, [...regions, polygons], `${key}/${field.division}${i}`)}</g>`;
   }).join('');
 }
 
