@@ -26,11 +26,15 @@
 // GOOD CONTRAST (SENA A3B2) is metal against colour, or neutral against either.
 
 import { TINCTURES, familyOf, baseTincture } from './catalog.js';
-import { COUNTERCHANGED, isComplete, isNested, leafTinctures, tincturesIn, shieldTinctures } from './shield.js';
+import { COUNTERCHANGED, isComplete, isNested, leafTinctures, tincturesIn, shieldTinctures,
+         roles, allGroups, typeOf, isCentralOrdinary } from './shield.js';
 import { partMap } from './geometry.js';
-import { groupCoverage } from './layout.js';
+import { layoutShield, extentOf } from './layout.js';
 
 const MAX_COMPLEXITY = 8;          // SENA A3E2
+// A charge drawn smaller than this (its greater measure, on a shield 100
+// wide) is too small to make out: the tools do not offer designs that need it.
+const MIN_EXTENT = 11;
 // A charge counts as lying on a part of the field if at least this share of
 // it is there. (SENA treats a chief on a per pall field as lying on the top
 // part only, although its corners overlap the other two a little.)
@@ -152,10 +156,12 @@ function checkField(field, problems, depth = 0) {
 // SENA judges by how a division was thought of, not by measured area: "in Per
 // pall inverted argent, gules, and azure, a mullet sable the mullet lies
 // equally on all three portions of the field".
-function classBehind(field, points) {
+// `frame`: 'chief' when the field is drawn in the space below a chief, and
+// this charge with it (geometry.js); the parts are then where they are drawn.
+function classBehind(field, points, frame = null) {
   if (field.type === 'plain') return classOf(field.tincture);
-  const map = partMap(field.division);
-  const sizes = partSizes(field.division);
+  const map = partMap(field.division, frame);
+  const sizes = partSizes(field.division, frame);
   const groups = field.parts.map(() => []);
   for (const i of points) groups[map[i]].push(i);
   // A field of many pieces (barry, chevronelly, checky...) is judged as a
@@ -171,39 +177,46 @@ function classBehind(field, points) {
     groups[i].length >= TOUCHING * points.length ||
     (groups[i].length >= TOUCHING_SMALL * points.length && groups[i].length >= COVERING * sizes[i]));
   if (!touched.length) return fieldClass(field);
-  return touched.reduce((sum, i) => sum + classBehind(field.parts[i], groups[i]), 0) / touched.length;
+  return touched.reduce((sum, i) => sum + classBehind(field.parts[i], groups[i], frame), 0) / touched.length;
 }
 
 // How many sample points each part of a division has.
 const sizeCache = new Map();
-function partSizes(division) {
-  if (!sizeCache.has(division)) {
+function partSizes(division, frame = null) {
+  const key = `${division}|${frame}`;
+  if (!sizeCache.has(key)) {
     const sizes = [];
-    for (const part of partMap(division)) sizes[part] = (sizes[part] || 0) + 1;
-    sizeCache.set(division, sizes);
+    for (const part of partMap(division, frame)) sizes[part] = (sizes[part] || 0) + 1;
+    sizeCache.set(key, sizes);
   }
-  return sizeCache.get(division);
+  return sizeCache.get(key);
 }
 
 // How much of a charge lies on each tincture of the field: { azure: 0.5, ... }
-function tincturesBehind(field, points, out = {}, total = points.length) {
+function tincturesBehind(field, points, frame = null, out = {}, total = points.length) {
   if (field.type === 'plain') {
     out[field.tincture] = (out[field.tincture] || 0) + points.length / total;
     return out;
   }
-  const map = partMap(field.division);
+  const map = partMap(field.division, frame);
   const groups = field.parts.map(() => []);
   for (const i of points) groups[map[i]].push(i);
-  field.parts.forEach((p, i) => { if (groups[i].length) tincturesBehind(p, groups[i], out, total); });
+  field.parts.forEach((p, i) => { if (groups[i].length) tincturesBehind(p, groups[i], frame, out, total); });
   return out;
 }
 
-function checkGroup(field, group, problems) {
+// One group on the field, against the field. `coverage` is, for each of its
+// charges, the sample points it covers (from the layout); `crossed` is true
+// when a charge in the middle of the shield lies over the field's lines.
+function checkGroup(field, group, coverage, frame, crossed, problems) {
   // SENA A3D1c: "Combining a two-part field division with a parallel ...
   // peripheral ordinary - such as ... per fess and a chief or base - creates
-  // ambiguity between a peripheral ordinary and a central ordinary."
+  // ambiguity between a peripheral ordinary and a central ordinary.
+  // Therefore, such arrangements may only be registerable if there is a
+  // charge overlying the line of division". SENA's example of that: "Per
+  // fess argent and sable, a sun Or and a chief gules is registerable".
   if (group.kind === 'ordinary' && field.type === 'divided' && field.division === 'perFess' &&
-      (group.ordinary === 'chief' || group.ordinary === 'base')) {
+      (group.ordinary === 'chief' || group.ordinary === 'base') && !crossed) {
     problems.push({ id: 'parallel-peripheral', sena: 'A3D1c', level: 'sena' });
   }
   if (group.tincture === null || !isComplete(field)) return;
@@ -231,10 +244,10 @@ function checkGroup(field, group, problems) {
 
   const chargeClass = classOf(group.tincture);
   let lowContrast = null, shares = false;
-  for (const points of groupCoverage(group, field)) {
+  for (const points of coverage) {
     if (!points.length) continue;
     // SENA A3B4a, applied to the part of the field behind this one charge.
-    const behind = classBehind(field, points);
+    const behind = classBehind(field, points, frame);
     if (!goodContrast(chargeClass, behind)) lowContrast = hintAgainst(behind);
     // SENA A3B4b: "the field and charges on it may share a tincture only if
     // (1) the charges appear only on a section of the field with a different
@@ -242,7 +255,7 @@ function checkGroup(field, group, problems) {
     // charge(s) is an ordinary or simple geometric shape arranged in a way
     // that both ... are clearly identifiable." (2) depends on the drawing,
     // so it is not offered.
-    const under = tincturesBehind(field, points);
+    const under = tincturesBehind(field, points, frame);
     for (const t of Object.keys(under)) {
       if (under[t] > BARELY && baseTincture(t) === baseTincture(group.tincture)) shares = true;
     }
@@ -264,7 +277,9 @@ function checkGroup(field, group, problems) {
 // Anything not chosen yet is simply not judged.
 export function checkShield({ field, groups = [], noCharge = false }) {
   const problems = [];
-  if (!field) return problems;
+  // How the charge groups go together does not depend on the field.
+  const layout = groups.length ? checkGroups(field, groups, problems) : null;
+  if (!field) return dedupe(problems);
   if (isComplete(field)) checkField(field, problems);
 
   // SENA A3E3: "Designs that consist only of a single tincture will not be
@@ -274,16 +289,154 @@ export function checkShield({ field, groups = [], noCharge = false }) {
     problems.push({ id: 'single-tincture', sena: 'A3E3', level: 'sena' });
   }
 
-  for (const group of groups) checkGroup(field, group, problems);
+  // A single charge in the middle of the shield lies over the lines of a
+  // divided field (see SENA A3D1c, in checkGroup).
+  const crossed = groups.some((g, i) => layout.entries[i].role === 'primary' && g.kind === 'charge' && g.number === 1);
+  groups.forEach((group, i) => {
+    const entry = layout.entries[i];
+    // Where a group goes is only a guess until its place has been chosen
+    // (shield.js: roles), so it cannot be judged against the field yet.
+    if (!entry.chosen) return;
+    // A chief is judged on the field as it would be without it (SENA treats
+    // a chief on a per pall field as lying on the top part); everything else
+    // on the field as it is drawn.
+    const frame = group.kind === 'ordinary' && group.ordinary === 'chief' ? null : layout.frame;
+    checkGroup(field, group, entry.coverage || [], frame, crossed, problems);
+    if (group.charged) checkTertiary(field, group, group.charged, problems);
+  });
 
   // SENA A3E2: "measured by adding the number of types of charges to the
   // number of tinctures. Items with a complexity count of eight or less
   // receive no penalty".
-  if (shieldTinctures(field, groups).length + groups.length > MAX_COMPLEXITY) {
+  if (shieldTinctures(field, groups).length + new Set(allGroups(groups).map(typeOf)).size > MAX_COMPLEXITY) {
     problems.push({ id: 'complexity', sena: 'A3E2', level: 'sena' });
   }
+  return dedupe(problems);
+}
 
-  // The same problem found twice (say, for two charges) is reported once.
+// ---- Several charge groups ------------------------------------------------------
+// SENA Appendix I ("Charge Group Theory") says what the groups are; Appendix
+// J says which combinations of them are allowed. Returns the layout, which
+// the checks against the field then use.
+function checkGroups(field, groups, problems) {
+  const r = roles(groups);
+  const layout = layoutShield(field, groups);
+  const primary = groups.find((g, i) => r[i].role === 'primary');
+  problems.push(...checkArrangement(groups));
+  // The rest depends on the arrangement, so waits until it has been chosen.
+  if (!r.every(x => x.chosen)) return layout;
+
+  // An ordinary through the middle of the shield together with an orle: the
+  // tools draw the ordinary running under the orle to the shield's edge,
+  // which may not be how it should look, so they do not offer it.
+  if (primary && isCentralOrdinary(primary) && groups.some(g => g.kind === 'ordinary' && g.ordinary === 'orle')) {
+    problems.push({ id: 'arrangement-unsupported', sena: null, level: 'house' });
+  }
+
+  // What the tools cannot draw (yet): an arrangement with no default (the
+  // Glossary's Table 7 says "None, must be specified"), or one that leaves a
+  // charge too small to make out.
+  const small = e => e.places.some(p => extentOf(e.picture, p.size) < MIN_EXTENT);
+  layout.entries.forEach((e, i) => {
+    for (const part of [e, groups[i].charged ? e.tertiary : null]) {
+      if (!part) continue;
+      if (!part.ok) problems.push({ id: 'arrangement-unsupported', sena: null, level: 'house' });
+      else if (part.places && small(part)) problems.push({ id: 'no-room', sena: null, level: 'house' });
+    }
+  });
+  return layout;
+}
+
+// What can be said about how the charge groups go together without drawing
+// anything: quick enough for the generator to ask of every arrangement it
+// might try. Returns a list of problems.
+export function checkArrangement(groups) {
+  const problems = [];
+  const r = roles(groups);
+  const primary = groups.find((g, i) => r[i].role === 'primary');
+
+  groups.forEach((g, i) => {
+    if (!r[i].clash) return;
+    // SENA Appendix I1: "If the armory has at least one central ordinary,
+    // they are the primary charge group. This is true even if there are
+    // other charges around it". So a charge beside one cannot be primary.
+    if (!isCentralOrdinary(g) && primary && isCentralOrdinary(primary)) {
+      problems.push({ id: 'ordinary-is-primary', sena: 'Appendix I1', level: 'sena' });
+    } else {
+      // Two ordinaries, or two kinds of charge sharing the middle of the
+      // shield: SENA can allow these, but the tools cannot draw them yet.
+      problems.push({ id: 'arrangement-unsupported', sena: null, level: 'house' });
+    }
+  });
+
+  // SENA A3D1a: "Having identical types of charges in multiple charge groups
+  // on the field blurs the distinction between charge groups. Thus, it is not
+  // allowed ... Charge types with identical blazons are allowed to be both on
+  // the field and in a tertiary charge group".
+  const types = groups.map(typeOf);
+  if (new Set(types).size < types.length) problems.push({ id: 'same-charge-twice', sena: 'A3D1a', level: 'sena' });
+
+  // SENA Appendix I3: "Charges on tertiary charges are known as quaternary
+  // charges and are not allowed".
+  if (groups.some(g => g.charged && g.charged.charged)) problems.push({ id: 'quaternary', sena: 'Appendix I3', level: 'sena' });
+
+  // The rest depends on the arrangement, so waits until it has been chosen.
+  if (!r.every(x => x.chosen)) return problems;
+
+  // SENA Appendix J: "All designs with two charge groups on the field are
+  // presumed to be registerable ... All designs with three or more charge
+  // groups on the field must be documented to be registerable." Of the
+  // groupings it lists as documented, the tools can make these:
+  //   "A central ordinary, a secondary charge group around the ordinary
+  //    (semy or numbered charges), and a peripheral ordinary" and
+  //   "A primary charge group, a secondary charge group around the primary
+  //    charge group (semy, in orle, or numbered charges), and a peripheral
+  //    ordinary", each with tertiary charges on the primary group, on the
+  //    ordinaries, or both.
+  if (groups.length >= 3) {
+    const secondary = groups.filter((g, i) => r[i].role === 'secondary');
+    const listed = groups.length === 3 && primary && secondary.length === 1 && !secondary[0].charged &&
+      r.filter(x => x.role === 'peripheral').length === 1;
+    if (!listed) problems.push({ id: 'too-many-groups', sena: 'Appendix J', level: 'sena' });
+    // "Around" the primary group: whether a group only above or below it
+    // ("in chief three mullets") counts is not spelled out, so the tools do
+    // not offer it (the maintainer's rule of thumb), though a herald may.
+    else if (r.find(x => x.role === 'secondary').place !== 'around') {
+      problems.push({ id: 'groups-unsure', sena: 'Appendix J', level: 'house' });
+    }
+  }
+  return problems;
+}
+
+// A charge lying on another charge, against that charge.
+function checkTertiary(field, host, group, problems) {
+  if (group.tincture === null || host.tincture === null) return;
+  // Counterchanging is over a division of the field (SENA A3F4); a charge on
+  // another charge has no divided field behind it.
+  if (group.tincture === COUNTERCHANGED) {
+    problems.push({ id: 'counterchange-field', sena: 'A3F4', level: 'sena' });
+    return;
+  }
+  if (host.tincture === COUNTERCHANGED) {
+    // The charge underneath is made of the field's two tinctures. A charge
+    // on it that shares one of them has nothing to stand out against there
+    // (SENA A3B4b, as for a charge on a divided field).
+    if (isComplete(field) && tincturesIn(field).some(t => baseTincture(t) === baseTincture(group.tincture))) {
+      problems.push({ id: 'charge-shares-tincture', sena: 'A3B4b', level: 'sena' });
+    }
+    return;
+  }
+  // SENA A3B4a: "Tertiary charge groups are considered to be placed on the
+  // underlying charge group and must have good contrast with that charge
+  // group."
+  const under = classOf(host.tincture);
+  if (!goodContrast(classOf(group.tincture), under)) {
+    problems.push({ id: 'charge-low-contrast', sena: 'A3B4a', level: 'sena', hint: hintAgainst(under) });
+  }
+}
+
+// The same problem found twice (say, for two charges) is reported once.
+function dedupe(problems) {
   const seen = new Set();
   return problems.filter(p => !seen.has(p.id) && seen.add(p.id));
 }

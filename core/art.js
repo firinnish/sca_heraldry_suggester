@@ -10,7 +10,7 @@
 import { fetchCSV } from './csv.js';
 
 const LIBRARY_URL = new URL('../charges/', import.meta.url).href;
-const pictures = new Map();   // key (file name) -> { href, aspect, outline }
+const pictures = new Map();   // key (file name) -> { href, aspect, outline, solid }
 
 // The outline is a list of [x, y] points around the charge, in a box that is
 // 1 wide and (1 / aspect) tall, measured from the box's centre.
@@ -39,7 +39,12 @@ function measure(img) {
   }
   const outline = left.length ? [...left, ...right.reverse()]
     : [[-0.5, -0.5 / aspect], [0.5, -0.5 / aspect], [0.5, 0.5 / aspect], [-0.5, 0.5 / aspect]];
-  return { aspect, outline };
+  // Which pixels of the (shrunken) picture are part of the charge. Used to
+  // place a charge ON this one, where the outline alone is not enough: the
+  // gap between a lion's tail and its back is inside the outline.
+  const data = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) data[i] = alpha[i * 4 + 3] > 40 ? 1 : 0;
+  return { aspect, outline, solid: { w, h, data } };
 }
 
 // Load one picture and remember its shape. Safe to call more than once.

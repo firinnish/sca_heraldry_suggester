@@ -17,13 +17,15 @@ then open:
 - http://localhost:8767/tests/rules.html : checks the rules against SENA's own examples, and the random generator
 - http://localhost:8767/tests/charges.html : draws every charge picture in every tincture
 - http://localhost:8767/tests/alignment.html : draws every ordinary on every field division, to check their lines meet cleanly
+- http://localhost:8767/tests/groups.html : draws every way charges go together (around, above, below and on each ordinary; inside a chief or bordure), to check nothing touches or is too small
+- http://localhost:8767/tests/snapshot.html : a before / after check, for changes to `core/` that are meant to leave existing shields exactly as they were
 
 ## What is where
 
 | Folder | What it holds |
 | --- | --- |
-| `core/` | The shared engine. `catalog.js` (tinctures and field divisions, with their O&A codes), `shield.js` (the description of a shield, and its blazon), `draw.js` (the picture), `oanda.js` (Complex Search Form patterns and link), `rules.js` (SENA's style rules), `generate.js` (random shields), `geometry.js` and `layout.js` (shapes and charge placement), `scatter.js` (ermine spots), `palettes.js` (colour schemes). |
-| `apps/search/` | "What are you searching for?": pick the background, get a filled-in Complex Search Form link. |
+| `core/` | The shared engine. `catalog.js` (tinctures and field divisions, with their O&A codes), `shield.js` (the description of a shield, and its blazon), `draw.js` (the picture), `oanda.js` (Complex Search Form patterns and link), `rules.js` (SENA's style rules), `generate.js` (random shields), `geometry.js`, `layout.js` and `space.js` (shapes, and where charges go around and on each other), `arrange.js` (the ways several charges can go together), `scatter.js` (ermine spots), `palettes.js` (colour schemes). |
+| `apps/search/` | "What are you searching for?": pick the background and the charges, see the shield, get a filled-in Complex Search Form link. |
 | `apps/suggester/` | The earlier suggester prototype and the charge picker. |
 | `charges/` | The project's own charge library: `charges.csv` (one row per charge), `art.csv` (one row per picture), `art/` (the pictures), plus two generated lists, `priority.csv` and `oanda_categories.csv`. See [CONTRIBUTING.md](CONTRIBUTING.md). |
 | `data/` | `charges.csv` and `taxonomy.csv` (edited by hand), `mycat.txt` (the O&A category list), and generated charge lists. |

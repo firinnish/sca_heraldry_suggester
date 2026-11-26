@@ -18,6 +18,14 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   - `core/geometry.js`: shapes as numbers (division regions, ordinaries, the
     shield outline, sample points). Shared by drawing and the rules.
   - `core/layout.js`: where charges go and how big (centre first, then 95%).
+    `layoutShield(field, groups)` places everything on a shield; drawing and
+    the rules both use its answer, so they cannot disagree.
+  - `core/space.js`: the arithmetic under `layout.js` for spaces that are
+    not boxes (inside a bordure, beside a chevron, on a bend): spaces as
+    grids of cells, "how big does this charge fit here?". Knows no heraldry.
+  - `core/arrange.js`: the ways a few charges can go together (around, on,
+    above, below), for pages to show as pictures and the generator to pick
+    from. It lists what makes sense; `rules.js` says what is allowed.
   - `core/draw.js`: the SVG picture.
   - `core/oanda.js`: Complex Search patterns and link.
   - `core/rules.js`: SENA's style rules. See below.
@@ -61,8 +69,40 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   chief on a per pall field or two charges side by side on per pale.
 - Rule violations never block the search link: people search for old armory
   that breaks today's rules. They grey out options and show a warning.
-- Not covered yet: complex lines (SENA Appendix H), arrangements of several
-  charge groups (Appendix J), voiding/fimbriation, "sword and dagger".
+- Not covered yet: complex lines (SENA Appendix H), voiding/fimbriation,
+  "sword and dagger" (A3D1b).
+
+## Several charge groups (built November 2026)
+- The model is in `core/shield.js`: `groups` lists the groups ON THE FIELD;
+  each may have `role` ('primary' | 'secondary' | null), `place` for a
+  secondary ('around' | 'chief' | 'base'), and `charged` (the group lying on
+  it: its tertiary charges; `charged.number` is the number on EACH charge).
+  `roles(groups)` works out what each group is and follows SENA Appendix I:
+  a central ordinary is always primary, a chief/bordure/orle/base always
+  peripheral, one group alone always primary. A `role` of null means "not
+  chosen yet": it is drawn as a guess, the blazon says "(arranged any way)",
+  the search leaves the group word out, and the rules do not judge it.
+- Where things go by default comes from Table 7 ("Default Arrangements") of
+  the College of Arms' Glossary of Terms, https://heraldry.sca.org/coagloss.html.
+  The tables are at the top of the second half of `layout.js`. Where Table 7
+  says "None, must be specified", nothing is drawn and the rules report
+  `arrangement-unsupported` (a `house` problem: what the tools cannot draw).
+- Rules, in `checkArrangement` / `checkGroups` / `checkTertiary`: Appendix I1
+  (a charge beside a central ordinary cannot be primary), Appendix J (three
+  or more groups on the field must be a listed grouping), A3D1a (the same
+  charge in two groups on the field), A3B4a (a charge on another charge must
+  contrast with it), A3D1c (a chief on per fess is allowed with a charge over
+  the line). `no-room` (house) = a charge would be drawn too small.
+- `tests/groups.html` draws every combination: LOOK at it after changing
+  `layout.js` or `space.js` (pick a real charge from its menu too).
+  `tests/snapshot.html` proves a change to `core/` left existing shields
+  exactly as they were: press "Save the current results" BEFORE the change,
+  reload after. A byte-identical result is the bar for a refactor.
+- Speed: placings are remembered (`layoutShield`'s cache, and `placings` for
+  the parts of one). The generator asks `checkArrangement` before trying an
+  arrangement, and `whichWork` tests every colour (or number) for a charge
+  against the same guesses instead of guessing afresh for each.
+- Open questions for the maintainer about all this are in ROADMAP.md.
 
 ## How the page behaves (decided with the maintainer)
 - Three areas: questions (top left, scrolls on its own, always shows every
@@ -83,6 +123,18 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   shield shapes.
 - Each question card sets one thing. "select this shield" on a suggestion
   copies everything into the questions; "pin suggestion" keeps it.
+- "What charges are on the field?" (the maintainer's words) takes up to
+  three kinds of charge; picking one again takes it off. Each has its own
+  "How many?" and colour. People must not need the words primary, secondary
+  or tertiary: "How are they arranged?" shows every way the chosen charges
+  can go together as a picture, forbidden ways greyed with the reason. "I'm
+  a herald" adds a menu per charge to say which is which directly.
+- As with colours, if only one arrangement is legal the shield top right
+  assumes it; "don't specify" keeps it open.
+- Suggestions may add a charge that was not picked; option pictures never do.
+- A picture that has not been worked out before is shown as an empty shield
+  and filled in a moment later (`lazyCard`, `fillLater` in the page), so a
+  click is never held up by it.
 
 ## How the O&A indexes things (verified, do not guess)
 - `data/mycat.txt` is the official category list; `data/oanda.db` is the whole
@@ -92,6 +144,13 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   Run it after any change to `core/` (needs the local server, see below).
 - Field rules are written at the top of `core/oanda.js`. Both category codes
   (`PPALE`) and category names (`field division, per pale`) work in patterns.
+- Charge groups (checked on hundreds of records and on the live form): the
+  primary group is `...:primary` (records say spa, spna, g3pa...), a
+  secondary group `STAR:3:argent:second` ("secondary" finds the same), a
+  tertiary group `ROSE:3:gules:tertiary`, with the number on the whole shield
+  ("three flames each charged with a heart" is `HEART:3`). A chief, bordure
+  or base is just `CHIEF:or:pl`. The page sends the primary group as one line
+  per feature and every other group as a single line.
 - The live form is https://oanda.sca.org/oanda_complex.cgi (GET; parameters
   `w1..w10`, `m1..m10`, `p1..p10`, plus `l`, `s`, `d`, `g`, `a`, `raw`, `rs`).
 
@@ -159,13 +218,13 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   `await loadLibrary()` (or `loadPicture`) before drawing charges; anything
   not loaded is drawn as a blob. No build step is needed when art is added.
 - Sizing rule (maintainer's): a charge fills 95% of the space it is in and
-  never touches the edge. `fit()` in `draw.js` works from the picture's real
-  outline and "a space"; spaces left by other charges are not worked out yet.
+  never touches the edge. `layout.js` works from the picture's real outline
+  and the space the other things on the shield leave it.
 - One picture serves several orientations: `inverted` in art.csv's `variant`
   means drawn upside down, and the code flips it as needed. Extend this idea
   (not more art) for other orientations.
-- Charge groups are `ordinaryGroup` / `chargeGroup` in `core/shield.js`; for
-  now every group is treated as primary. Ordinaries are in `catalog.js`
+- Charge groups are `ordinaryGroup` / `chargeGroup` in `core/shield.js` (see
+  "Several charge groups" above). Ordinaries are in `catalog.js`
   (`ORDINARIES`) and drawn by code. See ROADMAP.md for what comes next.
 - Never commit a picture whose `artist` and `permission` are empty. The
   maintainer's own tracings of medieval sources are recorded as
