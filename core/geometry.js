@@ -46,8 +46,11 @@ const CHEVRON_HALF = 22.75;         // half a chevron, measured straight up
 // chevron's at the inner point of a chevron inverted), so a chevron on per
 // chevron inverted makes one clean diamond with the lower part.
 const CHEVRON_INV_APEX = CHEVRON_APEX + CHEVRON_HALF; // per chevron inverted, and a chevron inverted: 56.42
-const CHIEF_BOTTOM = C - UNIT;      // 33.67
-const BASE_TOP = C + 2 * UNIT;      // 82.67
+export const CHIEF_BOTTOM = C - UNIT;      // 33.67
+export const BASE_TOP = C + 2 * UNIT;      // 82.67
+// Half the width of a pale, fess or cross, for anything that needs to know
+// where their arms end (layout.js: charges placed on a cross).
+export const ARM_HALF = UNIT;
 
 // ---- Helpers ---------------------------------------------------------------
 const rect = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
@@ -190,12 +193,19 @@ const divisionCache = new Map();
 // the parts of the field it borders, as SENA treats it.)
 let chiefFessY = null;
 function squeezeBelowChief(polygons) {
+  const k = (frameCentre('chief')[1] - CHIEF_BOTTOM) / (C - 1);
+  return polygons.map(p => p.map(([x, y]) => [x, CHIEF_BOTTOM + (y - 1) * k]));
+}
+
+// The middle of the space a frame leaves: the fess point for the whole
+// shield, or the middle of the space below a chief.
+export function frameCentre(frame = null) {
+  if (frame !== 'chief') return FESS_POINT;
   if (chiefFessY === null) {
     const below = SAMPLES.filter(([, y]) => y > CHIEF_BOTTOM);
     chiefFessY = below.reduce((s, [, y]) => s + y, 0) / below.length;
   }
-  const k = (chiefFessY - CHIEF_BOTTOM) / (C - 1);
-  return polygons.map(p => p.map(([x, y]) => [x, CHIEF_BOTTOM + (y - 1) * k]));
+  return [C, chiefFessY];
 }
 
 // `frame`: null for the whole shield, or 'chief' for the space below a chief.
@@ -251,12 +261,21 @@ const ORDINARY_SHAPES = {
 // middle, and a counterchanged arm is split evenly (not into a thin sliver).
 const DIAGONAL_LINES = new Set(['perBend', 'perBendSinister', 'perSaltire', 'gyronny', 'perPall', 'perPallInverted']);
 
+// True if this ordinary is drawn differently on this field division (so that
+// anything worked out from its shape must be worked out again).
+export const suitsDivision = (ordinary, division) =>
+  (ordinary === 'chevron' || ordinary === 'chevronInverted') && DIAGONAL_LINES.has(division);
+
 // `division` (optional): the field's division, for ordinaries that are
 // placed to suit it.
-export function ordinaryShapes(ordinary, division = null) {
+// `frame` (optional): 'chief' when the shield also has a chief. Like the
+// field, an ordinary is then drawn in the space below the chief, as if that
+// space were the whole shield (the chief and base themselves stay put).
+export function ordinaryShapes(ordinary, division = null, frame = null) {
   if (ordinary === 'bordure' || ordinary === 'orle') return null;
   if (!ORDINARY_SHAPES[ordinary]) throw new Error('No shape for ordinary: ' + ordinary);
-  return ORDINARY_SHAPES[ordinary](division);
+  const shapes = ORDINARY_SHAPES[ordinary](division);
+  return frame === 'chief' && ordinary !== 'chief' && ordinary !== 'base' ? squeezeBelowChief(shapes) : shapes;
 }
 
 // ---- Sample points ---------------------------------------------------------
@@ -267,17 +286,19 @@ for (let y = 3; y < H; y += 2) {
   for (let x = 3; x < W; x += 2) if (insideShield(x, y)) SAMPLES.push([x, y]);
 }
 
-// For a division: which part each sample point is in.
+// For a division: which part each sample point is in. `frame` as for
+// divisionShapes: 'chief' gives the division as drawn below a chief.
 const partMapCache = new Map();
-export function partMap(division) {
-  if (!partMapCache.has(division)) {
-    const shapes = divisionShapes(division);
-    partMapCache.set(division, SAMPLES.map(([x, y]) => {
+export function partMap(division, frame = null) {
+  const key = `${division}|${frame}`;
+  if (!partMapCache.has(key)) {
+    const shapes = divisionShapes(division, frame);
+    partMapCache.set(key, SAMPLES.map(([x, y]) => {
       const i = shapes.findIndex(polygons => inAny(x, y, polygons));
       return i < 0 ? 0 : i;
     }));
   }
-  return partMapCache.get(division);
+  return partMapCache.get(key);
 }
 
 // Which sample points a set of polygons covers (as positions in SAMPLES).
@@ -307,10 +328,10 @@ export function distanceToEdge(x, y) {
 }
 
 const ordinarySampleCache = new Map();
-export function ordinarySamples(ordinary, division = null) {
-  const key = `${ordinary}|${division}`;
+export function ordinarySamples(ordinary, division = null, frame = null) {
+  const key = `${ordinary}|${division}|${frame}`;
   if (!ordinarySampleCache.has(key)) {
-    const shapes = ordinaryShapes(ordinary, division);
+    const shapes = ordinaryShapes(ordinary, division, frame);
     const covered = shapes ? samplesInside(shapes)
       : ordinary === 'orle'
         ? SAMPLES.map((p, i) => { const d = distanceToEdge(p[0], p[1]); return d >= ORLE_GAP && d < ORLE_GAP + ORLE_WIDTH ? i : -1; }).filter(i => i >= 0)

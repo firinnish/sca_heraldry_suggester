@@ -31,7 +31,7 @@
 // is simply left out of the pattern, so the search matches any value for it.
 
 import { TINCTURES, DIVISIONS, ORDINARIES } from './catalog.js';
-import { COUNTERCHANGED, tincturesIn, isComplete } from './shield.js';
+import { COUNTERCHANGED, tincturesIn, isComplete, roles, isPeripheral } from './shield.js';
 
 const FORM_URL = 'https://oanda.sca.org/oanda_complex.cgi';
 export const MAX_PATTERNS = 10;
@@ -152,16 +152,35 @@ function tinctureFeatures(group, field) {
 // (an ordinary also gets a line for its plain line of division, e.g.
 // PALE:pl:primary). Anything not chosen yet gets no line; if nothing about it
 // is chosen, it is just CAT:primary.
-// EVERY OTHER GROUP (a chief, bordure or base; later secondary and tertiary
-// charges) gets a single line with everything on it, e.g. CHIEF:or:pl.
-function groupPatterns(group, field) {
+// EVERY OTHER GROUP gets a single line with everything on it:
+//   a chief, bordure, orle or base       CHIEF:or:pl
+//   a secondary group                    STAR:3:argent:secondary
+//   a tertiary group (on another charge) ROSE:3:gules:tertiary
+// Checked against real records: "Vert, a chevron between three peacocks
+// argent" has BIRD:peacock:3:argent:close to dexter:second ("second" and
+// "secondary" are the same word to the O&A: my.cat has group:second=secondary)
+// and "Gules, on a bend Or three martlets gules" has BIRD:3:...:gules:tertiary.
+// A tertiary group's number is the number on the whole shield: "three flames
+// argent each charged with a heart azure" has HEART:3:azure:tertiary.
+// A group whose place in the design has not been chosen (shield.js: roles)
+// gets a line without "primary" or "secondary", so the search finds it
+// wherever it is.
+function groupLine(group, field, word, count = group.number) {
+  const def = group.kind === 'ordinary' ? ORDINARIES[group.ordinary] : null;
+  const bits = [def ? def.code : group.category];
+  if ((!def || def.numbered) && count !== null) bits.push(String(count));
+  bits.push(...tinctureFeatures(group, field));
+  if (def) bits.push('pl');
+  if (group.posture) bits.push(group.posture);
+  if (word) bits.push(word);
+  return bits.join(':');
+}
+
+function primaryLines(group, field) {
   const tincture = tinctureFeatures(group, field);
   const def = group.kind === 'ordinary' ? ORDINARIES[group.ordinary] : null;
   const code = def ? def.code : group.category;
   const number = (!def || def.numbered) && group.number !== null ? String(group.number) : null;
-
-  if (def && def.peripheral) return [[code, ...tincture, 'pl'].join(':')];
-
   const lines = [];
   if (number) lines.push([code, number, 'primary']);
   if (tincture.length) lines.push([code, ...tincture, 'primary']);
@@ -171,15 +190,28 @@ function groupPatterns(group, field) {
   return lines.map(bits => bits.join(':'));
 }
 
-const isPeripheral = g => g.kind === 'ordinary' && ORDINARIES[g.ordinary].peripheral;
-
 // All the search patterns for a whole shield: the field, then each charge
 // group. `noCharge` true means the user has said nothing is on the field.
+// The form takes ten lines; if a shield would need more, the tertiary
+// charges' lines (which come last) are the ones left off.
 export function shieldPatterns(field, groups = [], { noCharge = false } = {}) {
-  const patterns = [...fieldPatterns(field), ...groups.flatMap(g => groupPatterns(g, field))];
-  if (groups.length && groups.every(isPeripheral)) patterns.push('PO');
-  if (!groups.length && noCharge) patterns.push('FO');
-  return patterns;
+  const r = roles(groups);
+  const patterns = [...fieldPatterns(field)], tertiary = [];
+  groups.forEach((g, i) => {
+    if (r[i].role === 'peripheral') patterns.push([ORDINARIES[g.ordinary].code, ...tinctureFeatures(g, field), 'pl'].join(':'));
+    else if (!r[i].chosen) patterns.push(groupLine(g, field, null));
+    else if (r[i].role === 'primary') patterns.push(...primaryLines(g, field));
+    else patterns.push(groupLine(g, field, 'secondary'));
+    if (g.charged) {
+      const each = g.kind === 'ordinary' ? 1 : g.number;
+      const count = g.charged.number === null || each === null ? null : g.charged.number * each;
+      tertiary.push(groupLine(g.charged, field, 'tertiary', count));
+    }
+  });
+  const flags = [];
+  if (groups.length && groups.every(isPeripheral)) flags.push('PO');
+  if (!groups.length && noCharge) flags.push('FO');
+  return [...patterns, ...tertiary].slice(0, MAX_PATTERNS - flags.length).concat(flags);
 }
 
 // A ready-to-click Complex Search Form link for a list of patterns.

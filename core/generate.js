@@ -11,10 +11,19 @@
 //   fieldOrdered:   true = use fieldTinctures in the order given.
 //   division:       null (any) | 'plain' | a division id.
 //   field:          a complete background, if one has been fully chosen.
-//   charge:         null (any, or none) | 'none' | { kind: 'ordinary', id }
-//                   | { kind: 'charge', id, file }   (file null = no picture)
-//   number:         null (any) | 1 | 2 | 3
-//   chargeTincture: null (any) | a tincture id | COUNTERCHANGED
+//   items:          what is on the shield: null (anything, or nothing) |
+//                   'none' | a list of { charge, number, tincture }, where
+//                     charge:   null (any) | { kind: 'ordinary', id }
+//                               | { kind: 'charge', id, file }  (file null = no picture)
+//                     number:   null (any) | 1, 2, 3...
+//                     tincture: null (any) | a tincture id | COUNTERCHANGED
+//                   Every charge listed appears on the shield.
+//   arrangement:    how the listed charges go together (arrange.js), or null
+//                   for any way that makes sense.
+//   extras:         true = the shield may also have charges that are not
+//                   listed (used for suggestions, not for option pictures).
+//   charge, number, chargeTincture: the older way of asking for one charge;
+//                   the same as a list of one.
 //   allowBare:      true = a plain background with nothing on it is acceptable
 //                   (used when showing background options on their own).
 //
@@ -27,8 +36,10 @@
 // to keep pictures from changing every time the screen is redrawn.
 
 import { DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, familyOf } from './catalog.js';
-import { plain, divided, ordinaryGroup, chargeGroupFromLibrary, shieldTinctures, blazon, COUNTERCHANGED } from './shield.js';
-import { checkShield } from './rules.js';
+import { plain, divided, ordinaryGroup, chargeGroupFromLibrary, shieldTinctures, blazon, typeOf, COUNTERCHANGED } from './shield.js';
+import { checkShield, checkArrangement } from './rules.js';
+import { arrangements, arrange } from './arrange.js';
+import { aroundNumbers, onNumbers, PLACE_NUMBERS } from './layout.js';
 
 const PLAIN_TINCTURES = [...COLOUR_ORDER, ...METAL_ORDER];
 const TRIES = 120;
@@ -135,48 +146,173 @@ function guessField(c, rng) {
 
 // ---- Guessing what is on it --------------------------------------------------
 
-function guessGroups(c, field, rng, library) {
-  let choice = c.charge;
-  if (choice === 'none') return [];
-  if (!choice) {
-    const pictures = library.pictures;
-    const wantsSeveral = c.number && c.number > 1;
-    const kind = weighted(rng, [
-      ['none', wantsSeveral || c.chargeTincture ? 0 : 3],
-      ['ordinary', wantsSeveral ? 0 : 4],
-      ['picture', pictures.length ? 6 : 0],
-      ['blob', pictures.length ? 0 : 1],
-    ]);
-    if (kind === 'none') return [];
-    if (kind === 'ordinary') choice = { kind: 'ordinary', id: pick(rng, Object.keys(ORDINARIES)) };
-    else if (kind === 'picture') { const p = pick(rng, pictures); choice = { kind: 'charge', id: p.charge_id, file: p.file }; }
-    else if (library.charges.length) choice = { kind: 'charge', id: pick(rng, library.charges).id, file: null };
-    else return [];
+// What must be on the shield: `c.items`, or the older way of asking for one
+// charge (c.charge, c.number, c.chargeTincture). Returns null (anything),
+// 'none', or a list of { charge, number, tincture }, any of them null.
+function wanted(c) {
+  if (c.items) return c.items;
+  if (c.charge === 'none') return 'none';
+  if (c.charge || c.number || c.chargeTincture) {
+    return [{ charge: c.charge || null, number: c.number || null, tincture: c.chargeTincture || null }];
+  }
+  return null;
+}
+
+const CENTRAL = Object.keys(ORDINARIES).filter(id => !ORDINARIES[id].peripheral);
+const PERIPHERAL = Object.keys(ORDINARIES).filter(id => ORDINARIES[id].peripheral);
+const sameChoice = (a, b) => a.kind === b.kind && a.id === b.id;
+
+// A charge picked at random. `kinds` weights the possibilities.
+function randomChoice(rng, library, { ordinary = 4, peripheral = 0, charge = 6 } = {}) {
+  const pictures = library.pictures;
+  const kinds = [
+    ['ordinary', ordinary], ['peripheral', peripheral],
+    ['picture', pictures.length ? charge : 0],
+    ['blob', pictures.length || !library.charges.length ? 0 : charge / 6],
+  ].filter(k => k[1] > 0);
+  if (!kinds.length) return null;
+  const kind = weighted(rng, kinds);
+  if (kind === 'ordinary') return { kind: 'ordinary', id: pick(rng, Object.keys(ORDINARIES)) };
+  if (kind === 'peripheral') return { kind: 'ordinary', id: pick(rng, PERIPHERAL) };
+  if (kind === 'picture') { const p = pick(rng, pictures); return { kind: 'charge', id: p.charge_id, file: p.file }; }
+  if (kind === 'blob') return { kind: 'charge', id: pick(rng, library.charges).id, file: null };
+  return null;
+}
+
+// A library's charges by id and pictures by file name (looked up constantly).
+const indexes = new WeakMap();
+function indexOf(library) {
+  if (!indexes.has(library)) {
+    indexes.set(library, { charges: new Map(library.charges.map(x => [x.id, x])), pictures: new Map(library.pictures.map(p => [p.file, p])) });
+  }
+  return indexes.get(library);
+}
+
+function groupFromChoice(choice, library) {
+  if (choice.kind === 'ordinary') return ORDINARIES[choice.id] ? ordinaryGroup(choice.id, null) : null;
+  const index = indexOf(library);
+  const charge = index.charges.get(choice.id);
+  if (!charge) return null;
+  const picture = choice.file ? index.pictures.get(choice.file) : null;
+  return chargeGroupFromLibrary(charge, picture || null, { tincture: null, number: null });
+}
+
+// How likely each place for a charge is to be picked, when nobody has chosen.
+const PLACE_WEIGHT = { primary: 1, edge: 1, around: 5, on: 3, chief: 2, base: 1 };
+
+// The arrangements worth trying for a list of groups: those that make sense
+// (arrange.js), agree with whatever arrangement was chosen for the first of
+// them, and that the rules cannot already see are wrong. If the rules fault
+// every one, all are tried, so that the rules' reason can be shown.
+const waysCache = new Map();
+function waysFor(flat, chosen) {
+  const key = flat.map(typeOf).join() + '|' + JSON.stringify(chosen || null);
+  if (!waysCache.has(key)) {
+    const fits = a => !chosen || chosen.every((x, i) => x.as === a[i].as && (x.on ?? null) === (a[i].on ?? null));
+    const all = arrangements(flat).filter(fits);
+    const sound = all.filter(a => !checkArrangement(arrange(flat, a)).length);
+    if (waysCache.size > 2000) waysCache.clear();
+    waysCache.set(key, (sound.length ? sound : all).map(a => [a, a.reduce((w, x) => w * PLACE_WEIGHT[x.as], 1)]));
+  }
+  return waysCache.get(key);
+}
+
+// The charges for one guess: { flat, arrangement } (a list of groups and how
+// they go together, see arrange.js), with `flat` empty for nothing on the
+// shield; or null if this guess came to nothing.
+function guessGroups(c, rng, library) {
+  let items = wanted(c);
+  if (items === 'none') return { flat: [], arrangement: [] };
+  if (!items) {
+    // Nothing chosen: about one shield in four has nothing on it.
+    if (rng() < 3 / 13) return { flat: [], arrangement: [] };
+    items = [{ charge: null, number: null, tincture: null }];
+  }
+  items = items.map(it => ({ ...it, charge: it.charge || randomChoice(rng, library, { ordinary: it.number > 1 ? 0 : 4 }) }));
+  if (items.some(it => !it.charge)) return null;
+
+  // Suggestions may add a charge or two that was not asked for: something
+  // along the edge, an ordinary, or another charge.
+  for (let chance = 0.35; c.extras && items.length < 3 && rng() < chance; chance = 0.2) {
+    const has = test => items.some(it => it.charge.kind === 'ordinary' && test(it.charge.id));
+    const extra = randomChoice(rng, library, {
+      ordinary: 0, charge: 5,
+      peripheral: has(id => PERIPHERAL.includes(id)) ? 0 : 4,
+    }) || null;
+    const central = !has(id => CENTRAL.includes(id)) && rng() < 0.3 ? { kind: 'ordinary', id: pick(rng, CENTRAL) } : null;
+    const choice = central || extra;
+    if (!choice || items.some(it => sameChoice(it.charge, choice))) break;
+    items.push({ charge: choice, number: null, tincture: null });
   }
 
-  const palette = paletteOf(c);
-  const tincture = c.chargeTincture || (rng() < 0.12 ? COUNTERCHANGED : pick(rng, palette));
-  if (choice.kind === 'ordinary') return [ordinaryGroup(choice.id, tincture)];
+  const flat = items.map(it => groupFromChoice(it.charge, library));
+  if (flat.some(g => !g)) return null;
 
-  const charge = library.charges.find(x => x.id === choice.id);
-  if (!charge) return null;
-  const picture = choice.file ? library.pictures.find(p => p.file === choice.file) : null;
-  const number = c.number || weighted(rng, [[1, 11], [2, 3], [3, 6]]);
-  return [chargeGroupFromLibrary(charge, picture || null, { tincture, number })];
+  // How they go together: as chosen, or one of the ways that make sense.
+  // (A chosen arrangement covers the charges that were asked for; any added
+  // charge takes whatever place still makes sense.)
+  let arrangement = c.arrangement;
+  if (!arrangement || arrangement.length !== flat.length) {
+    const ways = waysFor(flat, arrangement);
+    if (!ways.length) return null;
+    arrangement = weighted(rng, ways);
+  }
+
+  // How many of each. Only some numbers have a default arrangement in each
+  // place (layout.js); a number the user chose is kept whatever it is, so
+  // that the rules can say what is wrong with it.
+  const primary = arrangement.findIndex(x => x.as === 'primary');
+  const circled = arrangement.some(x => x.as === 'around');
+  const order = [primary, ...flat.map((g, i) => i).filter(i => i !== primary)].filter(i => i >= 0);
+  for (const i of order) {
+    const g = flat[i], as = arrangement[i].as, fixed = items[i].number;
+    if (g.kind === 'ordinary') continue;
+    let choices;
+    if (as === 'primary') choices = circled ? [[1, 1]] : [[1, 11], [2, 3], [3, 6]];
+    else if (as === 'around') choices = aroundNumbers(flat[primary]).map(n => [n, n === 3 ? 3 : 1]);
+    else if (as === 'on') choices = onNumbers(flat[arrangement[i].on]).filter(n => n <= 4).map(n => [n, n === 1 || n === 3 ? 3 : 1]);
+    else choices = PLACE_NUMBERS[as].map(n => [n, n === 2 ? 1 : 3]);
+    // (Where no number has a default arrangement, one is still guessed, so
+    // that the rules can say the arrangement cannot be drawn.)
+    g.number = fixed || (choices.length ? weighted(rng, choices) : 1);
+  }
+
+  // What colour each is. Charges around the main one are often its colour.
+  const palette = paletteOf(c);
+  for (const i of order) {
+    const as = arrangement[i].as, fixed = items[i].tincture;
+    if (fixed) flat[i].tincture = fixed;
+    else if (as === 'on') flat[i].tincture = pick(rng, palette);
+    else if (ON_FIELD_AROUND.has(as) && rng() < 0.5 && flat[primary].tincture !== COUNTERCHANGED) flat[i].tincture = flat[primary].tincture;
+    else flat[i].tincture = rng() < 0.12 ? COUNTERCHANGED : pick(rng, palette);
+  }
+  return { flat, arrangement };
 }
+const ON_FIELD_AROUND = new Set(['around', 'chief', 'base']);
 
 // ---- Putting it together -----------------------------------------------------
 
-function guess(c, rng, library) {
+// A guess as its parts: { field, flat, arrangement }.
+function guessParts(c, rng, library) {
   const field = guessField(c, rng);
   if (!field) return null;
-  const groups = guessGroups(c, field, rng, library);
-  if (!groups) return null;
-  const shield = { field, groups, noCharge: !groups.length };
+  const charges = guessGroups(c, rng, library);
+  return charges && { field, ...charges };
+}
+
+// The shield those parts make, or null if it uses a colour it may not (or
+// lacks one it must have).
+function shieldFrom({ field, flat, arrangement }, c) {
+  const groups = flat.length ? arrange(flat, arrangement) : [];
   const used = shieldTinctures(field, groups);
   if (c.palette && c.palette.length && used.some(t => !c.palette.includes(t))) return null;
   if (c.mustInclude && !used.includes(c.mustInclude)) return null;
-  return shield;
+  return { field, groups, noCharge: !groups.length };
+}
+
+function guess(c, rng, library) {
+  const parts = guessParts(c, rng, library);
+  return parts && shieldFrom(parts, c);
 }
 
 // Problems that matter for a guess. A bare plain background is fine when it
@@ -190,8 +326,10 @@ function problemsOf(shield, c) {
 export function randomShield(c, seedText, library) {
   const rng = randomFrom(seedText);
   // If everything is already decided there is only one shield to test.
-  const decided = c.field && c.charge && (c.charge === 'none' ||
-    (c.chargeTincture && (c.number || c.charge.kind === 'ordinary')));
+  const items = wanted(c);
+  const decided = c.field && items && (items === 'none' || (!c.extras &&
+    items.every(it => it.charge && it.tincture && (it.number || it.charge.kind === 'ordinary')) &&
+    (items.length === 1 || c.arrangement)));
   for (let i = 0; i < (decided ? 1 : TRIES); i++) {
     const shield = guess(c, rng, library);
     if (shield && problemsOf(shield, c).length === 0) return shield;
@@ -221,6 +359,40 @@ export function whyNot(c, seedText, library) {
   const withIt = example.problems.find(p => p.id === commonest);
   if (withIt) example.problems = [withIt, ...example.problems.filter(p => p !== withIt)];
   return example;
+}
+
+// For ONE of the charges asked for, which values of one thing about it are
+// possible? `slot` is its place in c.items, `key` is 'tincture' or 'number',
+// `values` the values to try. Returns a Map from each value to
+//   null            some shield within the constraints has it and breaks no rule
+//   [problems...]   none was found; these are the commonest reasons why not
+//                   (an empty list: no shield could even be made to test)
+// Each guess is made once and then tried with every value in turn, so twelve
+// colours cost little more than one, and all are judged on the same shields.
+export function whichWork(c, slot, key, values, seedText, library) {
+  const rng = randomFrom(seedText);
+  const open = new Set(values);
+  const faults = new Map(values.map(v => [v, new Map()]));    // value -> problem id -> { problem, count }
+  const items = wanted(c).map((it, k) => (k === slot ? { ...it, [key]: null } : it));
+  for (let i = 0; i < 60 && open.size; i++) {
+    const parts = guessParts({ ...c, items, extras: false }, rng, library);
+    if (!parts || !parts.flat.length) continue;
+    // (An ordinary guessed for a charge not yet picked says nothing about numbers.)
+    if (key === 'number' && parts.flat[slot].kind === 'ordinary') continue;
+    for (const value of [...open]) {
+      const shield = shieldFrom({ ...parts, flat: parts.flat.map((g, k) => (k === slot ? { ...g, [key]: value } : g)) }, c);
+      if (!shield) continue;
+      const problems = problemsOf(shield, c);
+      if (!problems.length) { open.delete(value); continue; }
+      for (const p of problems) {
+        const seen = faults.get(value).get(p.id) || { problem: p, count: 0 };
+        seen.count++;
+        faults.get(value).set(p.id, seen);
+      }
+    }
+  }
+  return new Map(values.map(v => [v, open.has(v)
+    ? [...faults.get(v).values()].sort((a, b) => b.count - a.count).map(x => x.problem) : null]));
 }
 
 // Several different random shields (fewer if not that many exist).

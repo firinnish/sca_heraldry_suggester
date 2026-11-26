@@ -66,25 +66,100 @@ export function divided(division, parts, line = 'plain') {
 // in the middle becomes per pale argent and azure; a charge sitting wholly on
 // the azure half is simply argent.
 //
-// For now every group is treated as the primary charge group.
-// Still to come: secondary / tertiary / overall groups, and arrangements.
+//
+// SEVERAL CHARGE GROUPS (SENA Appendix I, "Charge Group Theory").
+// A shield's `groups` lists the charge groups that lie ON THE FIELD. Any of
+// them may also carry:
+//
+//   role:    'primary'    the charge(s) in the middle of the shield
+//            'secondary'  charges around the primary ones
+//            null         not chosen yet (see roles() below, which works out
+//                         what it can and guesses the rest so it can be drawn)
+//   place:   for a secondary group, where it is:
+//            'around'  "a chevron between three lions"
+//            'chief'   "a fess and in chief a lion"      (above the primary)
+//            'base'    "a chevron and in base a lion"    (below it)
+//   charged: a charge group lying ON this one instead of on the field: its
+//            TERTIARY charges ("on a chevron three lions"), or null. When the
+//            group has several charges, `charged.number` is how many lie on
+//            EACH ("three roundels each charged with a mullet" is number 1).
+//
+// A chief, bordure, orle or base is always a secondary group of its own kind
+// ("peripheral"), whatever `role` says, and a central ordinary is always the
+// primary group: SENA leaves no choice there.
+// Still to come: overall charges, semy, cotises, two kinds of charge in one
+// group, and arrangements other than the defaults.
 export const COUNTERCHANGED = 'counterchanged';
 
 const checkChargeTincture = t => { if (t !== COUNTERCHANGED) checkTincture(t); };
 
-export function ordinaryGroup(ordinary, tincture) {
+export function ordinaryGroup(ordinary, tincture, { role = null, place = null, charged = null } = {}) {
   if (!ORDINARIES[ordinary]) throw new Error('Unknown ordinary: ' + ordinary);
   checkChargeTincture(tincture);
-  return { kind: 'ordinary', ordinary, number: 1, tincture };
+  return { kind: 'ordinary', ordinary, number: 1, tincture, role, place, charged };
 }
 
 export function chargeGroup({ charge, name = charge, plural = '', category = '', posture = '',
                               inverted = false, mirror = false, art = null, artInverted = false,
-                              number = 1, tincture }) {
+                              number = 1, tincture, role = null, place = null, charged = null }) {
   checkChargeTincture(tincture);
   return { kind: 'charge', charge, name, plural, category, posture, inverted, mirror,
-           art, artInverted, number, tincture };
+           art, artInverted, number, tincture, role, place, charged };
 }
+
+// ---- What each group on the field is ---------------------------------------------
+
+export const isPeripheral = g => g.kind === 'ordinary' && !!ORDINARIES[g.ordinary].peripheral;
+export const isCentralOrdinary = g => g.kind === 'ordinary' && !ORDINARIES[g.ordinary].peripheral;
+
+// Two groups are the same type of charge if they are the same ordinary or
+// the same charge from charges.csv (whatever their posture, number or colour).
+export const typeOf = g => (g.kind === 'ordinary' ? 'ordinary:' + g.ordinary : 'charge:' + g.charge);
+
+// Every charge group of a shield, those lying on other charges included.
+export const allGroups = groups => groups.flatMap(g => (g.charged ? [g, g.charged] : [g]));
+
+// For each group on the field, in turn, what it is:
+//   { role: 'primary' | 'secondary' | 'peripheral', place, chosen, clash }
+// chosen: false = nobody has said; this is a guess, so that the shield can
+//                 still be drawn. The blazon then says the arrangement is
+//                 open, and the search leaves it out.
+// clash:  true  = what was asked for cannot be (two primary groups, or a
+//                 charge called primary beside a central ordinary); rules.js
+//                 reports it.
+// The rules it follows are SENA's (Appendix I1 and I2):
+//   "A peripheral ordinary ... can never be a primary charge."
+//   "If the armory has at least one central ordinary, they are the primary
+//    charge group. This is true even if there are other charges around it".
+//   A charge with nothing else in the middle of the field is the primary
+//   charge wherever it sits, so one group alone is always primary.
+export function roles(groups) {
+  const out = groups.map(g => (isPeripheral(g) ? { role: 'peripheral', place: null, chosen: true, clash: false } : null));
+  const rest = groups.map((g, i) => i).filter(i => !out[i]);
+  if (!rest.length) return out;
+  if (rest.length === 1) {
+    out[rest[0]] = { role: 'primary', place: null, chosen: true, clash: false };
+    return out;
+  }
+  const ordinary = rest.find(i => isCentralOrdinary(groups[i]));
+  const named = rest.find(i => groups[i].role === 'primary');
+  const open = rest.find(i => groups[i].role === null || groups[i].role === undefined);
+  const primary = ordinary ?? named ?? open ?? rest[0];
+  const sure = ordinary !== undefined || named !== undefined;
+  out[primary] = { role: 'primary', place: null, chosen: sure, clash: false };
+  for (const i of rest) {
+    if (i === primary) continue;
+    const g = groups[i];
+    const place = g.place || (g.number === 1 ? 'chief' : 'around');
+    const clash = isCentralOrdinary(g) || g.role === 'primary';
+    out[i] = { role: 'secondary', place, chosen: (clash || g.role === 'secondary') && sure, clash };
+  }
+  return out;
+}
+
+// True when every group's place in the design has been chosen (or follows
+// from SENA), so nothing about the arrangement is a guess.
+export const isArranged = groups => roles(groups).every(r => r.chosen);
 
 // A charge group made from a row of charges.csv and (optionally) a picture
 // row from art.csv, as returned by loadLibrary() in art.js.
@@ -135,7 +210,7 @@ export function counterchangedField(field) {
 // Every tincture a whole shield uses (a counterchanged charge adds none).
 export function shieldTinctures(field, groups = []) {
   const used = new Set(tincturesIn(field));
-  for (const g of groups) if (g.tincture && g.tincture !== COUNTERCHANGED) used.add(g.tincture);
+  for (const g of allGroups(groups)) if (g.tincture && g.tincture !== COUNTERCHANGED) used.add(g.tincture);
   return [...used];
 }
 
@@ -147,6 +222,7 @@ export const PLACEHOLDER_WORDS = {
   tincture: '(any colour)',
   field: '(any background)',
   number: '(any number of)',
+  arrangement: '(arranged any way)',
 };
 
 const tinctureWord = (t, words) => (t === null ? words.tincture : TINCTURES[t].name);
@@ -166,24 +242,93 @@ export function blazonField(field, words = PLACEHOLDER_WORDS) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-const NUMBER_WORDS = { 2: 'two', 3: 'three' };
+const NUMBER_WORDS = { 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six' };
 
-// "a lion rampant Or", "three fleurs-de-lys azure", "a chevron counterchanged"
-export function blazonGroup(group, words = PLACEHOLDER_WORDS) {
+// A group without its tincture: "a lion rampant", "three fleurs-de-lys".
+function groupWords(group, words) {
   const one = (group.kind === 'ordinary' ? ORDINARIES[group.ordinary].name : group.name).toLowerCase();
   const many = group.plural ? group.plural.toLowerCase() : one + 's';
   let text;
   if (group.number === 1) text = (/^[aeiou]/.test(one) ? 'an ' : 'a ') + one;
   else if (group.number === null) text = words.number + ' ' + many;
-  else text = NUMBER_WORDS[group.number] + ' ' + many;
+  else text = (NUMBER_WORDS[group.number] || group.number) + ' ' + many;
   if (group.posture) text += ' ' + group.posture;
   if (group.inverted) text += ' inverted';
   if (group.mirror) text += ' contourny';
-  const tincture = group.tincture === COUNTERCHANGED ? COUNTERCHANGED : tinctureWord(group.tincture, words);
-  return text + ' ' + tincture;
+  return text;
+}
+
+const groupTincture = (group, words) =>
+  (group.tincture === COUNTERCHANGED ? COUNTERCHANGED : tinctureWord(group.tincture, words));
+
+// "a lion rampant Or", "three fleurs-de-lys azure", "a chevron counterchanged"
+export function blazonGroup(group, words = PLACEHOLDER_WORDS) {
+  return groupWords(group, words) + ' ' + groupTincture(group, words);
+}
+
+// A group together with whatever lies on it:
+//   "a lion Or"      "on a fess Or three mullets sable"
+//   "three roundels Or each charged with a mullet sable"
+// `bare` leaves out the group's own tincture, for when the next thing in the
+// blazon is the same tincture and names it for both ("a chevron between three
+// mullets Or"). `between` is a secondary group to work in after the group.
+function groupPhrase(group, words, { bare = false, between = null } = {}) {
+  const own = groupWords(group, words) + (bare ? '' : ' ' + groupTincture(group, words));
+  const around = between ? ' between ' + blazonGroup(between, words) : '';
+  if (!group.charged) return own + around;
+  const on = blazonGroup(group.charged, words);
+  const several = group.kind !== 'ordinary' && group.number !== 1;
+  return several ? `${own} each charged with ${on}${around}` : `on ${own}${around} ${on}`;
+}
+
+// A tincture named once can serve two neighbouring groups.
+const sameTincture = (a, b) => a.tincture !== null && a.tincture === b.tincture;
+
+// Everything on the field, in the order a blazon gives it: the primary
+// group, the groups around it, then chief, bordure and the like.
+//   "a chevron between three lions Or"
+//   "on a fess Or three mullets sable and in chief a lion argent"
+//   "a chevron between three cushions argent, a bordure Or"
+//   "a tower and on a chief argent three trees vert"
+function groupsWords(groups, words) {
+  const r = roles(groups);
+  // Not arranged yet: just list what is on the shield, and say so.
+  if (!r.every(x => x.chosen)) {
+    return groups.map(g => groupPhrase(g, words)).join(', ') + ' ' + (words.arrangement || PLACEHOLDER_WORDS.arrangement);
+  }
+  const primary = groups.find((g, i) => r[i].role === 'primary');
+  const secondaries = groups.map((g, i) => ({ g, place: r[i].place })).filter((x, i) => r[i].role === 'secondary');
+  const peripherals = groups.filter((g, i) => r[i].role === 'peripheral');
+  const pieces = [];
+  if (primary) {
+    const first = secondaries[0];
+    const charged = !!primary.charged;
+    const several = primary.kind !== 'ordinary' && primary.number !== 1;
+    let text;
+    if (!first) {
+      // "a lion and a bordure Or": one tincture for the charge and the one thing with it
+      const only = peripherals.length === 1 && !charged && sameTincture(primary, peripherals[0]);
+      text = groupPhrase(primary, words, { bare: only });
+    } else if (first.place === 'around') {
+      const bare = sameTincture(primary, first.g) && !(charged && several);
+      text = groupPhrase(primary, words, { bare, between: first.g });
+    } else {
+      const where = first.place === 'chief' ? 'in chief' : 'in base';
+      const bare = sameTincture(primary, first.g) && !charged;
+      text = `${groupPhrase(primary, words, { bare })} and ${where} ${blazonGroup(first.g, words)}`;
+    }
+    for (const s of secondaries.slice(1)) {
+      text += `, ${s.place === 'chief' ? 'in chief ' : s.place === 'base' ? 'in base ' : ''}${groupPhrase(s.g, words)}`;
+    }
+    pieces.push(text);
+  }
+  for (const g of peripherals) pieces.push(groupPhrase(g, words));
+  // Two things read best joined by "and"; more, or anything after a
+  // "between", are set off with commas.
+  return pieces.length === 2 && !secondaries.length ? pieces.join(' and ') : pieces.join(', ');
 }
 
 // The whole blazon: "Gules, a lion rampant Or"
 export function blazon(field, groups = [], words = PLACEHOLDER_WORDS) {
-  return [blazonField(field, words), ...groups.map(g => blazonGroup(g, words))].join(', ');
+  return [blazonField(field, words), ...(groups.length ? [groupsWords(groups, words)] : [])].join(', ');
 }

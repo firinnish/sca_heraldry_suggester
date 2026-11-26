@@ -9,8 +9,8 @@
 
 import { TINCTURES } from './catalog.js';
 import { COUNTERCHANGED, counterchangedField } from './shield.js';
-import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes, ordinaryShapes } from './geometry.js';
-import { placeGroup } from './layout.js';
+import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes } from './geometry.js';
+import { layoutShield } from './layout.js';
 import { scatter } from './scatter.js';
 
 const OUTLINE = '#3a3226';
@@ -79,10 +79,12 @@ function drawField(field, ctx, regions = [], key = 'whole', frame = null) {
 // `fill(shapeAttributes)` returns SVG. For a plain tincture that is just a
 // coloured rectangle; for a counterchanged charge it is the field with its
 // two tinctures swapped, showing through the charge's shape.
-function painter(group, field, ctx) {
+// `frame`: as for the field itself, so that the swapped field lines up with
+// the real one when both are drawn in the space below a chief.
+function painter(group, field, ctx, frame = null) {
   if (group.tincture === COUNTERCHANGED) {
     const swapped = counterchangedField(field);
-    if (swapped) return cut => `<g ${cut}>${drawField(swapped, ctx)}</g>`;
+    if (swapped) return cut => `<g ${cut}>${drawField(swapped, ctx, [], 'whole', frame)}</g>`;
   }
   const paint = group.tincture && group.tincture !== COUNTERCHANGED ? paintFor(group.tincture, ctx) : UNKNOWN_CHARGE;
   return cut => `<rect width="${W}" height="${H}" fill="${paint}" ${cut}/>`;
@@ -90,8 +92,10 @@ function painter(group, field, ctx) {
 
 // ---- Ordinaries ------------------------------------------------------------
 
-function drawOrdinary(group, field, ctx) {
-  const paint = painter(group, field, ctx);
+// `shapes` come from the layout (layout.js): an ordinary beside a chief is
+// drawn in the space below it.
+function drawOrdinary(group, shapes, field, ctx, frame) {
+  const paint = painter(group, field, ctx, frame);
   const id = `${ctx.id}-o${ctx.clips++}`;
   if (group.ordinary === 'orle') {
     // A band set in from the edge: a wide stroke along the outline, minus a
@@ -109,7 +113,7 @@ function drawOrdinary(group, field, ctx) {
     ctx.defs.push(`<mask id="${id}"><path d="${SHIELD_PATH}" fill="none" stroke="#fff" stroke-width="${width}"/></mask>`);
     return `<path d="${SHIELD_PATH}" fill="none" stroke="${LINE}" stroke-width="${width + 1.6}"/>` + paint(`mask="url(#${id})"`);
   }
-  const d = pathOf(ordinaryShapes(group.ordinary, field && field.type === 'divided' ? field.division : null));
+  const d = pathOf(shapes);
   ctx.defs.push(`<clipPath id="${id}"><path d="${d}"/></clipPath>`);
   // Outline first, then the paint over it, so that where two bands cross
   // (saltire, pall) there are no lines through the middle.
@@ -131,20 +135,23 @@ const LINE_ON_LIGHT = [17, 17, 17];
 const DARK_CHARGES = new Set(['sable', 'counterermine', 'pean']);
 const BLOB = 'M50 4 C78 2 98 22 94 50 C99 78 74 98 48 95 C22 99 2 76 6 50 C1 24 22 3 50 4 Z';
 
-function drawCharge(group, paint, picture, flipY, { cx, cy, size }, ctx) {
+function drawCharge(group, paint, picture, flipY, { cx, cy, size, turn }, ctx) {
   const w = size, h = size / picture.aspect, x = cx - w / 2, y = cy - h / 2;
   const n = ctx.clips++;
+  // A charge lying along a bend or a chevron's arm is turned to follow it.
+  const turning = turn ? `rotate(${turn} ${cx} ${cy}) ` : '';
   if (!picture.href) {
     const id = `${ctx.id}-b${n}`;
-    const blob = `<path d="${BLOB}" transform="translate(${x} ${y}) scale(${w / 100} ${h / 100})"`;
+    const blob = `<path d="${BLOB}" transform="${turning}translate(${x} ${y}) scale(${w / 100} ${h / 100})"`;
     ctx.defs.push(`<clipPath id="${id}">${blob}/></clipPath>`);
+    // (the line is drawn in the blob's own, scaled, measure: thinner on a small charge)
     return paint(`clip-path="url(#${id})"`) + `${blob} fill="none" stroke="${LINE}" stroke-width="3"/>`;
   }
   // Facing sinister = flipped left to right; upside down = flipped top to
   // bottom; both about the charge's own centre. Only the picture is flipped,
   // never the paint behind it (which matters for counterchanged charges).
-  const flip = group.mirror || flipY
-    ? ` transform="translate(${cx} ${cy}) scale(${group.mirror ? -1 : 1} ${flipY ? -1 : 1}) translate(${-cx} ${-cy})"`
+  const flip = group.mirror || flipY || turn
+    ? ` transform="${turning}translate(${cx} ${cy}) scale(${group.mirror ? -1 : 1} ${flipY ? -1 : 1}) translate(${-cx} ${-cy})"`
     : '';
   const image = `<image href="${picture.href}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none"${flip}`;
   const maskId = `${ctx.id}-m${n}`, linesId = `${ctx.id}-l${n}`;
@@ -157,12 +164,31 @@ function drawCharge(group, paint, picture, flipY, { cx, cy, size }, ctx) {
   return paint(`mask="url(#${maskId})"`) + `${image} filter="url(#${linesId})"/>`;
 }
 
-function drawGroup(group, field, ctx) {
-  if (group.kind === 'ordinary') return drawOrdinary(group, field, ctx);
-  const paint = painter(group, field, ctx);
-  const { picture, flipY, places } = placeGroup(group, field);
-  return places.map(place => drawCharge(group, paint, picture, flipY, place, ctx)).join('');
+// One group as the layout (layout.js) has placed it, then whatever lies on it.
+function drawGroup(group, entry, field, ctx, frame) {
+  if (!entry.ok) return '';                         // no arrangement for it yet
+  // A counterchanged chief shows the field as it would be without the chief.
+  const own = group.kind === 'ordinary' && group.ordinary === 'chief' ? null : frame;
+  let out;
+  if (group.kind === 'ordinary') out = drawOrdinary(group, entry.shapes, field, ctx, own);
+  else {
+    const paint = painter(group, field, ctx, own);
+    out = entry.places.map(place => drawCharge(group, paint, entry.picture, entry.flipY, place, ctx)).join('');
+  }
+  const on = entry.tertiary;
+  if (group.charged && on && on.ok) {
+    const paint = painter(group.charged, field, ctx, frame);
+    out += on.places.map(place => drawCharge(group.charged, paint, on.picture, on.flipY, place, ctx)).join('');
+  }
+  return out;
 }
+
+// What is drawn over what: the primary group, the groups around it, then the
+// ordinaries along the edge (a bordure lies over the ends of a fess, and a
+// chief over the top of a bordure).
+const PERIPHERAL_ORDER = ['base', 'bordure', 'orle', 'chief'];
+const layer = (group, entry) =>
+  (entry.role === 'primary' ? 0 : entry.role === 'secondary' ? 1 : 2 + PERIPHERAL_ORDER.indexOf(group.ordinary));
 
 // ---- The whole shield --------------------------------------------------------
 
@@ -173,8 +199,9 @@ function drawGroup(group, field, ctx) {
 export function shieldSVG(field, { title = '', charges = [] } = {}) {
   const ctx = newContext();
   // With a chief, the field is drawn in the space below it (geometry.js).
-  const frame = charges.some(g => g.kind === 'ordinary' && g.ordinary === 'chief') ? 'chief' : null;
-  const body = drawField(field, ctx, [], 'whole', frame) + charges.map(g => drawGroup(g, field, ctx)).join('');
+  const { frame, entries } = layoutShield(field, charges);
+  const order = charges.map((g, i) => i).sort((a, b) => layer(charges[a], entries[a]) - layer(charges[b], entries[b]) || a - b);
+  const body = drawField(field, ctx, [], 'whole', frame) + order.map(i => drawGroup(charges[i], entries[i], field, ctx, frame)).join('');
   const safeTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;');
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">` +
     (title ? `<title>${safeTitle}</title>` : '') +

@@ -59,10 +59,18 @@
   .name-btn { background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 4px 11px; font-size: 0.82rem; }
 
   /* An option the rules do not allow: shown, but greyed, with the reason. */
+  .waiting svg { opacity: 0.35; }
   .greyed svg { opacity: 0.3; filter: grayscale(0.7); }
   .greyed { color: var(--muted); }
   .greyed[aria-disabled="true"] { cursor: not-allowed; }
   .why { color: var(--warn); font-size: 0.68rem; font-style: normal; font-weight: normal; text-align: center; line-height: 1.2; }
+
+  /* One block per charge chosen: its name, how many, what colour. */
+  .slot { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; margin: 0 0 14px; }
+  .slot-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; font-size: 0.95rem; }
+  .slot .row-label:first-child { margin-top: 0; }
+  .roles { display: grid; gap: 8px; margin-top: 14px; }
+  .roles label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.9rem; }
 
   .builder { display: grid; gap: 10px; margin-top: 14px; }
   .builder label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.9rem; }
@@ -94,6 +102,7 @@
   .suggestions-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 8px; }
   .suggestions-head h2 { margin: 0; }
   .suggestion-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+  .suggestion-row.waiting { opacity: 0.4; pointer-events: none; }
   .suggestion { flex: none; width: 132px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 2px solid var(--line); border-radius: 8px; padding: 6px; background: #fff; }
   .suggestion.pinned { border-color: var(--accent); background: #f3f0fa; }
   .suggestion svg { width: 70px; height: auto; }
@@ -113,6 +122,7 @@
       <section class="panel" id="fieldColoursPanel"></section>
       <section class="panel" id="divisionPanel"></section>
       <section class="panel" id="chargePanel"></section>
+      <section class="panel" id="arrangePanel"></section>
     </div>
     <aside class="panel current" id="currentPanel" aria-live="polite"></aside>
   </div>
@@ -127,8 +137,9 @@ import { shieldSVG, swatchSVG, counterchangedSwatchSVG } from '../../core/draw.j
 import { shieldPatterns, complexSearchURL } from '../../core/oanda.js';
 import { loadLibrary } from '../../core/art.js';
 import { PALETTES, DEFAULT_PALETTE, usePalette, paletteById } from '../../core/palettes.js';
-import { checkShield, paletteLacks } from '../../core/rules.js';
-import { randomShield, randomShields, whyNot, randomFrom, shuffled } from '../../core/generate.js';
+import { checkShield, checkArrangement, paletteLacks } from '../../core/rules.js';
+import { randomShield, randomShields, whyNot, whichWork, randomFrom, shuffled } from '../../core/generate.js';
+import { arrangements, arrange, unarrange, sameArrangement } from '../../core/arrange.js';
 
 // ---------------------------------------------------------------------------
 // ALL THE WORDS ON THE PAGE live here, so they can be rewritten in one place.
@@ -160,9 +171,31 @@ const TEXT = {
   builderDivision: 'The background is divided',                         // DRAFT
   builderPart: n => `Part ${n} is`,                                     // DRAFT
   builderAnd: 'and',                                                    // DRAFT
-  chargeHeading: 'What is the primary charge?',
+  chargeHeading: 'What charges are on the field?',
+  chargeHelp: 'Pick up to three. Pick one again to take it off.',       // DRAFT
+  chargeFull: 'Three charges are chosen already',                       // DRAFT
+  chargeRemove: 'remove',                                               // DRAFT
   chargeNumber: 'How many?',                                            // DRAFT
   chargeColour: 'What colour is it?',                                   // DRAFT
+  // "How are they arranged?": shown once two or more charges are chosen.
+  arrangeHeading: 'How are they arranged?',                             // DRAFT
+  arrangeNeedsTwo: 'Pick two or more charges above to see the ways they can go together.', // DRAFT
+  arrangeNone: 'The tools cannot yet put these together on one shield.', // DRAFT
+  // The words under each arrangement picture: (a, b) are the two charges' names.
+  arrAround: (a, b) => `${a} around the ${b}`,                          // DRAFT
+  arrOn: (a, b) => `${a} on the ${b}`,                                  // DRAFT
+  arrChief: (a, b) => `${a} above the ${b}`,                            // DRAFT
+  arrBase: (a, b) => `${a} below the ${b}`,                             // DRAFT
+  arrWith: (a, b) => `${a} with a ${b}`,                                // DRAFT
+  // "I'm a herald": saying directly what each charge is.
+  rolesLabel: name => `The ${name} is`,                                 // DRAFT
+  roleUnset: 'not chosen',                                              // DRAFT
+  rolePrimary: 'the primary charge',                                    // DRAFT
+  roleAround: 'secondary, around the primary charge',                   // DRAFT
+  roleChief: 'secondary, in chief',                                     // DRAFT
+  roleBase: 'secondary, in base',                                       // DRAFT
+  roleOn: name => `tertiary, on the ${name}`,                           // DRAFT
+  roleEdge: 'a peripheral ordinary',                                    // DRAFT
   counterchanged: 'counterchanged',
   chargeSearch: 'Type to find a charge',                                // DRAFT
   chargeNone: 'no charge',                                              // DRAFT
@@ -185,8 +218,8 @@ const TEXT = {
   searchLink: 'Search the Ordinary & Armorial for this',               // DRAFT
   tincturesNotIndexed: 'The Ordinary & Armorial does not record which colours a three-part background uses, so this search finds every background divided this way.', // DRAFT
   patternsSummary: 'What gets filled in on the Complex Search Form',   // DRAFT
-  // Words used in the blazon for things not chosen yet.                 // DRAFT (all three)
-  placeholders: { tincture: '(any colour)', field: '(any background)', number: '(any number of)' },
+  // Words used in the blazon for things not chosen yet.                 // DRAFT (all four)
+  placeholders: { tincture: '(any colour)', field: '(any background)', number: '(any number of)', arrangement: '(arranged any way)' },
 
   // Why an option is greyed out, or what is wrong with the current shield.
   lowContrastMetal: 'Low contrast - please choose a metal',
@@ -202,6 +235,13 @@ const TEXT = {
     'complexity': 'Too many colours and charges',
     'house-too-deep': 'Too complex: a part of a part cannot be divided again',
     'house-same-division': 'A part cannot be divided the same way as the whole',
+    'same-charge-twice': 'The same charge cannot be in two different groups on the field',
+    'ordinary-is-primary': 'With an ordinary across the middle, the ordinary is the primary charge',
+    'too-many-groups': 'Three or more groups of charges on the field need period evidence, apart from a few patterns',
+    'groups-unsure': 'It is not certain this many groups of charges is allowed without period evidence',
+    'quaternary': 'A charge cannot go on a charge that is itself on another charge',
+    'arrangement-unsupported': 'The tools cannot draw this arrangement yet',
+    'no-room': 'There is not enough room to draw this clearly',
     'not-possible': 'Not possible with the colours chosen',
   },
 };
@@ -222,7 +262,9 @@ const toggle = (list, x) => (list.includes(x) ? list.filter(y => y !== x) : [...
 const words = TEXT.placeholders;
 // The charge colour "don't specify": search without a colour, and assume none.
 const UNSPECIFIED = 'unspecified';
-const chosenChargeTincture = () => (state.chargeTincture === UNSPECIFIED ? null : state.chargeTincture);
+const tinctureOf = item => (item.tincture === UNSPECIFIED ? null : item.tincture);
+const MAX_ITEMS = 3;           // how many different charges can be chosen
+const NUMBERS = [1, 2, 3, 4];  // the "How many?" buttons
 
 // ---- What the user has chosen ------------------------------------------------
 // Anything left empty is "not chosen yet": the shield on the right shows it in
@@ -233,9 +275,16 @@ const state = {
   fieldColours: [],      // question 2: the background's tinctures, in order
   division: null,        // null | 'plain' | a division id | 'complex'
   builder: null,         // the "more complex background" form
-  charge: null,          // null | 'none' | { kind: 'ordinary', id } | { kind: 'charge', id, file }
-  chargeNumber: null,    // null | 1 | 2 | 3
-  chargeTincture: null,  // null | a tincture id | COUNTERCHANGED
+  // What is on the field: one entry per charge chosen (up to MAX_ITEMS).
+  // The first entry is always there, so "how many" and "what colour" can be
+  // answered before a charge is picked.
+  //   choice:   null | { kind: 'ordinary', id } | { kind: 'charge', id, file }
+  //   number:   null | 1, 2, 3...
+  //   tincture: null | a tincture id | COUNTERCHANGED | UNSPECIFIED
+  items: [{ choice: null, number: null, tincture: null }],
+  noCharge: false,       // "no charge" chosen
+  arrangement: null,     // how the chosen charges go together (core/arrange.js), or null
+  arrangementUnspecified: false,   // "don't specify" ticked for the arrangement
   chargeFilter: '',
   pinned: [],            // suggestions the user has pinned
   epoch: 0,
@@ -246,6 +295,7 @@ const state = {
 };
 let library = { charges: [], pictures: [] };   // filled in once charges/ has loaded
 let shown = [];                                // the suggestions on screen, by position
+let shownArrangements = [];                    // the arrangement pictures on screen, by position
 
 // Question 1 says which tinctures may be used. With two or more ticked, only
 // those are used. With just one ticked it must appear, but others may too
@@ -259,9 +309,15 @@ function tidy() {
   // A colour used for the background or the charge is used in the shield
   // (once any shield colour is ticked: then they are all in the palette).
   if (state.shieldColours.length >= 1) {
-    for (const t of [...state.fieldColours, chosenChargeTincture()]) {
+    for (const t of [...state.fieldColours, ...state.items.map(tinctureOf)]) {
       if (t && t !== COUNTERCHANGED && !state.shieldColours.includes(t)) state.shieldColours.push(t);
     }
+  }
+  // An arrangement only lasts while it suits the charges chosen.
+  if (state.arrangement) {
+    const groups = chosen().map(x => x.group);
+    if (!arrangements(groups).some(a => sameArrangement(a, state.arrangement)) && !state.herald) state.arrangement = null;
+    else if (state.arrangement.length !== groups.length) state.arrangement = null;
   }
   // With a "more complex background", the background's colours are whatever
   // the form uses.
@@ -290,30 +346,51 @@ function groupFor(choice, tincture, number) {
   return chargeGroupFromLibrary(charge, picture || null, { tincture, number });
 }
 
-function currentShield() {
-  const field = currentField();
-  const chosen = state.charge && state.charge !== 'none'
-    ? groupFor(state.charge, chosenChargeTincture(), state.chargeNumber) : null;
-  return { field, groups: chosen ? [chosen] : [], noCharge: state.charge === 'none' };
+// The charges chosen so far that can be drawn (a charge from the library has
+// to wait for the library to load): [{ item, group }], in the order chosen.
+function chosen() {
+  return state.items.filter(item => item.choice)
+    .map(item => ({ item, group: groupFor(item.choice, tinctureOf(item), item.number) }))
+    .filter(x => x.group);
 }
 
-// The shield shown top right: as chosen, but where the colours chosen for
-// the shield leave only ONE legal possibility for something not yet chosen
-// (a part of the background, the charge's colour), that one is assumed. The
-// user can still choose otherwise, or tick "don't specify" to keep it open.
+// The arrangement chosen, if it still fits the charges.
+const chosenArrangement = count => (state.arrangement && state.arrangement.length === count ? state.arrangement : null);
+// Charge groups put together: as arranged, or (nothing chosen) side by side
+// for the core to guess at (shield.js: roles).
+const together = (groups, arrangement) => (arrangement ? arrange(groups, arrangement) : groups);
+
+function currentShield() {
+  const groups = chosen().map(x => x.group);
+  return { field: currentField(), groups: together(groups, chosenArrangement(groups.length)), noCharge: state.noCharge };
+}
+
+// The shield shown top right: as chosen, but where what has been chosen
+// leaves only ONE legal possibility for something not yet chosen (a part of
+// the background, a charge's colour, how the charges are arranged), that one
+// is assumed. The user can still choose otherwise, or tick "don't specify"
+// to keep it open.
 function shownShield() {
-  const shield = currentShield();
   const p = palette();
-  if (!p) return shield;
-  let field = shield.field;
-  if (field && !state.fieldUnspecified && !isComplete(field)) field = onlyWay(field, p) || field;
-  let groups = shield.groups;
-  const g = groups[0];
-  if (g && g.tincture === null && state.chargeTincture !== UNSPECIFIED && field && isComplete(field)) {
-    const ok = [...p, COUNTERCHANGED].filter(t => !checkShield({ field, groups: [{ ...g, tincture: t }] }).length);
-    if (ok.length === 1) groups = [{ ...g, tincture: ok[0] }];
+  let field = currentField();
+  if (p && field && !state.fieldUnspecified && !isComplete(field)) field = onlyWay(field, p) || field;
+  const picked = chosen();
+  let groups = picked.map(x => x.group);
+  let arrangement = chosenArrangement(groups.length);
+  const legal = (gs, a) => !checkShield({ field, groups: together(gs, a) }).length;
+  if (!arrangement && groups.length >= 2 && !state.arrangementUnspecified) {
+    const ways = arrangements(groups).filter(a => legal(groups, a));
+    if (ways.length === 1) arrangement = ways[0];
   }
-  return { ...shield, field, groups };
+  if (p && field && isComplete(field)) {
+    picked.forEach(({ item }, i) => {
+      if (item.tincture !== null) return;            // chosen, or "don't specify"
+      const withTincture = t => groups.map((g, k) => (k === i ? { ...g, tincture: t } : g));
+      const ok = [...p, COUNTERCHANGED].filter(t => legal(withTincture(t), arrangement));
+      if (ok.length === 1) groups = withTincture(ok[0]);
+    });
+  }
+  return { field, groups: together(groups, arrangement), noCharge: state.noCharge };
 }
 
 // The one way to fill a field's unchosen colours from `palette` that the
@@ -339,18 +416,43 @@ function onlyWay(field, palette) {
   return found;
 }
 
+// The charges chosen, in the form generate.js wants: 'none', null (nothing
+// chosen about them) or a list. `change` (optional) alters one entry: used to
+// ask "what if this charge were this colour?".
+function wantedItems(change = null) {
+  if (state.noCharge && !change) return 'none';
+  const { list, at } = itemList(change ? change.slot : -1);
+  if (change) Object.assign(list[at[change.slot]], change.set);
+  return list.length ? list : null;
+}
+
+// The entries of state.items that say something, as a list for generate.js,
+// and where each ended up in it (`at`). Left out: a charge whose library has
+// not loaded yet, and a first entry with nothing chosen. `keep` names an
+// entry to include whatever it holds.
+function itemList(keep = -1) {
+  const live = item => !!item.choice && (item.choice.kind === 'ordinary' || library.charges.some(c => c.id === item.choice.id));
+  const list = [], at = [];
+  state.items.forEach((item, i) => {
+    if (!(live(item) || i === keep || (!item.choice && (item.number || tinctureOf(item))))) return;
+    at[i] = list.length;
+    list.push({ charge: live(item) ? item.choice : null, number: item.number, tincture: tinctureOf(item) });
+  });
+  return { list, at };
+}
+
 // What is fixed, in the form generate.js wants.
 function constraints() {
   const field = currentField();
+  const items = wantedItems();
   return {
     palette: palette(),
     mustInclude: mustInclude(),
     fieldTinctures: state.fieldColours.length ? state.fieldColours : null,
     division: state.division === 'complex' ? null : state.division,
     field: isComplete(field) ? field : undefined,
-    charge: state.charge,
-    number: state.chargeNumber,
-    chargeTincture: chosenChargeTincture(),
+    items,
+    arrangement: Array.isArray(items) ? chosenArrangement(items.filter(x => x.charge).length) : null,
   };
 }
 
@@ -366,12 +468,50 @@ function remember(key, make) {
 
 // An option to show: a random legal shield fitting `c`, or, if there is none,
 // an illegal example with the reason. Returns { shield, problems } or null.
+const optionKey = (tag, c) => `${SEED}|${tag}|${library.pictures.length}|${JSON.stringify(c)}`;
 function option(tag, c) {
-  const key = `${SEED}|${tag}|${library.pictures.length}|${JSON.stringify(c)}`;
+  const key = optionKey(tag, c);
   return remember(key, () => {
     const shield = randomShield(c, key, library);
     return shield ? { shield, problems: [] } : whyNot(c, key, library);
   });
+}
+
+// ---- Pictures that take a moment -----------------------------------------------
+// Working out an option's picture can take a while the first time (several
+// charges have to be fitted around each other). So that a click is answered
+// at once, a picture not worked out before is first shown as an empty shield
+// and filled in a moment later, one at a time, without holding the page up.
+let later = [];          // [{ panel, run }] what is still to be worked out, for the page as it stands
+let laterTimer = null;
+function fillLater() {
+  clearTimeout(laterTimer);
+  const step = () => {
+    const start = performance.now();
+    while (later.length && performance.now() - start < 30) later.shift().run();
+    if (later.length) laterTimer = setTimeout(step, 0);
+  };
+  if (later.length) laterTimer = setTimeout(step, 0);
+}
+// Forget what was waiting for one panel (it is about to be drawn afresh).
+const forgetLater = panel => { later = later.filter(x => x.panel !== panel); };
+
+// An option card that may be filled in later. `args(found)` gives what card()
+// needs; `found` is what option() returns, or undefined while waiting.
+function lazyCard(panel, tag, c, args) {
+  const key = optionKey(tag, c);
+  if (remembered.has(key)) return card(args(remembered.get(key)));
+  const id = `${panel}${later.length}`;
+  later.push({ panel, run: () => {
+    const waiting = document.querySelector(`[data-waiting="${id}"]`);
+    if (!waiting) return;
+    const holder = document.createElement('div');
+    holder.innerHTML = card(args(option(tag, c)));
+    const fresh = holder.firstElementChild, focused = document.activeElement === waiting;
+    waiting.replaceWith(fresh);
+    if (focused) fresh.focus({ preventScroll: true });
+  } });
+  return card({ ...args(undefined), waiting: id });
 }
 
 // ---- Explaining the rules -----------------------------------------------------
@@ -434,12 +574,14 @@ function renderColourPanels() {
     `<div class="row" style="margin-top:10px"><button class="name-btn" type="button" data-field-unspecified aria-pressed="${state.fieldUnspecified}">${esc(TEXT.dontSpecify)}</button></div>`;
 }
 
-function card({ attrs, shield, label, on, problems = [], why = null }) {
+// `waiting`: the card's picture is still being worked out (see lazyCard); it
+// is shown as an empty shield for now.
+function card({ attrs, shield, label, on, problems = [], why = null, waiting = null }) {
   const reason = why || (problems.length ? ruleText(problems[0]) : '');
   const greyed = reason ? ` greyed" aria-disabled="${!state.herald}` : '';
   const title = shield ? blazon(shield.field, shield.groups, words) : '';
-  return `<button class="card${greyed}" type="button" ${attrs} aria-pressed="${!!on}">` +
-    (shield ? shieldSVG(shield.field, { charges: shield.groups, title }) : '') +
+  return `<button class="card${waiting ? ' waiting' : ''}${greyed}" type="button" ${attrs}${waiting ? ` data-waiting="${waiting}"` : ''} aria-pressed="${!!on}">` +
+    (shield ? shieldSVG(shield.field, { charges: shield.groups, title }) : waiting ? shieldSVG(null) : '') +
     `<span>${esc(label)}</span>${reason ? `<span class="why">${esc(reason)}</span>` : ''}</button>`;
 }
 
@@ -566,20 +708,40 @@ function renderBuilder() {
   return html + `</div>`;
 }
 
-// ---- "What is the primary charge?" --------------------------------------------
+// ---- "What charges are on the field?" ------------------------------------------
+const sameCharge = (a, b) => !!a && !!b && a.kind === b.kind && a.id === b.id;
+const samePicture = (a, b) => sameCharge(a, b) && (a.file || '') === (b.file || '');
+// A charge's name in plain words, for labels: "lion rampant", "chevron".
+function choiceName(choice, plural = false) {
+  if (choice.kind === 'ordinary') return ORDINARIES[choice.id].name + (plural ? 's' : '');
+  const charge = library.charges.find(c => c.id === choice.id);
+  const picture = choice.file ? library.pictures.find(p => p.file === choice.file) : null;
+  const name = charge ? (plural ? (charge.plural || charge.name + 's') : charge.name).toLowerCase() : choice.id;
+  return [name, picture && picture.posture].filter(Boolean).join(' ');
+}
+
 function renderChargePanel() {
+  forgetLater('charge');
   const c = constraints();
   const q = state.chargeFilter.trim().toLowerCase();
   const matches = name => !q || name.toLowerCase().includes(q);
-  const picked = state.charge && state.charge !== 'none' ? state.charge : null;
-  const isPicked = choice => !!picked && picked.kind === choice.kind && picked.id === choice.id &&
-    (picked.file || '') === (choice.file || '');
+  const first = state.items[0];
+  const count = state.items.filter(item => item.choice).length;
+  const isPicked = choice => state.items.some(item => samePicture(item.choice, choice));
 
-  // Each option is drawn on a shield that fits everything else chosen so far.
+  // Each option is drawn on a shield that fits everything else chosen so far:
+  // with the charges already chosen, if it would be added to them.
   const chargeCard = (choice, label) => {
-    const found = option('charge', { ...c, charge: choice, number: choice.kind === 'ordinary' ? null : (state.chargeNumber || 1) });
-    return card({ attrs: `data-charge="${choice.kind}:${esc(choice.id)}:${esc(choice.file || '')}"`, shield: found && found.shield,
-                  label, on: isPicked(choice), problems: found ? found.problems : [], why: found ? null : TEXT.rules['not-possible'] });
+    const attrs = `data-charge="${choice.kind}:${esc(choice.id)}:${esc(choice.file || '')}"`;
+    const mine = state.items.findIndex(item => sameCharge(item.choice, choice));
+    let items;
+    if (mine >= 0) items = wantedItems({ slot: mine, set: { charge: choice } });      // chosen (perhaps as another picture)
+    else if (!first.choice) items = [{ charge: choice, number: choice.kind === 'ordinary' ? null : (first.number || 1), tincture: tinctureOf(first) }];
+    else if (count >= MAX_ITEMS) return card({ attrs, shield: null, label, on: false, why: TEXT.chargeFull });
+    else items = [...(wantedItems() || []), { charge: choice, number: null, tincture: null }];
+    return lazyCard('charge', 'charge', { ...c, items, arrangement: mine >= 0 ? c.arrangement : chosenArrangement(items.length - 1) },
+      found => ({ attrs, shield: found && found.shield, label, on: isPicked(choice), problems: found ? found.problems : [],
+                  why: found === null ? TEXT.rules['not-possible'] : null }));
   };
 
   const ordinaries = Object.entries(ORDINARIES).filter(([, o]) => matches(o.name))
@@ -595,27 +757,47 @@ function renderChargePanel() {
     !withPicture.has(ch.id) && !ordinaryNames.has(ch.name.toLowerCase()) && matches(ch.name));
   const namesShown = names.slice(0, MAX_NAMES_SHOWN);
 
-  let html = `<h2>${esc(TEXT.chargeHeading)}</h2>`;
+  let html = `<h2>${esc(TEXT.chargeHeading)}</h2><p class="help">${esc(TEXT.chargeHelp)}</p>`;
 
-  // How many, and what colour: asked first so they are not missed below the list.
-  if (state.charge !== 'none') {
-    if (!picked || picked.kind === 'charge') {
-      html += `<div class="row-label" style="margin-top:0">${esc(TEXT.chargeNumber)}</div><div class="row">` +
-        [1, 2, 3].map(n => `<button class="name-btn" type="button" data-number="${n}" aria-pressed="${state.chargeNumber === n}">${n}</button>`).join('') + `</div>`;
-    }
-    // A colour is greyed if no shield fitting the other choices could use it.
-    const colourButton = id => {
-      const found = option('charge-colour', { ...c, chargeTincture: id });
-      const why = found && !found.problems.length ? '' : ruleText(found && found.problems[0]);
-      return swatchButton(id, { on: state.chargeTincture === id, attr: 'data-charge-tincture', small: true, why });
-    };
-    html += `<div class="row-label">${esc(TEXT.chargeColour)}</div>` +
-      swatchSets(offered(), colourButton) + `<div class="row" style="margin-top:10px">${colourButton(COUNTERCHANGED)}` +
-      `<button class="name-btn" type="button" data-charge-tincture="${UNSPECIFIED}" aria-pressed="${state.chargeTincture === UNSPECIFIED}">${esc(TEXT.dontSpecify)}</button></div>`;
+  // For each charge chosen: how many, and what colour. Asked first so they
+  // are not missed below the list (and, for the first, before any is chosen).
+  if (!state.noCharge) {
+    state.items.forEach((item, slot) => {
+      // A number or colour is greyed if no shield fitting the other choices could have it.
+      const { list, at } = itemList(slot);
+      const tried = (key, values) => {
+        const about = { ...c, items: list, arrangement: chosenArrangement(list.filter(x => x.charge).length) };
+        const memo = `${SEED}|${key}|${at[slot]}|${library.pictures.length}|${JSON.stringify(about)}`;
+        return remember(memo, () => whichWork(about, at[slot], key, values, memo, library));
+      };
+      const numbers = tried('number', NUMBERS), colours = tried('tincture', [...offered(), COUNTERCHANGED]);
+      const possible = set => {
+        const faults = 'number' in set ? numbers.get(set.number) : colours.get(set.tincture);
+        return faults ? ruleText(faults[0]) : '';
+      };
+      const numberButton = n => {
+        const why = possible({ number: n });
+        return `<button class="name-btn${why ? ` greyed" aria-disabled="${!state.herald}" title="${esc(why)}` : ''}" type="button" ` +
+          `data-number="${n}" data-slot="${slot}" aria-pressed="${item.number === n}">${n}</button>`;
+      };
+      const colourButton = id => swatchButton(id, { on: item.tincture === id, attr: `data-slot="${slot}" data-charge-tincture`, small: true, why: possible({ tincture: id }) });
+      html += `<div class="slot">`;
+      if (item.choice) {
+        html += `<div class="slot-head"><strong>${esc(choiceName(item.choice))}</strong>` +
+          `<button class="link-btn" type="button" data-remove="${slot}">${esc(TEXT.chargeRemove)}</button></div>`;
+      }
+      if (!item.choice || item.choice.kind === 'charge') {
+        html += `<div class="row-label">${esc(TEXT.chargeNumber)}</div><div class="row">${NUMBERS.map(numberButton).join('')}</div>`;
+      }
+      html += `<div class="row-label">${esc(TEXT.chargeColour)}</div>` +
+        swatchSets(offered(), colourButton) + `<div class="row" style="margin-top:10px">${colourButton(COUNTERCHANGED)}` +
+        `<button class="name-btn" type="button" data-slot="${slot}" data-charge-tincture="${UNSPECIFIED}" aria-pressed="${item.tincture === UNSPECIFIED}">${esc(TEXT.dontSpecify)}</button></div>` +
+        `</div>`;
+    });
   }
 
   html += `<input type="search" id="chargeFilter" value="${esc(state.chargeFilter)}" placeholder="${esc(TEXT.chargeSearch)}" aria-label="${esc(TEXT.chargeSearch)}">`;
-  html += `<div class="row"><button class="card text-card" type="button" data-charge="none" aria-pressed="${state.charge === 'none'}">${esc(TEXT.chargeNone)}</button></div>`;
+  html += `<div class="row"><button class="card text-card" type="button" data-charge="none" aria-pressed="${state.noCharge}">${esc(TEXT.chargeNone)}</button></div>`;
   if (ordinaries.length) html += `<div class="row-label">${esc(TEXT.chargeOrdinaries)}</div><div class="row">${ordinaries.join('')}</div>`;
   if (pictureCards.length) {
     html += `<div class="row-label">${esc(TEXT.chargePictures)}</div><div class="row">${pictureCards.join('')}</div>`;
@@ -629,6 +811,71 @@ function renderChargePanel() {
   }
   if (!ordinaries.length && !pictureCards.length && !namesShown.length) html += `<p class="note">${esc(TEXT.chargeNoMatch)}</p>`;
   $('chargePanel').innerHTML = html;
+}
+
+// ---- "How are they arranged?" ----------------------------------------------------
+// Every way the chosen charges can go together, each as a picture, so that
+// nobody needs to know the words "primary", "secondary" and "tertiary". Ways
+// the rules forbid are shown greyed, with the reason.
+function renderArrangePanel() {
+  forgetLater('arrange');
+  const c = constraints();
+  const picked = chosen();
+  const groups = picked.map(x => x.group);
+  let html = `<h2>${esc(TEXT.arrangeHeading)}</h2>`;
+  shownArrangements = [];
+  if (groups.length < 2) {
+    $('arrangePanel').innerHTML = html + `<p class="note" style="margin:0">${esc(TEXT.arrangeNeedsTwo)}</p>`;
+    return;
+  }
+  const current = chosenArrangement(groups.length);
+  const ways = arrangements(groups);
+  if (!ways.length) html += `<p class="note" style="margin:0">${esc(TEXT.arrangeNone)}</p>`;
+  else {
+    // What goes under a picture: "lions around the chevron; mullets on the chief".
+    const label = (way, example) => {
+      const drawn = example ? unarrange(example.groups).groups : [];
+      const several = i => {
+        const choice = picked[i].item.choice;
+        const g = drawn.find(x => (x.kind === 'ordinary' ? x.ordinary : x.charge) === choice.id && x.kind === choice.kind);
+        return !!g && g.kind === 'charge' && g.number !== 1;
+      };
+      const name = (i, as) => choiceName(picked[i].item.choice, as === 'around' || several(i));
+      const main = way.findIndex(x => x.as === 'primary');
+      const bits = way.map((x, i) =>
+        x.as === 'around' ? TEXT.arrAround(name(i, x.as), name(main)) : x.as === 'chief' ? TEXT.arrChief(name(i), name(main))
+        : x.as === 'base' ? TEXT.arrBase(name(i), name(main)) : x.as === 'on' ? TEXT.arrOn(name(i), name(x.on))
+        : x.as === 'edge' && main >= 0 && way.length === 2 ? TEXT.arrWith(name(main), name(i)) : null).filter(Boolean);
+      return bits.join('; ') || picked.map((x, i) => name(i)).join(', ');
+    };
+    // The ways the rules have nothing against come first (as far as can be
+    // told before the colours are looked at); no more than fit in three rows.
+    const sound = way => !checkArrangement(arrange(groups, way)).length;
+    shownArrangements = [...ways.filter(sound), ...ways.filter(way => !sound(way))].slice(0, MAX_CARDS);
+    html += `<div class="row">` + shownArrangements.map((way, k) =>
+      lazyCard('arrange', 'arrangement', { ...c, arrangement: way }, found => ({
+        attrs: `data-arrangement="${k}"`, shield: found && found.shield, label: label(way, found && found.shield),
+        on: sameArrangement(way, current), problems: found ? found.problems : [], why: found === null ? TEXT.rules['not-possible'] : null,
+      }))).join('') + `</div>`;
+  }
+  html += `<div class="row" style="margin-top:10px"><button class="name-btn" type="button" data-arrangement-unspecified ` +
+    `aria-pressed="${state.arrangementUnspecified}">${esc(TEXT.dontSpecify)}</button></div>`;
+
+  // "I'm a herald": say directly what each charge is.
+  if (state.herald) {
+    const opt = (value, text, selected) => `<option value="${value}"${selected ? ' selected' : ''}>${esc(text)}</option>`;
+    html += `<div class="roles">` + picked.map(({ item, group }, i) => {
+      const now = current ? current[i] : null;
+      const is = (as, on = null) => !!now && now.as === as && (now.on ?? null) === on;
+      const edge = group.kind === 'ordinary' && ORDINARIES[group.ordinary].peripheral;
+      const options = edge ? opt('edge', TEXT.roleEdge, true)
+        : opt('', TEXT.roleUnset, !now) + opt('primary', TEXT.rolePrimary, is('primary')) + opt('around', TEXT.roleAround, is('around')) +
+          opt('chief', TEXT.roleChief, is('chief')) + opt('base', TEXT.roleBase, is('base')) +
+          picked.map((other, j) => (j === i ? '' : opt('on:' + j, TEXT.roleOn(choiceName(other.item.choice)), is('on', j)))).join('');
+      return `<label>${esc(TEXT.rolesLabel(choiceName(item.choice)))} <select data-role="${i}"${edge ? ' disabled' : ''}>${options}</select></label>`;
+    }).join('') + `</div>`;
+  }
+  $('arrangePanel').innerHTML = html;
 }
 
 // ---- The shield being built (top right) ----------------------------------------
@@ -651,10 +898,24 @@ function renderCurrent() {
 
 // ---- Suggestions (along the bottom) ---------------------------------------------
 function renderSuggestions() {
-  const c = constraints();
+  // Suggestions may add a charge or two that was not asked for (a bordure,
+  // charges around an ordinary...): they are ideas, not only what was chosen.
+  const c = { ...constraints(), extras: true };
   const key = `${SEED}|suggest|${state.epoch}|${library.pictures.length}|${JSON.stringify(c)}`;
+  // New suggestions are worked out a moment later (see "Pictures that take a
+  // moment"); until then the ones on screen stay, dimmed.
+  forgetLater('suggestions');
+  if (!remembered.has(key)) {
+    later.push({ panel: 'suggestions', run: () => {
+      remember(key, () => randomShields(c, key, library, SUGGESTION_COUNT + state.pinned.length));
+      renderSuggestions();
+      addCollapseButtons();
+    } });
+    const row = $('suggestionsPanel').querySelector('.suggestion-row');
+    if (row) { row.classList.add('waiting'); return; }
+  }
   const pinnedText = new Set(state.pinned.map(s => blazon(s.field, s.groups)));
-  const fresh = remember(key, () => randomShields(c, key, library, SUGGESTION_COUNT + state.pinned.length))
+  const fresh = (remembered.get(key) || [])
     .filter(s => !pinnedText.has(blazon(s.field, s.groups))).slice(0, SUGGESTION_COUNT);
   shown = [...state.pinned, ...fresh];
 
@@ -666,7 +927,8 @@ function renderSuggestions() {
       `<button type="button" data-select="${i}">${esc(TEXT.select)}</button>` +
       `<button type="button" data-pin="${i}">${esc(pinned ? TEXT.unpin : TEXT.pin)}</button></div>`;
   };
-  const note = !fresh.length ? TEXT.noSuggestions : fresh.length < SUGGESTION_COUNT / 2 || (palette() && paletteLacks(palette())) ? fewReason() : '';
+  const note = !remembered.has(key) ? '' : !fresh.length ? TEXT.noSuggestions
+    : fresh.length < SUGGESTION_COUNT / 2 || (palette() && paletteLacks(palette())) ? fewReason() : '';
   $('suggestionsPanel').innerHTML =
     `<div class="suggestions-head"><h2>${esc(TEXT.suggestions)}</h2>` +
     `<button class="plain-btn" type="button" data-reroll>↻ ${esc(TEXT.reroll)}</button>` +
@@ -687,22 +949,28 @@ function fewReason() {
 }
 
 function render() {
-  renderColourPanels();
-  renderDivisionPanel();
-  renderChargePanel();
-  renderCurrent();
-  renderSuggestions();
+  // How long each part took, in milliseconds, is kept in window.renderTimes
+  // (for whoever next needs to find out why the page feels slow).
+  const times = {};
+  for (const part of [renderColourPanels, renderDivisionPanel, renderChargePanel, renderArrangePanel, renderCurrent, renderSuggestions]) {
+    const start = performance.now();
+    part();
+    times[part.name] = Math.round(performance.now() - start);
+  }
+  window.renderTimes = times;
   addCollapseButtons();
+  fillLater();
 }
 
 // A "collapse" / "expand" button beside each section's heading.
-const COLLAPSIBLE = ['shieldColoursPanel', 'fieldColoursPanel', 'divisionPanel', 'chargePanel', 'suggestionsPanel'];
+const COLLAPSIBLE = ['shieldColoursPanel', 'fieldColoursPanel', 'divisionPanel', 'chargePanel', 'arrangePanel', 'suggestionsPanel'];
 function addCollapseButtons() {
   for (const id of COLLAPSIBLE) {
     const panel = $(id), heading = panel.querySelector('h2');
     if (!heading) continue;
     const closed = state.collapsed.has(id);
     panel.classList.toggle('collapsed', closed);
+    heading.querySelector('.collapse-btn')?.remove();     // (a panel may not have been redrawn)
     heading.insertAdjacentHTML('beforeend',
       ` <button class="collapse-btn" type="button" data-collapse="${id}" aria-expanded="${!closed}">${esc(closed ? TEXT.expand : TEXT.collapse)}</button>`);
   }
@@ -715,15 +983,40 @@ function adopt(shield) {
   if (field.type === 'plain') { state.division = 'plain'; state.builder = null; }
   else if (isNested(field)) { state.division = 'complex'; state.builder = builderFromField(field); }
   else { state.division = field.division; state.builder = null; state.fieldColours = leafTinctures(field); }
-  const g = groups[0];
-  if (!g) { state.charge = 'none'; state.chargeNumber = null; state.chargeTincture = null; }
-  else {
-    state.charge = g.kind === 'ordinary' ? { kind: 'ordinary', id: g.ordinary, file: null } : { kind: 'charge', id: g.charge, file: g.art };
-    state.chargeNumber = g.kind === 'ordinary' ? null : g.number;
-    state.chargeTincture = g.tincture;
-  }
+  // The charges, one entry each, and how they go together.
+  const made = unarrange(groups);
+  state.items = made.groups.map(g => ({
+    choice: g.kind === 'ordinary' ? { kind: 'ordinary', id: g.ordinary, file: null } : { kind: 'charge', id: g.charge, file: g.art },
+    number: g.kind === 'ordinary' ? null : g.number,
+    tincture: g.tincture,
+  }));
+  state.noCharge = !state.items.length;
+  if (state.noCharge) state.items = [{ choice: null, number: null, tincture: null }];
+  state.arrangement = made.groups.length > 1 ? made.arrangement : null;
+  state.arrangementUnspecified = false;
   // Every colour the shield uses is ticked in the first question too.
   state.shieldColours = [...new Set([...state.shieldColours, ...shieldTinctures(field, groups)])];
+}
+
+// Take a charge off the shield. The first entry stays, emptied, with its
+// number and colour (as it was before a charge was picked).
+function removeItem(at) {
+  // The arrangement chosen for the others is kept if it still makes sense
+  // without this one (nothing lay on it, and it was not what they were around).
+  const was = chosenArrangement(state.items.filter(item => item.choice).length);
+  const needed = was && was.some((x, i) => i !== at && (x.on === at || (was[at].as === 'primary' && x.as !== 'edge' && x.as !== 'on')));
+  state.arrangement = was && !needed && was.length > 2
+    ? was.filter((x, i) => i !== at).map(x => (x.as === 'on' && x.on > at ? { ...x, on: x.on - 1 } : x)) : null;
+  if (state.items.length === 1) state.items[0].choice = null;
+  else state.items.splice(at, 1);
+}
+
+// Put another charge on the shield. A chief, bordure, orle or base has only
+// one place it can go, so an arrangement already chosen still stands.
+function addItem(choice) {
+  const was = chosenArrangement(state.items.filter(item => item.choice).length);
+  state.items.push({ choice, number: null, tincture: null });
+  state.arrangement = was && choice.kind === 'ordinary' && ORDINARIES[choice.id].peripheral ? [...was, { as: 'edge' }] : null;
 }
 
 // ---- Reacting to clicks and typing -------------------------------------------------
@@ -740,7 +1033,7 @@ document.addEventListener('click', e => {
     if (removing) {
       // A colour no longer used in the shield cannot be in the background or on the charge.
       state.fieldColours = state.fieldColours.filter(t => t !== d.q1);
-      if (state.chargeTincture === d.q1) state.chargeTincture = null;
+      for (const item of state.items) if (item.tincture === d.q1) item.tincture = null;
       state.builder = null;
     }
     refocus = `[data-q1="${d.q1}"]`;
@@ -769,21 +1062,42 @@ document.addEventListener('click', e => {
     state.fieldColours = [...state.fieldColours].reverse();
     refocus = '[data-swap]';
   } else if (d.charge) {
-    if (d.charge === 'none') state.charge = state.charge === 'none' ? null : 'none';
-    else {
+    if (d.charge === 'none') {
+      // "no charge": everything chosen about charges is dropped, except the
+      // first entry's number and colour (as before a charge was picked).
+      state.noCharge = !state.noCharge;
+      if (state.noCharge) { state.items = [{ ...state.items[0], choice: null }]; state.arrangement = null; }
+    } else {
       const [kind, id, file] = d.charge.split(':');
-      const same = state.charge && state.charge !== 'none' && state.charge.kind === kind &&
-        state.charge.id === id && (state.charge.file || '') === file;
-      state.charge = same ? null : { kind, id, file: file || null };
+      const choice = { kind, id, file: file || null };
+      const at = state.items.findIndex(item => sameCharge(item.choice, choice));
+      state.noCharge = false;
+      if (at >= 0 && samePicture(state.items[at].choice, choice)) removeItem(at);   // picked again: taken off
+      else if (at >= 0) state.items[at].choice = choice;                            // another picture of the same charge
+      else if (!state.items[0].choice) state.items[0].choice = choice;
+      else if (state.items.length < MAX_ITEMS) addItem(choice);
     }
     refocus = `[data-charge="${d.charge}"]`;
+  } else if (d.remove) {
+    removeItem(Number(d.remove));
   } else if (d.number) {
-    const n = Number(d.number);
-    state.chargeNumber = state.chargeNumber === n ? null : n;
-    refocus = `[data-number="${d.number}"]`;
+    const n = Number(d.number), item = state.items[Number(d.slot)];
+    item.number = item.number === n ? null : n;
+    refocus = `[data-number="${d.number}"][data-slot="${d.slot}"]`;
   } else if (d.chargeTincture) {
-    state.chargeTincture = state.chargeTincture === d.chargeTincture ? null : d.chargeTincture;
-    refocus = `[data-charge-tincture="${d.chargeTincture}"]`;
+    const item = state.items[Number(d.slot)];
+    item.tincture = item.tincture === d.chargeTincture ? null : d.chargeTincture;
+    refocus = `[data-charge-tincture="${d.chargeTincture}"][data-slot="${d.slot}"]`;
+  } else if (d.arrangement) {
+    // Clicking the chosen arrangement again un-chooses it.
+    const way = shownArrangements[Number(d.arrangement)];
+    state.arrangement = sameArrangement(way, state.arrangement) ? null : way;
+    state.arrangementUnspecified = false;
+    refocus = `[data-arrangement="${d.arrangement}"]`;
+  } else if ('arrangementUnspecified' in d) {
+    state.arrangementUnspecified = !state.arrangementUnspecified;
+    if (state.arrangementUnspecified) state.arrangement = null;
+    refocus = '[data-arrangement-unspecified]';
   } else if (d.select) {
     adopt(shown[Number(d.select)]);
   } else if (d.pin) {
@@ -809,6 +1123,23 @@ document.addEventListener('click', e => {
 
 document.addEventListener('change', e => {
   if (e.target.id === 'herald') { state.herald = e.target.checked; render(); return; }
+  // "I'm a herald": one charge's place in the design, said directly. The
+  // others keep the places they have (as chosen, or as drawn).
+  const role = e.target.closest('select[data-role]');
+  if (role) {
+    const groups = chosen().map(x => x.group), i = Number(role.dataset.role);
+    const base = chosenArrangement(groups.length) || unarrange(groups).drawn;
+    if (role.value === '') state.arrangement = null;
+    else {
+      const [as, on] = role.value.split(':');
+      state.arrangement = base.map((x, k) => (k === i ? (as === 'on' ? { as, on: Number(on) } : { as }) : x));
+      state.arrangementUnspecified = false;
+    }
+    tidy();
+    render();
+    document.querySelector(`select[data-role="${i}"]`)?.focus({ preventScroll: true });
+    return;
+  }
   const sel = e.target.closest('select[data-b]');
   if (!sel) return;
   const b = state.builder, i = Number(sel.dataset.i);
@@ -829,6 +1160,8 @@ document.addEventListener('input', e => {
   state.chargeFilter = e.target.value;
   const at = e.target.selectionStart;
   renderChargePanel();
+  addCollapseButtons();
+  fillLater();
   const box = $('chargeFilter');
   box.focus({ preventScroll: true });
   box.setSelectionRange(at, at);
