@@ -16,14 +16,15 @@ export const PALETTES = [
   { id: 'forannan', name: "Forannán's colourblind-friendly", source: FORANNAN,
     colours: { argent: '#FFFFFF', or: '#FFE122', azure: '#00BDE9', gules: '#FF513C', purpure: '#963A83', vert: '#155127', sable: '#000000' } },
   // Argent, Or and sable as in the main palette (identical in the published
-  // pictures); the other four are APPROXIMATE, read from the published picture.
+  // pictures); the other four are APPROXIMATE, read from the post's picture
+  // (its pixels are in a wider colour space, converted back to ordinary sRGB).
   { id: 'forannan-alt', name: "Forannán's colourblind-friendly - alternative", source: FORANNAN,
-    colours: { argent: '#FFFFFF', or: '#FFE122', azure: '#2D6B92', gules: '#94110D', purpure: '#E98CC0', vert: '#469A49', sable: '#000000' } },
+    colours: { argent: '#FFFFFF', or: '#FFE122', azure: '#2D6B92', gules: '#94110D', purpure: '#C995CB', vert: '#469A49', sable: '#000000' } },
   { id: 'insignia-anglica', name: 'Insignia Anglica (credit Iago ab Adam)', source: IAGO,
     colours: { argent: '#D0C2A5', or: '#E0B32F', azure: '#0E5979', gules: '#B93A29', purpure: '#743934', vert: '#27744A', sable: '#2D261E' } },
   { id: 'libro-normanda', name: 'Libro II della Natione Normanda (credit Iago ab Adam)', source: IAGO,
     colours: { argent: '#D7CFBF', or: '#D5AD72', azure: '#58788C', gules: '#A52F2D', purpure: '#6D2C34', vert: '#758B6A', sable: '#392F2D' } },
-  { id: 'nobiliario', name: 'Nobiliara de armas de Valencia, Aragon y Cataluna (credit Iago ab Adam)', source: IAGO,
+  { id: 'nobiliario', name: 'Nobiliario de armas de Valencia, Aragón y Cataluña (credit Iago ab Adam)', source: IAGO,
     colours: { argent: '#CAC7B5', or: '#DBCA98', azure: '#3A4B69', gules: '#A34329', purpure: '#5B5152', vert: '#5F6E4F', sable: '#0A0A07' } },
   { id: 'oscar', name: 'OSCAR reference', source: DIGITAL_HERALD,
     colours: { argent: '#FFFFFF', or: '#FFFF00', azure: '#0000D6', gules: '#D60000', purpure: '#8811DD', vert: '#00A400', sable: '#000000' } },

@@ -167,6 +167,6 @@ function nudge(base, group, field, key) {
 
 // For any group, ordinary or not: the sample points each of its charges covers.
 export function groupCoverage(group, field = null) {
-  if (group.kind === 'ordinary') return [ordinarySamples(group.ordinary)];
+  if (group.kind === 'ordinary') return [ordinarySamples(group.ordinary, field && field.type === 'divided' ? field.division : null)];
   return placeGroup(group, field).coverage;
 }

@@ -100,7 +100,7 @@ function drawOrdinary(group, field, ctx) {
     ctx.defs.push(`<mask id="${id}"><path d="${SHIELD_PATH}" fill="none" stroke="#fff" stroke-width="${width}"/></mask>`);
     return `<path d="${SHIELD_PATH}" fill="none" stroke="${LINE}" stroke-width="${width + 1.6}"/>` + paint(`mask="url(#${id})"`);
   }
-  const d = pathOf(ordinaryShapes(group.ordinary));
+  const d = pathOf(ordinaryShapes(group.ordinary, field && field.type === 'divided' ? field.division : null));
   ctx.defs.push(`<clipPath id="${id}"><path d="${d}"/></clipPath>`);
   // Outline first, then the paint over it, so that where two bands cross
   // (saltire, pall) there are no lines through the middle.

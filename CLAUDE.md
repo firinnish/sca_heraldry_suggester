@@ -128,7 +128,7 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
 - People choose the colour scheme shields are drawn in, under question 1;
   the choice is kept in the browser. Each palette links to where it was
   published. Names are the maintainer's wording. Forannán's "alternative"
-  palette has APPROXIMATE codes for azure, gules, purpure and vert (read from
+  palette (purpure as in the post's "5b" picture) has APPROXIMATE codes for azure, gules, purpure and vert (read from
   a picture): replace them when the exact codes are known.
 
 ## The charge library (`charges/`)

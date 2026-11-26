@@ -41,8 +41,11 @@ const STRAIGHT_HALF = UNIT;         // half the width of a pale, fess or cross
 const DIAGONAL_HALF = 1.5 * UNIT;   // half a bend, saltire or pall, measured straight up: 24.5
 // Per chevron's point touches the top of a fess and the bottom of a chief.
 const CHEVRON_APEX = C - UNIT;      // per chevron, and the middle of a chevron: 33.67
-const CHEVRON_INV_APEX = C + UNIT;  // per chevron inverted, and a chevron inverted: 66.33
 const CHEVRON_HALF = 22.75;         // half a chevron, measured straight up
+// Per chevron inverted's point is at the inner point of a chevron (and per
+// chevron's at the inner point of a chevron inverted), so a chevron on per
+// chevron inverted makes one clean diamond with the lower part.
+const CHEVRON_INV_APEX = CHEVRON_APEX + CHEVRON_HALF; // per chevron inverted, and a chevron inverted: 56.42
 const CHIEF_BOTTOM = C - UNIT;      // 33.67
 const BASE_TOP = C + 2 * UNIT;      // 82.67
 
@@ -197,8 +200,14 @@ const ORDINARY_SHAPES = {
   fess: () => [rect(-10, C - STRAIGHT_HALF, W + 20, 2 * STRAIGHT_HALF)],
   bend: () => [bendStrip(-DIAGONAL_HALF, DIAGONAL_HALF)],
   bendSinister: () => [sinisterStrip(-DIAGONAL_HALF, DIAGONAL_HALF)],
-  chevron: () => [chevronStrip(CHEVRON_APEX - CHEVRON_HALF, CHEVRON_APEX + CHEVRON_HALF)],
-  chevronInverted: () => [chevronInvStrip(CHEVRON_INV_APEX - CHEVRON_HALF, CHEVRON_INV_APEX + CHEVRON_HALF)],
+  chevron: division => {
+    const apex = DIAGONAL_LINES.has(division) ? C : CHEVRON_APEX;
+    return [chevronStrip(apex - CHEVRON_HALF, apex + CHEVRON_HALF)];
+  },
+  chevronInverted: division => {
+    const apex = DIAGONAL_LINES.has(division) ? C : CHEVRON_INV_APEX;
+    return [chevronInvStrip(apex - CHEVRON_HALF, apex + CHEVRON_HALF)];
+  },
   cross: () => {
     const a = C - STRAIGHT_HALF, b = C + STRAIGHT_HALF;
     return [[[a, -10], [b, -10], [b, a], [W + 10, a], [W + 10, b], [b, b], [b, H + 10],
@@ -214,10 +223,18 @@ const ORDINARY_SHAPES = {
   base: () => [rect(-10, BASE_TOP, W + 20, H)],
 };
 
-export function ordinaryShapes(ordinary) {
+// Fields whose lines run corner to corner through the fess point. On these a
+// chevron (or chevron inverted) is drawn with its point at the fess point, so
+// its arms lie exactly along those lines: a line under an arm runs down its
+// middle, and a counterchanged arm is split evenly (not into a thin sliver).
+const DIAGONAL_LINES = new Set(['perBend', 'perBendSinister', 'perSaltire', 'gyronny', 'perPall', 'perPallInverted']);
+
+// `division` (optional): the field's division, for ordinaries that are
+// placed to suit it.
+export function ordinaryShapes(ordinary, division = null) {
   if (ordinary === 'bordure') return null;
   if (!ORDINARY_SHAPES[ordinary]) throw new Error('No shape for ordinary: ' + ordinary);
-  return ORDINARY_SHAPES[ordinary]();
+  return ORDINARY_SHAPES[ordinary](division);
 }
 
 // ---- Sample points ---------------------------------------------------------
@@ -268,12 +285,13 @@ export function distanceToEdge(x, y) {
 }
 
 const ordinarySampleCache = new Map();
-export function ordinarySamples(ordinary) {
-  if (!ordinarySampleCache.has(ordinary)) {
-    const shapes = ordinaryShapes(ordinary);
+export function ordinarySamples(ordinary, division = null) {
+  const key = `${ordinary}|${division}`;
+  if (!ordinarySampleCache.has(key)) {
+    const shapes = ordinaryShapes(ordinary, division);
     const covered = shapes ? samplesInside(shapes)
       : SAMPLES.map((p, i) => (distanceToEdge(p[0], p[1]) < BORDURE_WIDTH ? i : -1)).filter(i => i >= 0);
-    ordinarySampleCache.set(ordinary, covered);
+    ordinarySampleCache.set(key, covered);
   }
-  return ordinarySampleCache.get(ordinary);
+  return ordinarySampleCache.get(key);
 }
