@@ -22,7 +22,18 @@ const UNKNOWN_FIELD = ['#e3ded2', '#cdc6b6', '#b6ae9d'];
 const UNKNOWN_CHARGE = '#f6f3ec';
 
 let nextId = 0;   // keeps ids unique when many shields are on one page
-const newContext = () => ({ id: 's' + nextId++, defs: [], furs: new Set(), clips: 0, unknowns: 0 });
+// `mode` is how the shield is to be drawn:
+//   'colour'  the usual picture; anything not chosen yet is grey
+//   'export'  the same, for saving as a picture: anything not chosen yet is
+//             painted `unknown` instead of grey (export.js draws the shield
+//             twice, with black and with white, to find those places and
+//             make them see-through)
+//   'lines'   for saving the outlines alone: everything is painted plain
+//             white with black lines, and the lines of a divided field are
+//             drawn in. (export.js then turns the white see-through.)
+// `variant` is the way the field's pattern is drawn (layout.js: fieldVariant).
+const newContext = (mode = 'colour', variant = null, unknown = 'none') =>
+  ({ id: 's' + nextId++, defs: [], furs: new Set(), clips: 0, unknowns: 0, mode, variant, unknown });
 
 // ---- Tinctures -------------------------------------------------------------
 
@@ -37,6 +48,7 @@ function ermineSpot(x, y, fill) {
 // What to paint a tincture with: a colour, or (for a fur) a pattern.
 function paintFor(tincture, ctx) {
   const t = TINCTURES[tincture];
+  if (ctx.mode === 'lines') return '#fff';
   if (!t.fur) return t.hex;
   const id = `${ctx.id}-${tincture}`;
   if (!ctx.furs.has(tincture)) {
@@ -56,22 +68,29 @@ function paintFor(tincture, ctx) {
 // of a division, a part of that part...), so that a fur's spots can be placed
 // whole inside it rather than cut by its edges.
 function drawField(field, ctx, regions = [], key = 'whole', frame = null) {
-  if (field && field.type === 'plain' && field.tincture !== null && TINCTURES[field.tincture].fur) {
+  const lines = ctx.mode === 'lines';
+  if (!lines && field && field.type === 'plain' && field.tincture !== null && TINCTURES[field.tincture].fur) {
     const t = TINCTURES[field.tincture];
     const spots = TINCTURES[t.fur.spots].hex;
     return `<rect width="${W}" height="${H}" fill="${TINCTURES[t.fur.field].hex}"/>` +
       scatter(key, regions).map(([x, y]) => ermineSpot(x, y - 4, spots)).join('');
   }
   if (!field || field.type === 'plain') {
-    const paint = field && field.tincture !== null
-      ? paintFor(field.tincture, ctx)
+    const paint = field && field.tincture !== null ? paintFor(field.tincture, ctx)
+      : lines ? '#fff' : ctx.mode === 'export' ? ctx.unknown
       : UNKNOWN_FIELD[ctx.unknowns++ % UNKNOWN_FIELD.length];
     return `<rect width="${W}" height="${H}" fill="${paint}"/>`;
   }
-  return divisionShapes(field.division, frame).map((polygons, i) => {
-    const clipId = `${ctx.id}-c${ctx.clips++}`;
-    ctx.defs.push(`<clipPath id="${clipId}"><path d="${pathOf(polygons)}"/></clipPath>`);
-    return `<g clip-path="url(#${clipId})">${drawField(field.parts[i], ctx, [...regions, polygons], `${key}/${frame || ''}${field.division}${i}`, frame)}</g>`;
+  // (Only the whole field's own division has a variant, not a part's.)
+  const variant = regions.length ? null : ctx.variant;
+  return divisionShapes(field.division, frame, variant).map((polygons, i) => {
+    const clipId = `${ctx.id}-c${ctx.clips++}`, d = pathOf(polygons);
+    ctx.defs.push(`<clipPath id="${clipId}"><path d="${d}"/></clipPath>`);
+    const part = drawField(field.parts[i], ctx, [...regions, polygons], `${key}/${frame || ''}${field.division}${variant || ''}${i}`, frame);
+    // Outlines only: each part draws the line round itself, inside its own
+    // edge, so the two halves of every line meet and nothing spills over.
+    // (Half of 0.8 from each side: as thick as the line round an ordinary.)
+    return `<g clip-path="url(#${clipId})">${part}${lines ? `<path d="${d}" fill="none" stroke="${LINE}" stroke-width="0.8"/>` : ''}</g>`;
   }).join('');
 }
 
@@ -86,7 +105,8 @@ function painter(group, field, ctx, frame = null) {
     const swapped = counterchangedField(field);
     if (swapped) return cut => `<g ${cut}>${drawField(swapped, ctx, [], 'whole', frame)}</g>`;
   }
-  const paint = group.tincture && group.tincture !== COUNTERCHANGED ? paintFor(group.tincture, ctx) : UNKNOWN_CHARGE;
+  const paint = group.tincture && group.tincture !== COUNTERCHANGED ? paintFor(group.tincture, ctx)
+    : ctx.mode === 'lines' ? '#fff' : ctx.mode === 'export' ? ctx.unknown : UNKNOWN_CHARGE;
   return cut => `<rect width="${W}" height="${H}" fill="${paint}" ${cut}/>`;
 }
 
@@ -160,7 +180,7 @@ function drawCharge(group, paint, picture, flipY, { cx, cy, size, turn }, ctx) {
     : '';
   const image = `<image href="${picture.href}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none"${flip}`;
   const maskId = `${ctx.id}-m${n}`, linesId = `${ctx.id}-l${n}`;
-  const [r, g, b] = (DARK_CHARGES.has(group.tincture) ? LINE_ON_DARK : LINE_ON_LIGHT).map(v => (v / 255).toFixed(3));
+  const [r, g, b] = (ctx.mode !== 'lines' && DARK_CHARGES.has(group.tincture) ? LINE_ON_DARK : LINE_ON_LIGHT).map(v => (v / 255).toFixed(3));
   ctx.defs.push(
     `<mask id="${maskId}">${image}/></mask>` +
     // keeps the picture's dark lines only: colour = line colour, opacity = opacity - brightness
@@ -185,6 +205,8 @@ function drawGroup(group, entry, field, ctx, frame) {
     const paint = painter(group.charged, field, ctx, frame);
     out += on.places.map(place => drawCharge(group.charged, paint, on.picture, on.flipY, place, ctx)).join('');
   }
+  // An ordinary inside an orle stops short of it (see shieldSVG).
+  if (ctx.inside && entry.role === 'primary' && group.kind === 'ordinary') out = `<g mask="url(#${ctx.inside})">${out}</g>`;
   return out;
 }
 
@@ -201,10 +223,21 @@ const layer = (group, entry) =>
 // `charges` is a list of charge groups (see shield.js). Pictures must have
 // been loaded first (loadLibrary or loadPicture in art.js); a charge whose
 // picture is not loaded is drawn as a blob. `field` may be null (not chosen).
-export function shieldSVG(field, { title = '', charges = [] } = {}) {
-  const ctx = newContext();
-  // With a chief, the field is drawn in the space below it (geometry.js).
-  const { frame, entries } = layoutShield(field, charges);
+// `mode`: 'colour' (the usual picture), or 'export' / 'lines' for saving as a
+// picture (see newContext above, and export.js, which is what to call).
+export function shieldSVG(field, { title = '', charges = [], mode = 'colour', unknown = 'none' } = {}) {
+  // With a chief, the field is drawn in the space below it; inside a
+  // bordure, in the space inside that (geometry.js: FRAMES).
+  const { frame, entries, variant = null, within = 0, edge = null } = layoutShield(field, charges);
+  const ctx = newContext(mode, variant, unknown);
+  // Inside an orle an ordinary stops just short of it (the field runs on
+  // under the orle to the edge, but nothing else does): it is drawn through
+  // a mask of the space inside the orle.
+  if (within) {
+    ctx.inside = `${ctx.id}-in`;
+    ctx.defs.push(`<mask id="${ctx.inside}"><path d="${framePath(edge)}" fill="#fff"/>` +
+      `<path d="${framePath(edge)}" fill="none" stroke="#000" stroke-width="${2 * within + 2}"/></mask>`);
+  }
   const order = charges.map((g, i) => i).sort((a, b) => layer(charges[a], entries[a]) - layer(charges[b], entries[b]) || a - b);
   const body = drawField(field, ctx, [], 'whole', frame) + order.map(i => drawGroup(charges[i], entries[i], field, ctx, frame)).join('');
   const safeTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -212,7 +245,7 @@ export function shieldSVG(field, { title = '', charges = [] } = {}) {
     (title ? `<title>${safeTitle}</title>` : '') +
     `<defs><clipPath id="${ctx.id}-shield"><path d="${SHIELD_PATH}"/></clipPath>${ctx.defs.join('')}</defs>` +
     `<g clip-path="url(#${ctx.id}-shield)">${body}</g>` +
-    `<path d="${SHIELD_PATH}" fill="none" stroke="${OUTLINE}" stroke-width="2"/></svg>`;
+    `<path d="${SHIELD_PATH}" fill="none" stroke="${mode === 'lines' ? '#000' : OUTLINE}" stroke-width="2"/></svg>`;
 }
 
 // A small square of one tincture, for colour pickers.

@@ -35,17 +35,19 @@
   .current.panel, .suggestions.panel { margin-bottom: 0; }
   .row { display: flex; flex-wrap: wrap; gap: 10px; }
   .row-label { font-size: 0.8rem; color: var(--muted); margin: 12px 0 6px; }
-  .sets { display: flex; flex-wrap: wrap; gap: 10px 26px; }
-  .set { border-left: 3px solid var(--line); padding-left: 12px; }
-  .set .row-label { margin-top: 0; }
 
   button { font-family: inherit; color: var(--ink); cursor: pointer; }
-  .swatch, .card {
+  .card {
     display: flex; flex-direction: column; align-items: center; gap: 5px;
     background: #fff; border: 2px solid var(--line); border-radius: 8px; padding: 8px 6px; font-size: 0.82rem;
   }
-  /* The slim colour menu (question 1): small squares with their names beside them. */
-  .slim-sets { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+  /* The slim colour menu: small squares with their names beside them, and
+     one line underneath saying why any of them are greyed. */
+  .slim-sets { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 16px; }
+  .slim-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .why-line { color: var(--warn); font-size: 0.8rem; margin: 6px 0 0; }
+  .head-left { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+  .save-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
   .slim-label { font-size: 0.72rem; font-weight: bold; margin: 0 0 3px 6px; }
   .slim-row { display: flex; flex-wrap: wrap; gap: 2px 4px; border: 1.5px solid var(--muted); border-radius: 16px; padding: 3px 8px; }
   .slim { display: flex; align-items: center; gap: 6px; background: none; border: 2px solid transparent; border-radius: 8px; padding: 3px 6px; font-size: 0.82rem; text-align: center; }
@@ -53,12 +55,7 @@
   .slim span { display: flex; flex-direction: column; line-height: 1.15; }
   .slim small { font-size: 0.68rem; color: var(--muted); font-weight: normal; }
   .slim[aria-pressed="true"] { border-color: var(--accent); background: #f3f0fa; }
-  .swatch { width: 88px; }
-  .swatch svg { width: 42px; height: 42px; }
-  .swatch.small { width: 66px; padding: 6px 4px; font-size: 0.72rem; }
-  .swatch.small svg { width: 30px; height: 30px; }
-  .swatch small, .card small { color: var(--muted); font-size: 0.72rem; text-align: center; }
-  .swatch .tick { height: 1em; font-size: 0.9rem; line-height: 1; color: var(--accent); }
+  .card small { color: var(--muted); font-size: 0.72rem; text-align: center; }
   .card { width: 108px; }
   .card svg { width: 72px; height: auto; }
   [aria-pressed="true"] { border-color: var(--accent); background: #f3f0fa; font-weight: bold; }
@@ -124,7 +121,7 @@
 <body>
 <main class="app">
   <header>
-    <h1 id="title"></h1>
+    <div class="head-left"><h1 id="title"></h1><button class="plain-btn" type="button" id="clearAll" data-clear></button></div>
     <label class="herald"><input type="checkbox" id="herald"> <span id="heraldLabel"></span></label>
   </header>
   <div class="top">
@@ -146,6 +143,7 @@ import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER,
 import { plain, divided, isComplete, isNested, leafTinctures, shieldTinctures, blazon, ordinaryGroup,
          chargeGroupFromLibrary, COUNTERCHANGED } from '../../core/shield.js';
 import { shieldSVG, swatchSVG, counterchangedSwatchSVG } from '../../core/draw.js';
+import { shieldPNG } from '../../core/export.js';
 import { shieldPatterns, complexSearchURL } from '../../core/oanda.js';
 import { loadLibrary } from '../../core/art.js';
 import { PALETTES, DEFAULT_PALETTE, usePalette, paletteById } from '../../core/palettes.js';
@@ -232,6 +230,25 @@ const TEXT = {
   fewSuggestions: 'Few shields are possible with these choices.',       // DRAFT
   noSuggestions: 'No shield is possible with these choices.',           // DRAFT
   searchLink: 'Search the Ordinary & Armorial for this',               // DRAFT
+  // The three buttons asked for in November 2026 (the maintainer's words).
+  clearAll: 'clear all',
+  savePng: 'save as png',
+  saveOutlines: 'save as png (outlines only)',
+  saveFailed: 'Sorry, the picture could not be saved in this browser.', // DRAFT
+  // The one line under a colour menu saying why some colours are greyed:
+  // "Azure is not available because the charge cannot be the same colour as
+  // the background" (the maintainer's example). `because` holds the ends of
+  // that sentence; anything not listed uses the rule's own words from `rules`.
+  notAvailable: (names, several, because) => `${names} ${several ? 'are' : 'is'} not available because ${because}`,
+  because: {
+    'charge-shares-tincture': 'the charge cannot be the same colour as the background',
+    needsMetal: 'of low contrast - please choose a metal',              // DRAFT (from "Low contrast - please choose a metal")
+    needsColour: 'of low contrast - please choose a colour',            // DRAFT
+    'counterchange-field': 'it needs a background divided into two colours',          // DRAFT
+    'counterchange-many': 'counterchanging over this many pieces needs period evidence', // DRAFT
+    'complexity': 'that would be too many colours and charges',         // DRAFT
+    'not-possible': 'no shield with the other choices can have it',     // DRAFT
+  },
   tincturesNotIndexed: 'The Ordinary & Armorial does not record which colours a three-part background uses, so this search finds every background divided this way.', // DRAFT
   patternsSummary: 'What gets filled in on the Complex Search Form',   // DRAFT
   // Words used in the blazon for things not chosen yet.                 // DRAFT (all four)
@@ -545,32 +562,17 @@ function ruleText(problem) {
   if (problem.hint) return problem.hint === 'metal' ? TEXT.lowContrastMetal : TEXT.lowContrastColour;
   return TEXT.rules[problem.id] || problem.id;
 }
+// The same reason as the end of a sentence: "Azure is not available because ...".
+function becauseText(problem) {
+  const known = TEXT.because[!problem ? 'not-possible' : problem.hint ? (problem.hint === 'metal' ? 'needsMetal' : 'needsColour') : problem.id];
+  if (known) return known;
+  const whole = ruleText(problem);
+  return whole.charAt(0).toLowerCase() + whole.slice(1);
+}
 // In herald mode nothing is blocked; the reason is still shown.
 const blocked = problems => problems.length > 0 && !state.herald;
 
 // ---- Drawing the page ---------------------------------------------------------
-function swatchButton(id, { on, attr, small = false, why = '' }) {
-  const counter = id === COUNTERCHANGED;
-  const t = counter ? null : TINCTURES[id];
-  const label = counter ? `<span>${esc(TEXT.counterchanged)}</span>`
-    : t.kind === 'fur' ? `<span>${esc(t.name)}</span>${small ? '' : `<small>${esc(t.plain)}</small>`}`
-    : `<span>${esc(t.plain)}</span><small>${esc(t.name)}</small>`;
-  const greyed = why ? ` greyed" aria-disabled="${!state.herald}` : '';
-  return `<button class="swatch${small ? ' small' : ''}${greyed}" type="button" ${attr}="${id}" aria-pressed="${on}">` +
-    `${counter ? counterchangedSwatchSVG() : swatchSVG(id)}${label}` +
-    (why ? `<span class="why">${esc(why)}</span>` : small ? '' : `<span class="tick" aria-hidden="true">${on ? '✓' : ''}</span>`) +
-    `</button>`;
-}
-
-// Colours and metals as two visibly separate sets, then furs.
-function swatchSets(ids, make) {
-  const set = (label, order) => {
-    const list = order.filter(id => ids.includes(id));
-    return list.length ? `<div class="set"><div class="row-label">${esc(label)}</div><div class="row">${list.map(make).join('')}</div></div>` : '';
-  };
-  return `<div class="sets">${set(TEXT.coloursLabel, COLOUR_ORDER)}${set(TEXT.metalsLabel, METAL_ORDER)}${set(TEXT.fursLabel, FUR_ORDER)}</div>`;
-}
-
 // "palette: <name>" with little colour chips, and a list of the others.
 const CHIP_METALS = ['argent', 'or'];
 const CHIP_COLOURS = ['gules', 'vert', 'azure', 'purpure', 'sable'];
@@ -590,25 +592,48 @@ function paletteChooser() {
   return html;
 }
 
-// The slim colour menu for question 1 (the maintainer's sketch, November
-// 2026): a small square of each colour with its heraldic name beside it and
-// the everyday word underneath in brackets, each set inside its own outline.
-function slimSets() {
+// The slim colour menu (the maintainer's sketch, November 2026): a small
+// square of each colour with its heraldic name beside it and the everyday
+// word underneath in brackets, each set inside its own outline. Used for
+// every colour question.
+//   ids:   the tinctures to offer         attr: the button's data attribute
+//   on:    id => is it chosen?            why:  id => the problems that grey it (a list), or nothing
+//   also:  extra buttons for the last row ("don't specify")
+// A greyed colour says why in ONE line under the menu, not on the button:
+// "Azure is not available because ..." (the maintainer, November 2026).
+// Colours greyed for the same reason share a sentence.
+function slimSets(ids, { attr, on, why = () => null, counterchanged = false, also = '' }) {
+  const reasons = new Map();                    // the end of the sentence -> the names of the colours it rules out
   const one = id => {
-    const t = TINCTURES[id];
-    return `<button class="slim" type="button" data-q1="${id}" aria-pressed="${state.shieldColours.includes(id)}">${swatchSVG(id)}` +
-      `<span><b>${esc(t.name)}</b>${t.kind === 'fur' ? '' : `<small>(${esc(t.plain)})</small>`}</span></button>`;
+    const counter = id === COUNTERCHANGED, t = counter ? null : TINCTURES[id];
+    const name = counter ? TEXT.counterchanged : t.name;
+    const faults = why(id);
+    if (faults) {
+      const because = becauseText(faults[0]);
+      reasons.set(because, [...(reasons.get(because) || []), name]);
+    }
+    return `<button class="slim${faults ? ` greyed" aria-disabled="${!state.herald}" title="${esc(ruleText(faults[0]))}` : ''}" type="button" ${attr}="${id}" aria-pressed="${!!on(id)}">` +
+      `${counter ? counterchangedSwatchSVG() : swatchSVG(id)}<span><b>${esc(name)}</b>` +
+      `${counter || t.kind === 'fur' ? '' : `<small>(${esc(t.plain)})</small>`}</span></button>`;
   };
-  const set = (label, order) => `<div class="slim-set"><div class="slim-label">${esc(label)}</div><div class="slim-row">${order.map(one).join('')}</div></div>`;
-  return `<div class="slim-sets">${set(TEXT.coloursLabel, COLOUR_ORDER)}${set(TEXT.metalsLabel, METAL_ORDER)}${set(TEXT.fursLabel, FUR_ORDER)}</div>`;
+  const set = (label, order) => {
+    const list = order.filter(id => ids.includes(id));
+    return list.length ? `<div class="slim-set"><div class="slim-label">${esc(label)}</div><div class="slim-row">${list.map(one).join('')}</div></div>` : '';
+  };
+  const sets = set(TEXT.coloursLabel, COLOUR_ORDER) + set(TEXT.metalsLabel, METAL_ORDER) + set(TEXT.fursLabel, FUR_ORDER);
+  const last = counterchanged || also
+    ? `<div class="slim-set slim-extra">${counterchanged ? `<div class="slim-row">${one(COUNTERCHANGED)}</div>` : ''}${also}</div>` : '';
+  const listed = names => cap(names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0]);
+  const line = [...reasons].map(([because, names]) => TEXT.notAvailable(listed(names), names.length > 1, because)).join('. ');
+  return `<div class="slim-sets">${sets}${last}</div>` + (line ? `<p class="why-line">${esc(line)}</p>` : '');
 }
 
 function renderColourPanels() {
   $('shieldColoursPanel').innerHTML = `<h2>${esc(TEXT.shieldColours)}</h2><p class="help">${esc(TEXT.shieldColoursHelp)}</p>` +
-    slimSets() + paletteChooser();
+    slimSets(ALL_TINCTURES, { attr: 'data-q1', on: id => state.shieldColours.includes(id) }) + paletteChooser();
   $('fieldColoursPanel').innerHTML = `<h2>${esc(TEXT.fieldColours)}</h2><p class="help">${esc(TEXT.fieldColoursHelp)}</p>` +
-    swatchSets(offered(), id => swatchButton(id, { on: state.fieldColours.includes(id), attr: 'data-q2', small: true })) +
-    `<div class="row" style="margin-top:10px"><button class="name-btn" type="button" data-field-unspecified aria-pressed="${state.fieldUnspecified}">${esc(TEXT.dontSpecify)}</button></div>`;
+    slimSets(offered(), { attr: 'data-q2', on: id => state.fieldColours.includes(id),
+      also: `<button class="name-btn" type="button" data-field-unspecified aria-pressed="${state.fieldUnspecified}">${esc(TEXT.dontSpecify)}</button>` });
 }
 
 // `waiting`: the card's picture is still being worked out (see lazyCard); it
@@ -789,16 +814,11 @@ function slotBlock(slot, c) {
       if (focused >= 0) block.querySelectorAll('button')[focused]?.focus({ preventScroll: true });
     } });
   }
-  const possible = set => {
-    const faults = 'number' in set ? numbers.get(set.number) : colours.get(set.tincture);
-    return faults ? ruleText(faults[0]) : '';
-  };
   const numberButton = n => {
-    const why = possible({ number: n });
+    const faults = numbers.get(n), why = faults ? ruleText(faults[0]) : '';
     return `<button class="name-btn${why ? ` greyed" aria-disabled="${!state.herald}" title="${esc(why)}` : ''}" type="button" ` +
       `data-number="${n}" data-slot="${slot}" aria-pressed="${item.number === n}">${n === SEMY ? esc(TEXT.semy) : n}</button>`;
   };
-  const colourButton = id => swatchButton(id, { on: item.tincture === id, attr: `data-slot="${slot}" data-charge-tincture`, small: true, why: possible({ tincture: id }) });
   let html = '';
   if (item.choice) {
     html += `<div class="slot-head"><strong>${esc(choiceName(item.choice))}</strong>` +
@@ -808,8 +828,10 @@ function slotBlock(slot, c) {
     html += `<div class="row-label">${esc(TEXT.chargeNumber)}</div><div class="row">${NUMBERS.map(numberButton).join('')}</div>`;
   }
   return html + `<div class="row-label">${esc(TEXT.chargeColour)}</div>` +
-    swatchSets(offered(), colourButton) + `<div class="row" style="margin-top:10px">${colourButton(COUNTERCHANGED)}` +
-    `<button class="name-btn" type="button" data-slot="${slot}" data-charge-tincture="${UNSPECIFIED}" aria-pressed="${item.tincture === UNSPECIFIED}">${esc(TEXT.dontSpecify)}</button></div>`;
+    slimSets(offered(), {
+      attr: `data-slot="${slot}" data-charge-tincture`, on: id => item.tincture === id, why: id => colours.get(id), counterchanged: true,
+      also: `<button class="name-btn" type="button" data-slot="${slot}" data-charge-tincture="${UNSPECIFIED}" aria-pressed="${item.tincture === UNSPECIFIED}">${esc(TEXT.dontSpecify)}</button>`,
+    });
 }
 
 function renderChargePanel() {
@@ -1000,6 +1022,9 @@ function renderCurrent() {
     (problems.length ? `<ul class="problems">${problems.map(p =>
       `<li>${esc(ruleText(p))}${p.sena ? ` (SENA ${esc(p.sena)})` : ''}</li>`).join('')}</ul>` : '') +
     (patterns.length ? `<a class="search-link" href="${esc(complexSearchURL(patterns))}" target="_blank" rel="noopener">${esc(TEXT.searchLink)} →</a>` : '') +
+    `<div class="save-row"><button class="plain-btn" type="button" data-save="colour">${esc(TEXT.savePng)}</button>` +
+    `<button class="plain-btn" type="button" data-save="outlines">${esc(TEXT.saveOutlines)}</button></div>` +
+    `<p class="note" id="saveNote" role="status" hidden></p>` +
     (noTinctures ? `<p class="note">${esc(TEXT.tincturesNotIndexed)}</p>` : '') +
     (patterns.length ? `<details><summary>${esc(TEXT.patternsSummary)}</summary><code>${esc(patterns.join('\n'))}</code></details>` : '');
 }
@@ -1128,6 +1153,41 @@ function addItem(choice) {
   state.arrangement = was && choice.kind === 'ordinary' && ORDINARIES[choice.id].peripheral ? [...was, { as: 'edge' }] : null;
 }
 
+// ---- "clear all" and saving the picture ----------------------------------------------
+// "clear all" takes back every answer to the questions. It leaves alone what
+// is not an answer: the palette, the "I'm a herald" tick, the suggestions
+// pinned, and which sections are collapsed.
+function clearAll() {
+  Object.assign(state, {
+    shieldColours: [], fieldColours: [], fieldUnspecified: false, division: null, builder: null,
+    items: [{ choice: null, number: null, tincture: null }], noCharge: false,
+    arrangement: null, arrangementUnspecified: false, chargeFilter: '',
+  });
+}
+
+// Save the shield shown top right as a PNG (core/export.js): coloured in, or
+// its outlines alone. The file is named after the blazon.
+async function savePicture(outlines) {
+  const shield = shownShield();
+  const name = blazon(shield.field, shield.groups, words).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'shield';
+  const note = $('saveNote');
+  if (note) note.hidden = true;
+  try {
+    const blob = await shieldPNG(shield.field, shield.groups, { outlines });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${name}${outlines ? '-outlines' : ''}.png`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 60000);
+  } catch (err) {
+    console.error(err);
+    const now = $('saveNote');
+    if (now) { now.textContent = TEXT.saveFailed; now.hidden = false; }
+  }
+}
+
 // ---- Reacting to clicks and typing -------------------------------------------------
 document.addEventListener('click', e => {
   const btn = e.target.closest('button');
@@ -1136,7 +1196,11 @@ document.addEventListener('click', e => {
   if (btn.getAttribute('aria-disabled') === 'true') return;
   const d = btn.dataset;
   let refocus = null;
-  if (d.q1) {
+  if (d.save) { savePicture(d.save === 'outlines'); return; }
+  if ('clear' in d) {
+    clearAll();
+    refocus = '[data-clear]';
+  } else if (d.q1) {
     const removing = state.shieldColours.includes(d.q1);
     state.shieldColours = toggle(state.shieldColours, d.q1);
     if (removing) {
@@ -1290,6 +1354,7 @@ try { saved = localStorage.getItem('heraldryPalette'); } catch (e) { /* ignore *
 choosePalette(saved || DEFAULT_PALETTE);
 
 $('title').textContent = TEXT.title;
+$('clearAll').textContent = TEXT.clearAll;
 $('heraldLabel').textContent = TEXT.herald;
 render();
 

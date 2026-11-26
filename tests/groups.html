@@ -126,6 +126,25 @@ function draw() {
     shield2(divided('lozengy', [plain('or'), plain('purpure')]), [main({ number: 3, tincture: 'sable' })]),
     shield2(divided('checky', [plain('or'), plain('purpure')]), [main({ number: 3, tincture: 'sable' })]),
     shield2(divided('paly', [plain('or'), plain('purpure')]), [main({ number: 1, tincture: 'sable' })])]);
+  html += section('Paly takes as many pieces (six, eight or four) as put each charge across a line or on the tincture it contrasts with', [
+    shield2(divided('paly', [plain('or'), plain('purpure')]), [main({ number: 3, tincture: 'sable' })]),
+    shield2(divided('paly', [plain('or'), plain('purpure')]), [main({ number: 2, tincture: 'sable' })]),
+    shield2(divided('paly', [plain('azure'), plain('or')]), [main({ number: 3, tincture: 'gules' })]),
+    shield2(divided('paly', [plain('azure'), plain('or')]), [main({ number: 3, tincture: 'gules', arranged: 'fess' })]),
+    shield2(divided('paly', [plain('azure'), plain('or')]), [main({ number: 4, tincture: 'gules', arranged: 'fess' })]),
+    shield2(divided('paly', [plain('azure'), plain('or')]), [main({ number: 3, tincture: 'gules' }), ordinaryGroup('bordure', 'argent')])]);
+  html += section('The field and an ordinary are drawn to fit inside a bordure (and an ordinary stops short of an orle)', [
+    shield2(divided('perChevron', [plain('azure'), plain('or')]), [ordinaryGroup('bordure', 'gules')]),
+    shield2(divided('checky', [plain('azure'), plain('argent')]), [ordinaryGroup('bordure', 'gules')]),
+    shield2(divided('paly', [plain('azure'), plain('argent')]), [ordinaryGroup('bordure', 'gules')]),
+    shield2(divided('barry', [plain('azure'), plain('argent')]), [ordinaryGroup('bordure', 'gules')]),
+    shield2(plain('azure'), [ordinaryGroup('chevron', 'or', { charged: main({ number: 1, tincture: 'azure' }) }), ordinaryGroup('bordure', 'argent')]),
+    shield2(plain('azure'), [ordinaryGroup('pile', 'or'), ordinaryGroup('bordure', 'argent')]),
+    shield2(plain('azure'), [ordinaryGroup('pall', 'or'), ordinaryGroup('bordure', 'argent')]),
+    shield2(divided('checky', [plain('azure'), plain('argent')]), [ordinaryGroup('fess', 'or'), ordinaryGroup('bordure', 'gules')]),
+    shield2(plain('azure'), [ordinaryGroup('chevron', 'or'), ordinaryGroup('bordure', 'argent'), ordinaryGroup('chief', 'or')]),
+    shield2(plain('azure'), [ordinaryGroup('chevron', 'or'), ordinaryGroup('orle', 'argent')]),
+    shield2(plain('azure'), [ordinaryGroup('fess', 'or'), ordinaryGroup('orle', 'argent')])]);
   html += section('Arrangement not chosen yet (drawn as a guess)', [
     shield([ord('chevron'), main({ number: 3 })]), shield([main(), other({ number: 3 })]), shield([main(), other()])]);
 
