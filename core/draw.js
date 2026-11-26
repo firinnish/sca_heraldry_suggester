@@ -9,7 +9,7 @@
 
 import { TINCTURES } from './catalog.js';
 import { COUNTERCHANGED, counterchangedField } from './shield.js';
-import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes } from './geometry.js';
+import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes, framePath } from './geometry.js';
 import { layoutShield } from './layout.js';
 import { scatter } from './scatter.js';
 
@@ -97,21 +97,26 @@ function painter(group, field, ctx, frame = null) {
 function drawOrdinary(group, shapes, field, ctx, frame) {
   const paint = painter(group, field, ctx, frame);
   const id = `${ctx.id}-o${ctx.clips++}`;
+  // A bordure or orle follows the edge of the space it is in: the shield's
+  // edge, or beside a chief the edge of the space below it, so that it runs
+  // along under the chief (which is drawn afterwards, over the half of the
+  // line that falls above).
+  const edge = framePath(frame);
   if (group.ordinary === 'orle') {
     // A band set in from the edge: a wide stroke along the outline, minus a
     // narrower one. The lines are the same band made a little wider.
     const band = (maskId, grow) => `<mask id="${maskId}">` +
-      `<path d="${SHIELD_PATH}" fill="none" stroke="#fff" stroke-width="${2 * (ORLE_GAP + ORLE_WIDTH) + grow}"/>` +
-      `<path d="${SHIELD_PATH}" fill="none" stroke="#000" stroke-width="${2 * ORLE_GAP - grow}"/></mask>`;
+      `<path d="${edge}" fill="none" stroke="#fff" stroke-width="${2 * (ORLE_GAP + ORLE_WIDTH) + grow}"/>` +
+      `<path d="${edge}" fill="none" stroke="#000" stroke-width="${2 * ORLE_GAP - grow}"/></mask>`;
     ctx.defs.push(band(id, 0), band(id + 'l', 1.6));
     return `<rect width="${W}" height="${H}" fill="${LINE}" mask="url(#${id}l)"/>` + paint(`mask="url(#${id})"`);
   }
   if (group.ordinary === 'bordure') {
-    // A wide line along the shield's edge; the half outside the shield is
-    // trimmed off by the shield's own outline.
+    // A wide line along the edge; the half outside the shield is trimmed off
+    // by the shield's own outline.
     const width = BORDURE_WIDTH * 2;
-    ctx.defs.push(`<mask id="${id}"><path d="${SHIELD_PATH}" fill="none" stroke="#fff" stroke-width="${width}"/></mask>`);
-    return `<path d="${SHIELD_PATH}" fill="none" stroke="${LINE}" stroke-width="${width + 1.6}"/>` + paint(`mask="url(#${id})"`);
+    ctx.defs.push(`<mask id="${id}"><path d="${edge}" fill="none" stroke="#fff" stroke-width="${width}"/></mask>`);
+    return `<path d="${edge}" fill="none" stroke="${LINE}" stroke-width="${width + 1.6}"/>` + paint(`mask="url(#${id})"`);
   }
   const d = pathOf(shapes);
   ctx.defs.push(`<clipPath id="${id}"><path d="${d}"/></clipPath>`);

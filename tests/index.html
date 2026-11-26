@@ -22,7 +22,7 @@ A few percent of misses is normal (the index has its own inconsistencies).</p>
 <pre id="misses"></pre>
 
 <script type="module">
-import { TINCTURES, DIVISIONS, ORDINARIES, divisionsWithParts } from '../core/catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, arrangementsFor, divisionsWithParts } from '../core/catalog.js';
 import { plain, divided, ordinaryGroup, chargeGroup, blazon as blazonShield, COUNTERCHANGED } from '../core/shield.js';
 import { shieldSVG } from '../core/draw.js';
 import { shieldPatterns, fieldDescription, complexSearchURL } from '../core/oanda.js';
@@ -165,6 +165,20 @@ for (const f of plainTinctures) for (const t1 of plainTinctures) {
     several('a lion between three charges', plain(f),
             [chargeGroup({ charge: 'lion', category: 'CAT', posture: 'rampant', tincture: t1, role: 'primary' }),
              some(name, category, plural, 3, t2, { role: 'secondary', place: 'around' })]);
+  }
+}
+
+// Charges on their own in a named arrangement: "in pale three mullets Or".
+// (Counted together: each arrangement alone has only a record or two with
+// these charges. Across the whole armorial the category is on 94% or more of
+// records with three or more charges, and on 73% of "in fess two", which is
+// often left as the usual way for two.)
+for (const f of plainTinctures) for (const t of plainTinctures) {
+  if (f === t) continue;
+  for (const [name, category, plural] of COMMON) for (const n of [2, 3, 4, 5, 6]) {
+    for (const id of arrangementsFor(n)) {
+      several('charges in a named arrangement (in pale, in bend...)', plain(f), [some(name, category, plural, n, t, { arranged: id })]);
+    }
   }
 }
 

@@ -120,8 +120,17 @@ const CASES = [
   ['yes', P('azure'), [thing('tower', 'or', 1, { role: 'primary' }), thing('mullet', 'argent', 3, { role: 'secondary', place: 'around' }), ordinaryGroup('bordure', 'or')], {}, 'Appendix J: primary, secondary around it, peripheral ordinary'],
   ['yes', P('azure'), [ordinaryGroup('fess', 'or', { charged: thing('rose', 'gules', 3) }), thing('mullet', 'argent', 3, { role: 'secondary', place: 'around' }), ordinaryGroup('bordure', 'or', {})], {}, 'Appendix J: the same with a tertiary group on the ordinary'],
   ['no', P('azure'), [thing('tower', 'or', 1), ordinaryGroup('bordure', 'or'), ordinaryGroup('chief', 'argent')], {}, 'Appendix J (not a listed grouping)'],
-  ['house', P('azure'), [ordinaryGroup('fess', 'or'), thing('mullet', 'argent', 3, { role: 'secondary', place: 'chief' }), ordinaryGroup('bordure', 'or')], {}, 'Appendix J (is "in chief" a group "around"? held back)'],
+  ['yes', P('azure'), [ordinaryGroup('fess', 'or'), thing('mullet', 'argent', 3, { role: 'secondary', place: 'chief' }), ordinaryGroup('bordure', 'or')], {}, 'Appendix J: a group in chief counts as around the primary (maintainer)'],
   ['yes', P('azure'), [ordinaryGroup('bordure', 'or'), ordinaryGroup('chief', 'argent')], {}, 'Appendix J: two groups are presumed registerable'],
+  // Charges set out in a named arrangement (SENA Appendix K lists the standard ones)
+  ['yes', P('azure'), [thing('roundel', 'or', 3, { arranged: 'pale' })], {}, 'Appendix K: three charges in pale'],
+  ['yes', P('azure'), [thing('sword', 'or', 5, { arranged: 'chevron' })], {}, 'five swords in chevron'],
+  ['yes', P('azure'), [thing('fleur-de-lys', 'or', 6, { arranged: 'bend' })], {}, 'Appendix K: four or more charges in bend'],
+  ['yes', P('azure'), [thing('roundel', 'or', 6)], {}, 'Glossary Table 7: six are three, two and one'],
+  ['house', P('azure'), [thing('roundel', 'or', 4)], {}, 'Glossary Table 7: four have no usual arrangement, one must be chosen'],
+  ['yes', P('azure'), [thing('roundel', 'or', 4, { arranged: 'cross' })], {}, 'Appendix K: four charges in cross'],
+  ['no', two('perPale', 'azure', 'argent'), [thing('roundel', 'or', 3, { arranged: 'fess' })], {}, 'A3B4a (the one on the argent half)'],
+  ['house', P('azure'), [thing('roundel', 'or', 2, { arranged: 'cross' })], {}, 'two charges cannot be in cross'],
   // What the tools cannot draw yet
   ['house', P('azure'), [ordinaryGroup('pale', 'or'), thing('mullet', 'argent', 3, { role: 'secondary', place: 'around' })], {}, 'Glossary Table 7: no default for three around a pale'],
   ['house', P('azure'), [ordinaryGroup('bordure', 'or', { charged: thing('mullet', 'gules', 3) })], {}, 'charges on a bordure: not drawn yet'],
@@ -160,6 +169,10 @@ const RUNS = [
   ['mullets on a bend, palette of three', { items: [{ charge: { kind: 'ordinary', id: 'bend' } }, { charge: MULLET }], arrangement: [{ as: 'primary' }, { as: 'on', on: 0 }], palette: ['azure', 'or', 'gules'] }],
   ['a mullet inside a bordure', { items: [{ charge: MULLET }, { charge: { kind: 'ordinary', id: 'bordure' } }] }],
   ['a chevron, mullets and a chief', { items: [{ charge: { kind: 'ordinary', id: 'chevron' } }, { charge: MULLET }, { charge: { kind: 'ordinary', id: 'chief' } }] }],
+  ['five mullets', { charge: MULLET, number: 5 }],
+  ['four mullets', { charge: MULLET, number: 4 }],
+  ['mullets in pale', { items: [{ charge: MULLET, arranged: 'pale' }] }],
+  ['three mullets the usual way', { items: [{ charge: MULLET, number: 3, arranged: 'usual' }] }],
   ['anything, with extra charges allowed', { extras: true }],
   ['a mullet, with extra charges allowed', { items: [{ charge: MULLET }], extras: true }],
 ];
@@ -182,6 +195,8 @@ for (const [label, c] of RUNS) {
       const kinds = made.groups.map(g => (g.kind === 'ordinary' ? g.ordinary : g.charge));
       if (c.items.some(it => !kinds.includes(it.charge.id)) || (!c.extras && kinds.length !== c.items.length)) wrong++;
       if (c.arrangement && !(made.arrangement && sameArrangement(c.arrangement, made.arrangement))) wrong++;
+      // ...and set out as asked.
+      c.items.forEach((it, k) => { if (it.arranged && (made.groups[k].arranged || 'usual') !== it.arranged) wrong++; });
     }
     const text = blazon(s.field, s.groups);
     if (!seen.has(text)) { seen.add(text); if (examples.length < 5) examples.push(shieldSVG(s.field, { charges: s.groups, title: text })); }

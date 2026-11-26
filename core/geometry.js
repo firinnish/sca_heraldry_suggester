@@ -227,30 +227,36 @@ export const BORDURE_WIDTH = 11;
 export const ORLE_GAP = 8, ORLE_WIDTH = 6.5;
 
 const DIAGONAL_PERP = DIAGONAL_HALF / Math.SQRT2;   // half a bend measured across it
+// `k` is how wide to draw the ordinary: 1 for the full width above (an
+// ordinary alone), less for an ordinary with charges around it, which is
+// drawn narrower to leave them room (the maintainer, November 2026). A
+// narrower ordinary keeps the same middle line, so the lines of a field
+// divided the same way (per pale under a pale, per chevron under a chevron)
+// still run down its middle.
 const ORDINARY_SHAPES = {
-  pale: () => [rect(C - STRAIGHT_HALF, -10, 2 * STRAIGHT_HALF, H + 20)],
-  fess: () => [rect(-10, C - STRAIGHT_HALF, W + 20, 2 * STRAIGHT_HALF)],
-  bend: () => [bendStrip(-DIAGONAL_HALF, DIAGONAL_HALF)],
-  bendSinister: () => [sinisterStrip(-DIAGONAL_HALF, DIAGONAL_HALF)],
-  chevron: division => {
+  pale: (division, k) => [rect(C - STRAIGHT_HALF * k, -10, 2 * STRAIGHT_HALF * k, H + 20)],
+  fess: (division, k) => [rect(-10, C - STRAIGHT_HALF * k, W + 20, 2 * STRAIGHT_HALF * k)],
+  bend: (division, k) => [bendStrip(-DIAGONAL_HALF * k, DIAGONAL_HALF * k)],
+  bendSinister: (division, k) => [sinisterStrip(-DIAGONAL_HALF * k, DIAGONAL_HALF * k)],
+  chevron: (division, k) => {
     const apex = DIAGONAL_LINES.has(division) ? C : CHEVRON_APEX;
-    return [chevronStrip(apex - CHEVRON_HALF, apex + CHEVRON_HALF)];
+    return [chevronStrip(apex - CHEVRON_HALF * k, apex + CHEVRON_HALF * k)];
   },
-  chevronInverted: division => {
+  chevronInverted: (division, k) => {
     const apex = DIAGONAL_LINES.has(division) ? C : CHEVRON_INV_APEX;
-    return [chevronInvStrip(apex - CHEVRON_HALF, apex + CHEVRON_HALF)];
+    return [chevronInvStrip(apex - CHEVRON_HALF * k, apex + CHEVRON_HALF * k)];
   },
-  cross: () => {
-    const a = C - STRAIGHT_HALF, b = C + STRAIGHT_HALF;
+  cross: (division, k) => {
+    const a = C - STRAIGHT_HALF * k, b = C + STRAIGHT_HALF * k;
     return [[[a, -10], [b, -10], [b, a], [W + 10, a], [W + 10, b], [b, b], [b, H + 10],
              [a, H + 10], [a, b], [-10, b], [-10, a], [a, a]]];
   },
-  saltire: () => [bendStrip(-DIAGONAL_HALF, DIAGONAL_HALF), sinisterStrip(-DIAGONAL_HALF, DIAGONAL_HALF)],
+  saltire: (division, k) => [bendStrip(-DIAGONAL_HALF * k, DIAGONAL_HALF * k), sinisterStrip(-DIAGONAL_HALF * k, DIAGONAL_HALF * k)],
   // Three arms along the lines of per pall, meeting at the fess point. The
   // upper arms run a little past it so the join has no notch.
-  pall: () => [band(-20, -20, C + 12, C + 12, DIAGONAL_PERP), band(W + 20, -20, C - 12, C + 12, DIAGONAL_PERP),
-               rect(C - DIAGONAL_PERP, C - 5, 2 * DIAGONAL_PERP, H)],
-  pile: () => [[[C - 1.5 * UNIT, -2], [C + 1.5 * UNIT, -2], [C, 115.6]]],
+  pall: (division, k) => [band(-20, -20, C + 12 * k, C + 12 * k, DIAGONAL_PERP * k), band(W + 20, -20, C - 12 * k, C + 12 * k, DIAGONAL_PERP * k),
+                          rect(C - DIAGONAL_PERP * k, C - 5, 2 * DIAGONAL_PERP * k, H)],
+  pile: (division, k) => [[[C - 1.5 * UNIT * k, -2], [C + 1.5 * UNIT * k, -2], [C, 115.6]]],
   chief: () => [rect(-10, -10, W + 20, CHIEF_BOTTOM + 10)],
   base: () => [rect(-10, BASE_TOP, W + 20, H)],
 };
@@ -271,12 +277,24 @@ export const suitsDivision = (ordinary, division) =>
 // `frame` (optional): 'chief' when the shield also has a chief. Like the
 // field, an ordinary is then drawn in the space below the chief, as if that
 // space were the whole shield (the chief and base themselves stay put).
-export function ordinaryShapes(ordinary, division = null, frame = null) {
+// `width` (optional): 1 for the ordinary's full width, less for a narrower
+// one (see ORDINARY_SHAPES).
+export function ordinaryShapes(ordinary, division = null, frame = null, width = 1) {
   if (ordinary === 'bordure' || ordinary === 'orle') return null;
   if (!ORDINARY_SHAPES[ordinary]) throw new Error('No shape for ordinary: ' + ordinary);
-  const shapes = ORDINARY_SHAPES[ordinary](division);
+  const shapes = ORDINARY_SHAPES[ordinary](division, width);
   return frame === 'chief' && ordinary !== 'chief' && ordinary !== 'base' ? squeezeBelowChief(shapes) : shapes;
 }
+
+// The outline of the space a frame leaves, as the text of an SVG path: the
+// whole shield, or the part of it below a chief. A bordure or orle follows
+// this line, so beside a chief it runs along under the chief instead of
+// being cut off by it (the maintainer, November 2026).
+export const framePath = (frame = null) => (frame === 'chief'
+  ? `M1 ${+CHIEF_BOTTOM.toFixed(2)} H99 V40.2 C99 68 76 100.3 50 118.5 C24 100.3 1 68 1 40.2 Z` : SHIELD_PATH);
+// How far a point is from that outline (only asked of points inside it).
+export const distanceToFrame = (x, y, frame = null) =>
+  (frame === 'chief' ? Math.min(distanceToEdge(x, y), y - CHIEF_BOTTOM) : distanceToEdge(x, y));
 
 // ---- Sample points ---------------------------------------------------------
 // A grid of points covering the inside of the shield. "How much of this charge
@@ -328,14 +346,16 @@ export function distanceToEdge(x, y) {
 }
 
 const ordinarySampleCache = new Map();
-export function ordinarySamples(ordinary, division = null, frame = null) {
-  const key = `${ordinary}|${division}|${frame}`;
+export function ordinarySamples(ordinary, division = null, frame = null, width = 1) {
+  const key = `${ordinary}|${division}|${frame}|${width}`;
   if (!ordinarySampleCache.has(key)) {
-    const shapes = ordinaryShapes(ordinary, division, frame);
+    const shapes = ordinaryShapes(ordinary, division, frame, width);
+    // A bordure or orle follows the frame's outline (see framePath).
+    const inFrame = ([, y]) => frame !== 'chief' || y > CHIEF_BOTTOM;
     const covered = shapes ? samplesInside(shapes)
       : ordinary === 'orle'
-        ? SAMPLES.map((p, i) => { const d = distanceToEdge(p[0], p[1]); return d >= ORLE_GAP && d < ORLE_GAP + ORLE_WIDTH ? i : -1; }).filter(i => i >= 0)
-        : SAMPLES.map((p, i) => (distanceToEdge(p[0], p[1]) < BORDURE_WIDTH ? i : -1)).filter(i => i >= 0);
+        ? SAMPLES.map((p, i) => { const d = distanceToFrame(p[0], p[1], frame); return inFrame(p) && d >= ORLE_GAP && d < ORLE_GAP + ORLE_WIDTH ? i : -1; }).filter(i => i >= 0)
+        : SAMPLES.map((p, i) => (inFrame(p) && distanceToFrame(p[0], p[1], frame) < BORDURE_WIDTH ? i : -1)).filter(i => i >= 0);
     ordinarySampleCache.set(key, covered);
   }
   return ordinarySampleCache.get(key);

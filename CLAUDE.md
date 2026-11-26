@@ -89,10 +89,27 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   `arrangement-unsupported` (a `house` problem: what the tools cannot draw).
 - Rules, in `checkArrangement` / `checkGroups` / `checkTertiary`: Appendix I1
   (a charge beside a central ordinary cannot be primary), Appendix J (three
-  or more groups on the field must be a listed grouping), A3D1a (the same
+  or more groups on the field must be a listed grouping; a group "in chief"
+  counts as a group around the primary: maintainer), A3D1a (the same
   charge in two groups on the field), A3B4a (a charge on another charge must
   contrast with it), A3D1c (a chief on per fess is allowed with a charge over
   the line). `no-room` (house) = a charge would be drawn too small.
+- A group's own charges can be set out in a NAMED ARRANGEMENT: `arranged` on
+  the group ('pale', 'chevron', 'twoAndTwo'...; null = the usual way for
+  their number). The vocabulary, with O&A categories, is `ARRANGEMENTS` in
+  `catalog.js`. `placeArranged` in `layout.js` holds each as a pattern of
+  steps across and down, then stretches and slides the pattern until the
+  charges are as large as they can be. Only the primary group so far. Four
+  charges have no usual arrangement (`needs-arrangement`). In the page and
+  the generator, 'usual' means "the usual way, chosen on purpose" and null
+  "not chosen".
+- An ordinary with charges around it is drawn narrower (`SLIM` in
+  `layout.js`, `width` in `geometry.js`), keeping its middle line. One alone
+  keeps the full width, so `tests/alignment.html` is unaffected.
+- A bordure or orle follows `framePath`: beside a chief it runs along under
+  the chief. The maintainer sketched this and three placements (four around
+  a bend, two around a cross, four around a chevron inverted) in November
+  2026; they are in the `AROUND` table with a note.
 - `tests/groups.html` draws every combination: LOOK at it after changing
   `layout.js` or `space.js` (pick a real charge from its menu too).
   `tests/snapshot.html` proves a change to `core/` left existing shields
@@ -134,7 +151,18 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
 - Suggestions may add a charge that was not picked; option pictures never do.
 - A picture that has not been worked out before is shown as an empty shield
   and filled in a moment later (`lazyCard`, `fillLater` in the page), so a
-  click is never held up by it.
+  click is never held up by it. The greying of "How many?" and the colours
+  is worked out the same way (`slotBlock`); until it is ready the block
+  shows what was greyed before.
+- "How many?" goes to six. For two or more, "How are they set out?" shows
+  each arrangement as a picture, labelled with its heraldic name from
+  `catalog.js`. Choosing another number drops an arrangement that no longer
+  fits.
+- The maintainer cannot easily run a local server (python is not on their
+  terminal's PATH). To let them try unmerged work, commit it to a branch and
+  put a copy in a `preview/` folder on `main` (core, apps/search, charges,
+  tests), which GitHub Pages serves at `.../preview/apps/search/`. Delete
+  the folder when the branch is merged.
 
 ## How the O&A indexes things (verified, do not guess)
 - `data/mycat.txt` is the official category list; `data/oanda.db` is the whole

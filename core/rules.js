@@ -376,6 +376,17 @@ export function checkArrangement(groups) {
   const types = groups.map(typeOf);
   if (new Set(types).size < types.length) problems.push({ id: 'same-charge-twice', sena: 'A3D1a', level: 'sena' });
 
+  // The Glossary's Table 7 gives four charges on their own no usual
+  // arrangement ("None, must be specified"): one has to be chosen. (They are
+  // drawn two and two meanwhile.)
+  if (primary && primary.kind === 'charge' && primary.number === 4 && !primary.arranged) {
+    problems.push({ id: 'needs-arrangement', sena: null, level: 'house' });
+  }
+  // Only the primary group can be set out in a named arrangement so far.
+  if (allGroups(groups).some(g => g.arranged && g !== primary)) {
+    problems.push({ id: 'arrangement-unsupported', sena: null, level: 'house' });
+  }
+
   // SENA Appendix I3: "Charges on tertiary charges are known as quaternary
   // charges and are not allowed".
   if (groups.some(g => g.charged && g.charged.charged)) problems.push({ id: 'quaternary', sena: 'Appendix I3', level: 'sena' });
@@ -397,13 +408,9 @@ export function checkArrangement(groups) {
     const secondary = groups.filter((g, i) => r[i].role === 'secondary');
     const listed = groups.length === 3 && primary && secondary.length === 1 && !secondary[0].charged &&
       r.filter(x => x.role === 'peripheral').length === 1;
+    // (A group only above or below the primary one, "in chief three
+    // mullets", counts as a group around it: the maintainer, November 2026.)
     if (!listed) problems.push({ id: 'too-many-groups', sena: 'Appendix J', level: 'sena' });
-    // "Around" the primary group: whether a group only above or below it
-    // ("in chief three mullets") counts is not spelled out, so the tools do
-    // not offer it (the maintainer's rule of thumb), though a herald may.
-    else if (r.find(x => x.role === 'secondary').place !== 'around') {
-      problems.push({ id: 'groups-unsure', sena: 'Appendix J', level: 'house' });
-    }
   }
   return problems;
 }

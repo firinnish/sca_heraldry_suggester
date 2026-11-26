@@ -21,7 +21,7 @@
 // Drawing shows these in grey, the blazon says so in words, the search leaves
 // them out, and the rules skip whatever they cannot judge yet.
 
-import { TINCTURES, DIVISIONS, ORDINARIES } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS } from './catalog.js';
 
 const checkTincture = t => {
   if (t !== null && !TINCTURES[t]) throw new Error('Unknown tincture: ' + t);
@@ -83,6 +83,12 @@ export function divided(division, parts, line = 'plain') {
 //            TERTIARY charges ("on a chevron three lions"), or null. When the
 //            group has several charges, `charged.number` is how many lie on
 //            EACH ("three roundels each charged with a mullet" is number 1).
+//   arranged: how the group's own charges are set out, when it is not the
+//            usual way for their number: 'pale' ("in pale three roundels"),
+//            'chevron', 'twoAndTwo'... (catalog.js: ARRANGEMENTS), or null
+//            for the usual way (two side by side, three two and one, five
+//            two, two and one, six three, two and one). For now only the
+//            primary group can be set out differently.
 //
 // A chief, bordure, orle or base is always a secondary group of its own kind
 // ("peripheral"), whatever `role` says, and a central ordinary is always the
@@ -101,10 +107,11 @@ export function ordinaryGroup(ordinary, tincture, { role = null, place = null, c
 
 export function chargeGroup({ charge, name = charge, plural = '', category = '', posture = '',
                               inverted = false, mirror = false, art = null, artInverted = false,
-                              number = 1, tincture, role = null, place = null, charged = null }) {
+                              number = 1, tincture, role = null, place = null, charged = null, arranged = null }) {
   checkChargeTincture(tincture);
+  if (arranged !== null && !ARRANGEMENTS[arranged]) throw new Error('Unknown arrangement: ' + arranged);
   return { kind: 'charge', charge, name, plural, category, posture, inverted, mirror,
-           art, artInverted, number, tincture, role, place, charged };
+           art, artInverted, number, tincture, role, place, charged, arranged };
 }
 
 // ---- What each group on the field is ---------------------------------------------
@@ -255,6 +262,10 @@ function groupWords(group, words) {
   if (group.posture) text += ' ' + group.posture;
   if (group.inverted) text += ' inverted';
   if (group.mirror) text += ' contourny';
+  // How they are set out, if not the usual way: "in pale three roundels",
+  // "four mullets two and two".
+  const arranged = group.arranged ? ARRANGEMENTS[group.arranged] : null;
+  if (arranged) text = arranged.after ? `${text} ${arranged.name}` : `${arranged.name} ${text}`;
   return text;
 }
 

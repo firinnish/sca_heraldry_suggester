@@ -23,10 +23,10 @@
 import { getPicture } from './art.js';
 import { SAMPLES, insideShield, pointInPolygon, samplesInBox, ordinarySamples, ordinaryShapes, suitsDivision, partMap,
          frameCentre, CHIEF_BOTTOM, BASE_TOP, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, ARM_HALF } from './geometry.js';
-import { TINCTURES, familyOf, baseTincture } from './catalog.js';
+import { TINCTURES, ARRANGEMENTS, familyOf, baseTincture } from './catalog.js';
 import { roles } from './shield.js';
-import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, centroid, heights, cuts,
-         probeOf, turned, largestFit, bestSpot } from './space.js';
+import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, centroid, heights, sides, cuts,
+         probeOf, turned, largestFit, fitsAt, bestSpot, clearDistance } from './space.js';
 
 export const FILL = 0.95;
 
@@ -250,20 +250,35 @@ const ZONES = {
   E: (dx, dy) => dx > Math.abs(dy),
   PL: (dx, dy) => dx < 0 && dy >= -Math.abs(dx),   // beside the stem of a pall
   PR: (dx, dy) => dx > 0 && dy >= -Math.abs(dx),
+  // Below a chevron inverted: the space straight below its point, and the
+  // spaces to either side of that. (TIP is how far the point is taken to be
+  // below the middle of the frame.)
+  TS: (dx, dy) => dy - TIP > Math.abs(dx),
+  TSL: (dx, dy) => dx < 0 && dy > 0 && dy - TIP <= -dx,
+  TSR: (dx, dy) => dx > 0 && dy > 0 && dy - TIP <= dx,
 };
+const TIP = 24;
 // A single charge in one of these zones is kept on the shield's centre line.
-const ON_AXIS = new Set(['U', 'D', 'N', 'S']);
+const ON_AXIS = new Set(['U', 'D', 'N', 'S', 'TS']);
 
-// Glossary Table 7, "Secondary": where 2, 3 or 4 charges go around each
-// central ordinary. (No entry = no default arrangement.)
+// Where 2, 3 or 4 charges go around each central ordinary. From the
+// Glossary's Table 7 ("Secondary"), which gives, among others: around a fess
+// two "in pale" and three "two and one"; around a bend two "in bend
+// sinister" and four "two on either side of the bend"; around a cross or
+// saltire four "one in each section". The rest are the maintainer's
+// (November 2026), for numbers the table leaves open: two around a cross go
+// in bend (first and fourth quarters); four around a chevron inverted go one
+// above and three below. (Four around a chevron the right way up are not
+// drawn: there is no room for one above its point.)
+// (No entry = no arrangement to draw.)
 const AROUND = {
   fess:            { 2: ['U', 'D'], 3: ['UL', 'UR', 'D'], 4: ['UL', 'UR', 'DL', 'DR'] },
   pale:            { 2: ['L', 'R'], 4: ['UL', 'UR', 'DL', 'DR'] },
-  bend:            { 2: ['NE', 'SW'] },
-  bendSinister:    { 2: ['NW', 'SE'] },
+  bend:            { 2: ['NE', 'SW'], 4: ['N', 'E', 'W', 'S'] },
+  bendSinister:    { 2: ['NW', 'SE'], 4: ['N', 'W', 'E', 'S'] },
   chevron:         { 2: ['U', 'D'], 3: ['UL', 'UR', 'D'] },
-  chevronInverted: { 2: ['U', 'D'], 3: ['U', 'DL', 'DR'] },
-  cross:           { 4: ['UL', 'UR', 'DL', 'DR'] },
+  chevronInverted: { 2: ['U', 'D'], 3: ['U', 'DL', 'DR'], 4: ['U', 'TSL', 'TSR', 'TS'] },
+  cross:           { 2: ['UL', 'DR'], 4: ['UL', 'UR', 'DL', 'DR'] },
   saltire:         { 4: ['N', 'W', 'E', 'S'] },
   pall:            { 2: ['PL', 'PR'], 3: ['N', 'PL', 'PR'] },
   pile:            { 2: ['L', 'R'] },
@@ -301,6 +316,10 @@ const CHIEF_BAND = (CHIEF_BOTTOM - 1) / 117.5, BASE_BAND = (118.5 - BASE_TOP) / 
 const AROUND_SHRINK = 0.72, SECONDARY_SHARE = 0.6;
 // A charge lying on another charge is at most this share of its size.
 const ON_CHARGE_SHARE = 0.55;
+// An ordinary with charges around it is drawn narrower, to leave them room
+// (the maintainer, November 2026): at this share of its full width, or the
+// second if it also has charges lying on it, which need room of their own.
+const SLIM = 0.6, SLIM_CHARGED = 0.8;
 
 // A group's picture, the way round it is to be drawn.
 function pictureOf(group) {
@@ -328,16 +347,18 @@ function frameOf(groups) {
   const key = [chief, base, inset].join('|');
   if (!frameCache.has(key)) {
     let mask = inset ? insetMask(inset) : shieldMask();
-    if (chief || base) mask = where(mask, (x, y) => (!chief || y > CHIEF_BOTTOM) && (!base || y < BASE_TOP));
+    // (A bordure or orle runs along under a chief, so the space inside it
+    // starts that much lower.)
+    if (chief || base) mask = where(mask, (x, y) => (!chief || y > CHIEF_BOTTOM + inset) && (!base || y < BASE_TOP));
     frameCache.set(key, mask);
   }
   return { chief, base, inset, mask: frameCache.get(key) };
 }
 
-function ordinaryParts(group, division, frame) {
+function ordinaryParts(group, division, frame, width = 1) {
   return {
-    shapes: ordinaryShapes(group.ordinary, division, frame),
-    coverage: [ordinarySamples(group.ordinary, division, frame)],
+    shapes: ordinaryShapes(group.ordinary, division, frame, width),
+    coverage: [ordinarySamples(group.ordinary, division, frame, width)],
   };
 }
 
@@ -348,17 +369,139 @@ function ordinaryParts(group, division, frame) {
 function placeIn(group, region, splitAt = null) {
   const shape = pictureOf(group);
   const number = group.number || 1;
+  if (group.arranged || number > MAX_NUMBER) return placeArranged(group, shape, number, region);
   const [cx, cy] = splitAt || centroid(region);
   let shares;
   if (number === 1) shares = [region];
   else if (number === 2 && shape.picture.aspect >= WIDE) shares = [where(region, (x, y) => y < cy), where(region, (x, y) => y >= cy)];
   else if (number === 2) shares = [where(region, x => x < cx), where(region, x => x >= cx)];
-  else if (number === 3) shares = [where(region, (x, y) => x < cx && y < cy), where(region, (x, y) => x >= cx && y < cy), where(region, (x, y) => y >= cy)];
-  else return null;                                     // no default arrangement for more
+  else shares = [where(region, (x, y) => x < cx && y < cy), where(region, (x, y) => x >= cx && y < cy), where(region, (x, y) => y >= cy)];
   const probe = probeFor(shape);
   const centres = shares.map(centroid);
   const size = FILL * Math.min(...shares.map((share, k) => largestFit(probe, share, centres[k][0], centres[k][1])));
   return { shape, places: centres.map(([x, y]) => ({ cx: x, cy: y, size, turn: 0 })) };
+}
+
+// ---- 2b. Charges set out in a named arrangement -----------------------------------------
+// "In pale three roundels", "in chevron five swords", "four mullets two and
+// two" (catalog.js: ARRANGEMENTS), and the usual arrangements of five and
+// six charges. Each arrangement is a PATTERN: where the charges stand
+// relative to one another, in steps across and steps down. The pattern is
+// then stretched, squeezed and slid about inside the space until the charges
+// are as large as they can be without touching each other or the edge:
+//   across, down: the length of one step each way
+//   slide:        how far the whole pattern is moved from the middle
+// (so the charges of a line are always evenly spaced, and all one size).
+const rowOf = (count, down = 0) => Array.from({ length: count }, (_, j) => [j - (count - 1) / 2, down]);
+const rowsOf = (...counts) => counts.flatMap((count, k) => rowOf(count, k - (counts.length - 1) / 2));
+const PATTERNS = {
+  pale: n => rowOf(n).map(([u]) => [0, u]),
+  fess: n => rowOf(n),
+  bend: n => rowOf(n).map(([u]) => [u, u]),
+  bendSinister: n => rowOf(n).map(([u]) => [-u, u]),
+  chevron: n => rowOf(n).map(([u]) => [u, Math.abs(u)]),
+  chevronInverted: n => rowOf(n).map(([u]) => [u, -Math.abs(u)]),
+  cross: n => [[0, -1], [-1, 0], [1, 0], [0, 1], ...(n === 5 ? [[0, 0]] : [])],
+  saltire: n => [[-1, -1], [1, -1], [-1, 1], [1, 1], ...(n === 5 ? [[0, 0]] : [])],
+  oneAndTwo: () => rowsOf(1, 2),
+  twoAndTwo: () => rowsOf(2, 2),
+};
+// The usual arrangements of more than three (Glossary Table 7: five are
+// "two, two, and one", six "three, two, and one"). Four have none ("None,
+// must be specified"); they are drawn two and two so that something shows,
+// and rules.js asks for an arrangement to be chosen.
+const USUAL = { 4: () => rowsOf(2, 2), 5: () => rowsOf(2, 2, 1), 6: () => rowsOf(3, 2, 1) };
+// Patterns whose steps across and down are kept the same length, so that
+// their lines run at 45 degrees like every other diagonal on the shield.
+const SQUARE = new Set(['bend', 'bendSinister', 'chevron', 'chevronInverted', 'saltire']);
+// Patterns that are not the same left to right may also slide sideways.
+const SIDEWAYS_TOO = new Set(['bend', 'bendSinister']);
+const APART = 1.12;                // charges keep this much of their own size between centres
+const SPREAD = 0.45;               // a slanting line reaches across at least this share of the space
+
+function placeArranged(group, shape, number, region) {
+  const id = group.arranged || null;
+  if (id && !(ARRANGEMENTS[id] && ARRANGEMENTS[id].numbers.includes(number))) return null;
+  const make = id ? PATTERNS[id] : USUAL[number];
+  if (!make) return null;
+  // The pattern, measured from its own middle.
+  let pattern = make(number);
+  const mean = k => pattern.reduce((s, p) => s + p[k], 0) / pattern.length;
+  const mu = mean(0), mv = mean(1);
+  pattern = pattern.map(([u, v]) => [u - mu, v - mv]);
+  const span = k => Math.max(...pattern.map(p => p[k])) - Math.min(...pattern.map(p => p[k]));
+
+  const probe = probeFor(shape);
+  const [cx, cy] = centroid(region), [top, bottom] = heights(region);
+  const square = SQUARE.has(id);
+  // How far apart two of these charges must be in a given direction
+  // (worked out for every five degrees, and remembered).
+  const clears = remembered(`clear|${shape.key}`, () => []);
+  const clear = (dx, dy) => {
+    const angle = (Math.round(Math.atan2(dy, dx) * 36 / Math.PI) * 5 + 360) % 180;
+    return clears[angle] || (clears[angle] = clearDistance(shape.outline, angle));
+  };
+  // Every different step from one charge of the pattern to another (many
+  // pairs are the same step apart).
+  const steps = [...new Map(pattern.flatMap((p, i) => pattern.slice(i + 1).map(q => {
+    const du = p[0] - q[0], dv = p[1] - q[1], flip = du < 0 || (du === 0 && dv < 0) ? -1 : 1;
+    return [`${(du * flip).toFixed(3)},${(dv * flip).toFixed(3)}`, [du * flip, dv * flip]];
+  }))).values()];
+
+  // A slanting line of tall charges (swords in bend) could be made of large
+  // charges barely stepped past one another; to read as a line it must
+  // stretch across a fair share of the space.
+  const [leftEdge, rightEdge] = sides(region);
+  const reach = square ? SPREAD * (rightEdge - leftEdge) / span(0) : 0;
+
+  // How large the charges can be for one way of laying the pattern out; or 0
+  // as soon as it is clear they cannot be larger than `toBeat`.
+  const sizeFor = ([across, down, slideX, slideY], toBeat = 0) => {
+    if (across <= 0 || down <= 0 || across < reach) return 0;
+    let size = Infinity;
+    for (const [du, dv] of steps) {
+      const dx = du * across, dy = dv * down;
+      size = Math.min(size, Math.hypot(dx, dy) / (clear(dx, dy) * APART));
+    }
+    if (size <= toBeat) return 0;
+    const at = pattern.map(([u, v]) => [cx + slideX + u * across, cy + slideY + v * down]);
+    if (toBeat > 0 && at.some(([x, y]) => !fitsAt(probe, region, x, y, toBeat))) return 0;
+    for (const [x, y] of at) {
+      // (Only if a charge does not fit at the size the others allow does its own largest size need finding.)
+      if (!fitsAt(probe, region, x, y, size)) size = Math.min(size, largestFit(probe, region, x, y));
+      if (size <= toBeat) return 0;
+    }
+    return size;
+  };
+
+  // Start with the pattern small and in the middle, then keep making
+  // whichever one change helps most, in smaller and smaller steps.
+  const start = Math.max(reach + 0.5, Math.min(60 / (span(0) + 2), (bottom - top) / (span(1) + 2.5)));
+  let best = [start, start, 0, 0], bestSize = sizeFor(best);
+  // (Growing both steps together is a change of its own: charges in rows
+  // are held apart both ways at once, and neither step helps alone.)
+  const moves = [[1, 1, 0, 0]];
+  if (!square) {
+    if (span(0) > 0) moves.push([1, 0, 0, 0]);
+    if (span(1) > 0) moves.push([0, 1, 0, 0]);
+  }
+  moves.push([0, 0, 0, 1]);
+  if (SIDEWAYS_TOO.has(id)) moves.push([0, 0, 1, 0]);
+  for (const step of [8, 4, 2, 1, 0.5]) {
+    for (let round = 0; round < 16; round++) {
+      let better = null, betterSize = bestSize;
+      for (const move of moves) for (const way of [1, -1]) {
+        const tried = best.map((value, k) => value + move[k] * way * step);
+        const size = sizeFor(tried, betterSize + 1e-6);
+        if (size > betterSize + 1e-6) { better = tried; betterSize = size; }
+      }
+      if (!better) break;
+      best = better; bestSize = betterSize;
+    }
+  }
+  if (!(bestSize > 0)) return null;
+  const size = FILL * bestSize;
+  return { shape, places: pattern.map(([u, v]) => ({ cx: cx + best[2] + u * best[0], cy: cy + best[3] + v * best[1], size, turn: 0 })) };
 }
 
 // What a placed group covers: a mask (for the groups that must keep clear of
@@ -425,7 +568,7 @@ function placeSecondary(group, slots, axisX, largest, upright) {
 //         the point is drawn upright here: a question for the maintainer.)
 //   at:   where to put the charge (default: the middle of the cell)
 //   best: look for the roomiest place on the centre line instead
-function cellsOn(ordinary, number, host, [cx, cy], ky) {
+function cellsOn(ordinary, number, host, [cx, cy], ky, width = 1) {
   if (!(ON_ORDINARY[ordinary] || []).includes(number)) return null;
   const along = (measure, turns) => {
     const at = cuts(host, measure, number);
@@ -449,13 +592,13 @@ function cellsOn(ordinary, number, host, [cx, cy], ky) {
       return cells;
     }
     case 'cross': {
-      const middle = (dx, dy) => Math.abs(dx) < ARM_HALF && Math.abs(dy) < ARM_HALF;
+      const middle = (dx, dy) => Math.abs(dx) < ARM_HALF * width && Math.abs(dy) < ARM_HALF * width;
       if (number === 1) return [{ mask: host, turn: 0, at: [cx, cy] }];
       const arms = ['N', 'W', 'E', 'S'].map(z => ({ mask: zone((dx, dy) => ZONES[z](dx, dy) && (number === 4 || !middle(dx, dy))), turn: 0 }));
       return number === 4 ? arms : [...arms, { mask: zone(middle), turn: 0, at: [cx, cy] }];
     }
     case 'saltire': {
-      const middle = (dx, dy) => Math.abs(dx) + Math.abs(dy) < 22;
+      const middle = (dx, dy) => Math.abs(dx) + Math.abs(dy) < 22 * width;
       if (number === 1) return [{ mask: host, turn: 0, at: [cx, cy] }];
       const arms = ['UL', 'UR', 'DL', 'DR'].map(z => ({ mask: zone((dx, dy) => ZONES[z](dx, dy) && (number === 4 || !middle(dx, dy))), turn: 0 }));
       return number === 4 ? arms : [...arms, { mask: zone(middle), turn: 0, at: [cx, cy] }];
@@ -470,7 +613,7 @@ function cellsOn(ordinary, number, host, [cx, cy], ky) {
   }
 }
 
-function placeTertiary(host, hostEntry, group, frame, centre, ky) {
+function placeTertiary(host, hostEntry, group, frame, centre, ky, width) {
   const none = { ok: false, picture: BLOB_PICTURE, flipY: false, places: [], coverage: [] };
   const shape = pictureOf(group);
   const number = group.number || 1;
@@ -480,7 +623,7 @@ function placeTertiary(host, hostEntry, group, frame, centre, ky) {
     // The part of the ordinary that shows: a chief lies over a bordure, a
     // bordure over everything else.
     const seen = host.ordinary === 'chief' ? shieldMask() : host.ordinary === 'base' ? (frame.inset ? insetMask(frame.inset) : shieldMask()) : frame.mask;
-    const cells = cellsOn(host.ordinary, number, and(maskFromPolygons(hostEntry.shapes), seen), centre, ky);
+    const cells = cellsOn(host.ordinary, number, and(maskFromPolygons(hostEntry.shapes), seen), centre, ky, width);
     if (!cells) return none;
     places = cells.map(cell => {
       const probe = probeFor(shape, cell.turn);
@@ -541,11 +684,13 @@ function compose(groups, r, division) {
   // Everything a placing beside or on a group depends on, as text: the frame,
   // and the group as it is drawn here.
   const frameKey = [frame.chief, frame.base, frame.inset].join();
+  // An ordinary with charges around it is drawn narrower.
+  const width = primary && primary.kind === 'ordinary' && secondary.length ? (primary.charged ? SLIM_CHARGED : SLIM) : 1;
   const drawnAs = g => [frameKey, signature({ ...g, charged: null }), g.kind === 'ordinary' && suitsDivision(g.ordinary, division),
-    g === primary && g.kind !== 'ordinary' ? [...wanted].sort().join() : ''].join('|');
+    g === primary ? (g.kind === 'ordinary' ? width : [...wanted].sort().join()) : ''].join('|');
 
   if (primary && primary.kind === 'ordinary') {
-    Object.assign(entries[pi], ordinaryParts(primary, division, frameName));
+    Object.assign(entries[pi], ordinaryParts(primary, division, frameName, width));
     context.open = minus(frame.mask, maskFromPolygons(entries[pi].shapes));
     context.upright = primary.ordinary !== 'bend' && primary.ordinary !== 'bendSinister';
   } else if (primary) {
@@ -557,12 +702,14 @@ function compose(groups, r, division) {
     if (wanted.includes('chief')) region = where(region, (x, y) => y >= chiefLine);
     if (wanted.includes('base')) region = where(region, (x, y) => y <= baseLine);
     const whole = region === frame.mask && !frame.chief && !frame.base;
-    const placed = placeIn(primary, region, whole ? centre : null);
+    const found = remembered(['primary', drawnAs(primary)].join('|'), () => placeIn(primary, region, whole ? centre : null));
+    // (a copy: the remembered placing must not be changed by what follows)
+    const placed = found && { shape: found.shape, places: found.places.map(p => ({ ...p })) };
     if (!placed) entries[pi].ok = false;
     else {
       if (wanted.includes('around')) placed.places.forEach(p => { p.size *= AROUND_SHRINK; });
       Object.assign(entries[pi], chargeParts(placed.shape, placed.places));
-      context.open = minus(frame.mask, hullMask(placed.shape, placed.places));
+      if (secondary.length) context.open = minus(frame.mask, hullMask(placed.shape, placed.places));
       if (placed.places.length === 1) context.centre = [placed.places[0].cx, placed.places[0].cy];
       largest = SECONDARY_SHARE * extentOf(placed.shape.picture, placed.places[0].size);
     }
@@ -582,7 +729,7 @@ function compose(groups, r, division) {
 
   groups.forEach((g, i) => {
     if (!g.charged) return;
-    const place = () => placeTertiary(g, entries[i], g.charged, frame, centre, ky);
+    const place = () => placeTertiary(g, entries[i], g.charged, frame, centre, ky, g === primary ? width : 1);
     // (A secondary group's own place depends on the primary group, so a
     // placing on one is not remembered.)
     entries[i].tertiary = r[i].role === 'secondary' ? place()
@@ -593,7 +740,7 @@ function compose(groups, r, division) {
 
 // How one charge group shows in the layout, for a signature of the shield.
 const signature = g => [g.kind, g.ordinary || (g.art && getPicture(g.art) ? g.art : 'blob'), g.number, !!g.mirror, !!g.inverted,
-  !!g.artInverted, g.role || null, g.place || null, g.charged ? signature(g.charged) : null];
+  !!g.artInverted, g.role || null, g.place || null, g.arranged || null, g.charged ? signature(g.charged) : null];
 const layoutCache = new Map();
 
 // Where everything on a shield goes. Returns { frame, entries } with one
@@ -608,15 +755,14 @@ const layoutCache = new Map();
 export function layoutShield(field, groups) {
   const division = field && field.type === 'divided' ? field.division : null;
   const r = roles(groups);
-  // One group and nothing on it: placed as it always has been.
-  if (groups.length === 1 && !groups[0].charged) {
-    const g = groups[0], frame = g.kind === 'ordinary' && g.ordinary === 'chief' ? 'chief' : null;
+  // One group and nothing on it, in the usual arrangement for one, two or
+  // three charges: placed as it always has been.
+  const alone = groups.length === 1 && !groups[0].charged ? groups[0] : null;
+  if (alone && (alone.kind === 'ordinary' || (!alone.arranged && (alone.number || 1) <= MAX_NUMBER))) {
+    const g = alone, frame = g.kind === 'ordinary' && g.ordinary === 'chief' ? 'chief' : null;
     if (g.kind === 'ordinary') {
       return { frame, entries: [{ ...r[0], kind: g.kind, ok: true, tertiary: null,
                                   shapes: ordinaryShapes(g.ordinary, division), coverage: [ordinarySamples(g.ordinary, division)] }] };
-    }
-    if ((g.number || 1) > MAX_NUMBER) {                 // no default arrangement for so many
-      return { frame, entries: [{ ...r[0], kind: g.kind, ok: false, tertiary: null, picture: BLOB_PICTURE, flipY: false, places: [], coverage: [] }] };
     }
     const placed = placeGroup(g, field);
     return { frame, entries: [{ ...r[0], kind: g.kind, ok: true, tertiary: null, picture: placed.picture, flipY: placed.flipY,
