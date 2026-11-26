@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Charge groups: every way charges go together</title>
+<style>
+  body { font-family: Georgia, serif; margin: 20px; color: #2b2620; background: #faf6ee; }
+  h2 { font-size: 1.05rem; margin: 22px 0 6px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  figure { margin: 0; width: 104px; }
+  figure svg { width: 96px; height: auto; display: block; margin: 0 auto; }
+  figcaption { font-size: 0.62rem; line-height: 1.2; text-align: center; font-style: italic; }
+  figure.none figcaption { color: #8a3b2a; }
+  label { margin-right: 14px; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<h1>Charge groups</h1>
+<p>Every ordinary with charges around it, above it, below it and on it; charges with other
+charges around and on them; and everything inside a chief, base, bordure or orle. Look for:
+charges that touch or overlap something, charges far too small, and charges not where a herald
+would expect them. A caption in red means the tools have no arrangement for it (nothing is drawn),
+which is right wherever the Glossary's Table 7 gives no default. The placing is in
+<code>core/layout.js</code>.</p>
+<p><label>Charge: <select id="pick"></select></label>
+<label>Background: <select id="field"><option value="plain">plain</option><option value="perPale">per pale</option><option value="checky">checky</option></select></label></p>
+<div id="out">Drawing…</div>
+<script type="module">
+import { ORDINARIES, arrangementsFor } from '../core/catalog.js';
+import { plain, divided, ordinaryGroup, chargeGroup, chargeGroupFromLibrary, blazon, isPeripheral } from '../core/shield.js';
+import { shieldSVG } from '../core/draw.js';
+import { layoutShield, aroundNumbers, onNumbers } from '../core/layout.js';
+import { checkShield } from '../core/rules.js';
+import { loadLibrary } from '../core/art.js';
+
+const library = await loadLibrary();
+const pick = document.getElementById('pick'), fieldPick = document.getElementById('field');
+pick.innerHTML = '<option value="">a blob (no picture)</option>' +
+  library.pictures.map((p, i) => `<option value="${i}">${p.charge.name.toLowerCase()} ${p.posture}</option>`).join('');
+
+const central = Object.keys(ORDINARIES).filter(id => !ORDINARIES[id].peripheral);
+const edges = Object.keys(ORDINARIES).filter(id => ORDINARIES[id].peripheral);
+
+function draw() {
+  const picture = pick.value === '' ? null : library.pictures[Number(pick.value)];
+  const field = fieldPick.value === 'plain' ? plain('azure')
+    : divided(fieldPick.value, [plain('azure'), plain('argent')]);
+  // The chosen charge, and a second one to go with it.
+  const main = extra => (picture ? chargeGroupFromLibrary(picture.charge, picture, { tincture: 'or', number: 1, ...extra })
+    : chargeGroup({ charge: 'roundel', category: 'ROUNDEL', tincture: 'or', number: 1, ...extra }));
+  const other = extra => chargeGroup({ charge: 'mullet', category: 'STAR', tincture: 'argent', number: 1, ...extra });
+  const ord = (id, extra = {}) => ordinaryGroup(id, extra.tincture || 'argent', extra);
+  let problems = 0;
+  const shield = groups => {
+    const layout = layoutShield(field, groups);
+    const drawn = layout.entries.every((e, i) => e.ok && (!groups[i].charged || e.tertiary.ok));
+    const text = blazon(field, groups);
+    const house = checkShield({ field, groups }).filter(p => p.level === 'house').map(p => p.id);
+    if (!drawn) problems++;
+    return `<figure class="${drawn ? '' : 'none'}">${shieldSVG(field, { charges: groups, title: text })}` +
+      `<figcaption>${/semy/.test(text) ? text : text.replace(/^[^,]*, /, '')}${house.length ? '<br>[' + house.join(', ') + ']' : ''}</figcaption></figure>`;
+  };
+  const section = (title, shields) => `<h2>${title}</h2><div class="grid">${shields.join('')}</div>`;
+  // The same on a background of its own (not the one chosen at the top).
+  const shield2 = (ownField, groups) => {
+    const text = blazon(ownField, groups);
+    return `<figure>${shieldSVG(ownField, { charges: groups, title: text })}<figcaption>${text}</figcaption></figure>`;
+  };
+  let html = '';
+
+  html += section('Around each ordinary (two, three and four)', central.flatMap(id =>
+    [2, 3, 4].map(n => shield([ord(id), main({ number: n, role: 'secondary', place: 'around' })]))));
+  html += section('Above and below each ordinary', central.flatMap(id => [
+    shield([ord(id), main({ number: 1, role: 'secondary', place: 'chief' })]),
+    shield([ord(id), main({ number: 3, role: 'secondary', place: 'chief' })]),
+    shield([ord(id), main({ number: 1, role: 'secondary', place: 'base' })])]));
+  html += section('On each ordinary', Object.keys(ORDINARIES).flatMap(id =>
+    [1, 2, 3, 4, 5].filter(n => n <= 3 || onNumbers(ord(id)).includes(n)).map(n => shield([ord(id, { charged: main({ number: n, tincture: 'gules' }) })]))));
+  html += section('On and around an ordinary, inside a bordure', central.map(id => {
+    const n = [3, 2, 4].find(k => aroundNumbers(ord(id)).includes(k));
+    const on = [3, 1].find(k => onNumbers(ord(id)).includes(k));
+    return shield([ord(id, { charged: other({ number: on, tincture: 'gules' }) }), main({ number: n, role: 'secondary', place: 'around' }),
+                   ordinaryGroup('bordure', 'or')]);
+  }));
+  html += section('A charge with others around, above, below and on it', [1, 2, 3].flatMap(n => [
+    shield([main({ number: n, role: 'primary' }), other({ number: 3, role: 'secondary', place: 'around' })]),
+    shield([main({ number: n, role: 'primary' }), other({ number: 1, role: 'secondary', place: 'chief' })]),
+    shield([main({ number: n, role: 'primary' }), other({ number: 3, role: 'secondary', place: 'chief' })]),
+    shield([main({ number: n, role: 'primary' }), other({ number: 1, role: 'secondary', place: 'base' })]),
+    shield([main({ number: n, role: 'primary', charged: other({ number: 1, tincture: 'sable' }) })])]));
+  html += section('Inside each ordinary along the edge', edges.flatMap(id => [
+    ...[1, 2, 3].map(n => shield([main({ number: n }), ord(id)])),
+    shield([main({ role: 'primary' }), other({ number: 3, role: 'secondary', place: 'around' }), ord(id)]),
+    ...central.slice(0, 6).map(c => shield([ord(c, { tincture: 'or' }), ord(id)])),
+    shield([ordinaryGroup('fess', 'or'), other({ number: 3, role: 'secondary', place: 'around' }), ord(id)])]));
+  html += section('A cross between two (the blazon says "in bend")', [
+    shield([ord('cross'), main({ number: 2, role: 'secondary', place: 'around' })])]);
+  html += section('A chief and a bordure together', [
+    shield([main(), ordinaryGroup('bordure', 'argent'), ordinaryGroup('chief', 'or')]),
+    shield([ordinaryGroup('bordure', 'argent'), ordinaryGroup('chief', 'or', { charged: other({ number: 3, tincture: 'gules' }) })])]);
+  html += section('Charges on their own, set out each way (the usual way first; four have none)', [2, 3, 4, 5, 6].flatMap(n => [
+    shield([main({ number: n })]), ...arrangementsFor(n).map(id => shield([main({ number: n, arranged: id })]))]));
+  html += section('Set out inside a bordure, below a chief, and with a charge in chief', [
+    shield([main({ number: 3, arranged: 'pale' }), ordinaryGroup('bordure', 'argent')]),
+    shield([main({ number: 5, arranged: 'saltire' }), ordinaryGroup('bordure', 'argent')]),
+    shield([main({ number: 6 }), ordinaryGroup('bordure', 'argent')]),
+    shield([main({ number: 3, arranged: 'fess' }), ordinaryGroup('chief', 'argent')]),
+    shield([main({ number: 5, arranged: 'chevron' }), ordinaryGroup('chief', 'argent')]),
+    shield([main({ number: 4, arranged: 'cross' }), ordinaryGroup('base', 'argent')]),
+    shield([main({ number: 3, arranged: 'bend', role: 'primary' }), other({ number: 1, role: 'secondary', place: 'chief' })]),
+    shield([main({ number: 5, role: 'primary' }), other({ number: 1, role: 'secondary', place: 'chief' })])]);
+  html += section('Semy: strewn over the field, around other things, and on ordinaries (fewer than seven is flagged)', [
+    shield([main({ number: 'semy' })]),
+    shield([main({ number: 'semy' }), ordinaryGroup('bordure', 'argent')]),
+    shield([main({ number: 'semy' }), ordinaryGroup('chief', 'argent')]),
+    shield([other({ number: 1, role: 'primary', tincture: 'argent' }), main({ number: 'semy', role: 'secondary', place: 'around' })]),
+    ...central.map(id => shield([ord(id), main({ number: 'semy', role: 'secondary', place: 'around' })])),
+    shield([ord('fess'), other({ number: 3, role: 'secondary', place: 'around' }), main({ number: 'semy', role: 'secondary', place: 'around' })]),
+    ...['fess', 'pale', 'bend', 'chevron', 'cross', 'chief', 'base'].map(id => shield([ord(id, { charged: main({ number: 'semy', tincture: 'gules' }) })]))]);
+  html += section('A chief on patterns of squares (the pattern is never squeezed), and furs on them (a spot in every piece)', [
+    shield2(divided('checky', [plain('azure'), plain('argent')]), [ordinaryGroup('chief', 'or')]),
+    shield2(divided('lozengy', [plain('azure'), plain('argent')]), [ordinaryGroup('chief', 'or')]),
+    shield2(divided('checky', [plain('azure'), plain('argent')]), [ordinaryGroup('pale', 'or'), ordinaryGroup('chief', 'gules')]),
+    shield2(divided('lozengy', [plain('pean'), plain('or')]), []),
+    shield2(divided('checky', [plain('ermine'), plain('gules')]), []),
+    shield2(divided('lozengy', [plain('or'), plain('purpure')]), [main({ number: 3, tincture: 'sable' })]),
+    shield2(divided('checky', [plain('or'), plain('purpure')]), [main({ number: 3, tincture: 'sable' })]),
+    shield2(divided('paly', [plain('or'), plain('purpure')]), [main({ number: 1, tincture: 'sable' })])]);
+  html += section('Arrangement not chosen yet (drawn as a guess)', [
+    shield([ord('chevron'), main({ number: 3 })]), shield([main(), other({ number: 3 })]), shield([main(), other()])]);
+
+  document.getElementById('out').innerHTML = html;
+  window.testSummary = { undrawn: problems, shields: document.querySelectorAll('figure').length };
+}
+pick.onchange = fieldPick.onchange = draw;
+draw();
+</script>
+</body>
+</html>
