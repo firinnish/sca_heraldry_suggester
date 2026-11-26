@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Heraldry core: checks against the real armorial</title>
+<style>
+  body { font-family: Georgia, serif; margin: 20px; color: #2b2620; background: #faf6ee; }
+  table { border-collapse: collapse; margin: 12px 0; }
+  td, th { border: 1px solid #d8cfba; padding: 4px 10px; text-align: left; font-size: 0.9rem; }
+  .bad { background: #fde3e3; } .ok { background: #e8f5e4; }
+  pre { white-space: pre-wrap; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<h1>Checks against the real armorial</h1>
+<p>For every background the tools can describe, this finds the registered armory in
+<code>data/oanda.db</code> whose blazon starts with it, and checks that the search
+patterns from <code>core/oanda.js</code> match how the O&amp;A really indexed it.
+A few percent of misses is normal (the index has its own inconsistencies).</p>
+<p id="status">Loading data/oanda.db…</p>
+<div id="out"></div>
+<pre id="misses"></pre>
+
+<script type="module">
+import { TINCTURES, DIVISIONS, ORDINARIES, divisionsWithParts } from '../core/catalog.js';
+import { plain, divided, ordinaryGroup, chargeGroup, blazon as blazonShield, COUNTERCHANGED } from '../core/shield.js';
+import { shieldSVG } from '../core/draw.js';
+import { shieldPatterns, fieldDescription, complexSearchURL } from '../core/oanda.js';
+
+// A division passes if at least 80% of its records match every pattern.
+// The rest are records the O&A indexed differently from its own usual habit
+// (e.g. tinctures not in alphabetical order); those still match one of the
+// two lines, so they still appear in a real search, just with a lower score.
+const PASS_MARK = 0.8;
+
+// Does one indexed description satisfy one search pattern?
+// "multicolor" also matches "multicolor neutral/dark/light", "~and fur" any fur.
+const FURS = ['ermine', 'counterermine', 'erminois', 'pean'];
+const POSTURES = ['rampant', 'passant', 'statant', 'sejant', 'couchant', 'courant', 'salient', 'dormant'];
+function satisfies(desc, pattern) {
+  const [dHead, ...dFeat] = desc.split(':');
+  const [pHead, ...pFeat] = pattern.split(':');
+  if (dHead !== pHead) return false;
+  return pFeat.every(f => dFeat.includes(f) ||
+    (f === 'multicolor' && dFeat.some(x => x.startsWith('multicolor'))) ||
+    // "primary" covers sole primary (spa, spna) and group primary (gpa, g2pa, g3pna...)
+    (f === 'primary' && dFeat.some(x => /^(spn?a|g\d?pn?a|sole primary|group primary)$/.test(x))) ||
+    // my.cat: group:second=secondary (the records say "second")
+    (f === 'secondary' && dFeat.includes('second')) ||
+    // a posture covers its "to dexter" / "to sinister" forms
+    (POSTURES.includes(f) && dFeat.some(x => x.startsWith(f + ' to '))) ||
+    (f === '~and fur' && FURS.some(x => dFeat.includes('~and ' + x))));
+}
+
+// oanda.db is not kept on GitHub (SCA copyright), so this page only works on a
+// machine that has its own copy at data/oanda.db.
+const response = await fetch('../data/oanda.db');
+if (!response.ok) {
+  document.getElementById('status').textContent =
+    'data/oanda.db was not found. It is not stored on GitHub; these checks only run on a machine that has a copy of the O&A database in the data folder.';
+  throw new Error('data/oanda.db not found');
+}
+const buf = await response.arrayBuffer();
+const lines = new TextDecoder('latin1').decode(buf).split('\n');
+const records = [];
+// Records by their whole blazon, for the checks that need an exact match.
+// Two harmless differences of wording are ironed out on both sides: commas,
+// and "within a bordure" for "and a bordure".
+const plainWords = text => text.replace(/,/g, '').replace(/ within (an? (bordure|orle))/g, ' and $1').replace(/\.$/, '');
+const byBlazon = new Map();
+for (const line of lines) {
+  const p = line.split('|');
+  if (p.length >= 6 && (p[2] === 'd' || p[2] === 'b')) {
+    const record = { blazon: p[3].toLowerCase(), descs: p.slice(5) };
+    records.push(record);
+    const key = plainWords(record.blazon);
+    if (!byBlazon.has(key)) byBlazon.set(key, []);
+    byBlazon.get(key).push(record);
+  }
+}
+
+// Every field to check: plain ones, and each two-part division in each order.
+const ids = Object.keys(TINCTURES);
+const cases = ids.map(t => ({ group: 'plain', field: plain(t) }));
+for (const d of divisionsWithParts(2)) {
+  for (const a of ids) for (const b of ids) {
+    if (a !== b) cases.push({ group: DIVISIONS[d].name, field: divided(d, [plain(a), plain(b)]) });
+  }
+}
+for (const d of divisionsWithParts(3)) {
+  cases.push({ group: DIVISIONS[d].name, field: divided(d, [plain('argent'), plain('sable'), plain('gules')]), prefixOnly: DIVISIONS[d].name + ' ' });
+}
+
+// Charges: a plain field with one group of charges and nothing else, so the
+// whole blazon must match exactly ("Gules, a lion rampant Or.").
+const plainTinctures = ['gules', 'vert', 'azure', 'sable', 'purpure', 'or', 'argent'];
+const chargeKinds = [
+  ...Object.keys(ORDINARIES).map(id => ({ group: 'a ' + ORDINARIES[id].name, make: t => ordinaryGroup(id, t) })),
+  { group: 'a lion rampant', make: t => chargeGroup({ charge: 'lion', category: 'CAT', posture: 'rampant', tincture: t }) },
+  { group: 'a lion passant', make: t => chargeGroup({ charge: 'lion', category: 'CAT', posture: 'passant', tincture: t }) },
+  { group: 'a fleur-de-lys', make: t => chargeGroup({ charge: 'fleur-de-lys', category: 'FDL', tincture: t }) },
+  { group: 'three fleurs-de-lys', make: t => chargeGroup({ charge: 'fleur-de-lys', plural: 'fleurs-de-lys', category: 'FDL', number: 3, tincture: t }) },
+  { group: 'three crescents', make: t => chargeGroup({ charge: 'crescent', category: 'CRESCENT', number: 3, tincture: t }) },
+  { group: 'two/three swords', make: t => chargeGroup({ charge: 'sword', category: 'SWORD', number: 3, tincture: t }), numbers: [2, 3] },
+];
+for (const kind of chargeKinds) {
+  for (const f of plainTinctures) for (const t of ids) {
+    if (f === t) continue;
+    for (const number of kind.numbers || [null]) {
+      const g = kind.make(t);
+      if (number) g.number = number;
+      cases.push({ group: kind.group, field: plain(f), groups: [g], exact: true });
+    }
+  }
+}
+
+// Counterchanged charges, and backgrounds with nothing on them (field only).
+const DARK = ['gules', 'vert', 'azure', 'sable', 'purpure'], LIGHT = ['or', 'argent'];
+for (const d of ['perPale', 'perFess', 'perBend', 'perBendSinister', 'perChevron', 'quarterly', 'perSaltire']) {
+  for (const a of DARK) for (const b of LIGHT) for (const [x, y] of [[a, b], [b, a]]) {
+    const field = divided(d, [plain(x), plain(y)]);
+    for (const number of [1, 2, 3]) {
+      for (const [name, category] of [['roundel', 'ROUNDEL'], ['mullet', 'STAR'], ['rose', 'ROSE']]) {
+        cases.push({ group: 'counterchanged', field, exact: true,
+                     groups: [chargeGroup({ charge: name, category, number, tincture: COUNTERCHANGED })] });
+      }
+    }
+    cases.push({ group: 'nothing on the field', field, groups: [], exact: true, noCharge: true });
+  }
+}
+
+// ---- Several charge groups: around, above, on, and inside a chief or bordure ----
+// Common charges whose blazon word and O&A category are not in doubt.
+const COMMON = [['mullet', 'STAR'], ['rose', 'ROSE'], ['crescent', 'CRESCENT'], ['escallop', 'ESCALLOP'], ['annulet', 'ANNULET'],
+  ['fleur-de-lys', 'FDL', 'fleurs-de-lys'], ['lozenge', 'LOZENGE'], ['cinquefoil', 'ROSE']];
+const some = (name, category, plural, number, tincture, extra) =>
+  chargeGroup({ charge: name, plural: plural || '', category, number, tincture, ...extra });
+const CENTRAL = ['pale', 'fess', 'bend', 'bendSinister', 'chevron', 'cross', 'saltire'];
+// (There are far too many of these to draw each one: `sparse` cases are only
+// drawn and coded when the armorial has a record with that blazon.)
+const several = (group, field, groups) => cases.push({ group, field, groups, exact: true, sparse: true });
+for (const f of plainTinctures) for (const t1 of plainTinctures) {
+  if (f === t1) continue;
+  for (const [name, category, plural] of COMMON) for (const t2 of plainTinctures) {
+    if (t2 === f) continue;
+    for (const id of CENTRAL) {
+      for (const n of [2, 3, 4]) {
+        several('an ordinary between two, three or four charges', plain(f),
+                [ordinaryGroup(id, t1), some(name, category, plural, n, t2, { role: 'secondary', place: 'around' })]);
+      }
+      for (const n of [1, 2, 3]) {
+        several('an ordinary and charges in chief or in base', plain(f),
+                [ordinaryGroup(id, t1), some(name, category, plural, n, t2, { role: 'secondary', place: 'chief' })]);
+        if (t2 !== t1) several('charges on an ordinary', plain(f), [ordinaryGroup(id, t1, { charged: some(name, category, plural, n, t2) })]);
+      }
+      several('an ordinary and charges in chief or in base', plain(f),
+              [ordinaryGroup(id, t1), some(name, category, plural, 1, t2, { role: 'secondary', place: 'base' })]);
+    }
+    for (const n of [1, 2, 3]) {
+      if (t2 !== t1) several('charges on a chief', plain(f), [ordinaryGroup('chief', t1, { charged: some(name, category, plural, n, t2) })]);
+      for (const edge of ['bordure', 'chief', 'base']) {
+        several('charges and a ' + edge, plain(f), [some(name, category, plural, n, t2), ordinaryGroup(edge, t1)]);
+      }
+    }
+    several('a lion between three charges', plain(f),
+            [chargeGroup({ charge: 'lion', category: 'CAT', posture: 'rampant', tincture: t1, role: 'primary' }),
+             some(name, category, plural, 3, t2, { role: 'secondary', place: 'around' })]);
+  }
+}
+
+const totals = {}, misses = [];
+let drawErrors = 0;
+for (const c of cases) {
+  const blazon = blazonShield(c.field, c.groups || []).toLowerCase();
+  const t = totals[c.group] || (totals[c.group] = { records: 0, matched: 0 });
+  // Exact matches are looked up; the rest need a pass through every record.
+  const found = c.exact ? (byBlazon.get(plainWords(blazon)) || []) : records;
+  if (c.sparse && !found.length) continue;
+  const searched = shieldPatterns(c.field, c.groups || [], { noCharge: !!c.noCharge });
+  // Check the search lines and the fuller field description together.
+  const patterns = [...new Set([...searched, ...fieldDescription(c.field)])];
+  try { shieldSVG(c.field, { charges: c.groups || [] }); complexSearchURL(searched); } catch (e) { drawErrors++; misses.push('ERROR ' + blazon + ': ' + e.message); }
+  for (const r of found) {
+    const hit = c.exact ? true : c.prefixOnly
+      ? r.blazon.startsWith(c.prefixOnly) && !r.blazon.startsWith(c.prefixOnly + 'inverted')
+      : r.blazon.startsWith(blazon + ',') || r.blazon.startsWith(blazon + '.');
+    if (!hit) continue;
+    t.records++;
+    const ok = patterns.every(p => r.descs.some(d => satisfies(d, p)));
+    if (ok) t.matched++;
+    // Counterchanged misses are all listed, for the maintainer to look into.
+    else if ((t.shown = (t.shown || 0) + 1) <= 4 || c.group === 'counterchanged') misses.push(`${blazon}\n   wanted: ${patterns.join(' | ')}\n   record: ${r.descs.filter(d => c.exact || /^(FIELD|P[A-Z]+:|QLY|GYRONNY)/.test(d)).join(' | ')}`);
+  }
+}
+
+let allOk = drawErrors === 0, html = '<table><tr><th>Background</th><th>Records</th><th>Matched</th><th>%</th></tr>';
+for (const [group, t] of Object.entries(totals)) {
+  const pct = t.records ? t.matched / t.records : 1;
+  const ok = pct >= PASS_MARK;
+  if (!ok) allOk = false;
+  html += `<tr class="${ok ? 'ok' : 'bad'}"><td>${group}</td><td>${t.records}</td><td>${t.matched}</td><td>${(pct * 100).toFixed(1)}</td></tr>`;
+}
+document.getElementById('out').innerHTML = html + '</table>';
+document.getElementById('status').textContent =
+  `${allOk ? 'PASS' : 'FAIL'}: ${cases.length} backgrounds checked against ${records.length} armory records; ${drawErrors} drawing errors.`;
+document.getElementById('misses').textContent = 'First few records that did not match:\n\n' + misses.join('\n\n');
+window.testSummary = { allOk, totals, drawErrors };
+</script>
+</body>
+</html>
