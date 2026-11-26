@@ -22,7 +22,7 @@
 
 import { getPicture } from './art.js';
 import { SAMPLES, insideShield, pointInPolygon, samplesInBox, ordinarySamples, ordinaryShapes, suitsDivision, partMap,
-         frameCentre, CHIEF_BOTTOM, BASE_TOP, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, ARM_HALF } from './geometry.js';
+         frameCentre, frameName, frameScale, CHIEF_BOTTOM, BASE_TOP, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, ARM_HALF } from './geometry.js';
 import { TINCTURES, ARRANGEMENTS, SEMY, familyOf, baseTincture } from './catalog.js';
 import { roles } from './shield.js';
 import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, centroid, heights, sides, cuts,
@@ -351,7 +351,7 @@ function frameOf(groups) {
     if (chief || base) mask = where(mask, (x, y) => (!chief || y > CHIEF_BOTTOM + inset) && (!base || y < BASE_TOP));
     frameCache.set(key, mask);
   }
-  return { chief, base, inset, mask: frameCache.get(key) };
+  return { chief, base, inset, bordure: has('bordure'), orle: has('orle'), mask: frameCache.get(key) };
 }
 
 function ordinaryParts(group, division, frame, width = 1) {
@@ -606,7 +606,7 @@ function placeSecondary(group, slots, axisX, largest, upright) {
 //         the point is drawn upright here: a question for the maintainer.)
 //   at:   where to put the charge (default: the middle of the cell)
 //   best: look for the roomiest place on the centre line instead
-function cellsOn(ordinary, number, host, [cx, cy], ky, width = 1) {
+function cellsOn(ordinary, number, host, [cx, cy], [sx, sy], width = 1) {
   if (!(ON_ORDINARY[ordinary] || []).includes(number)) return null;
   const along = (measure, turns) => {
     const at = cuts(host, measure, number);
@@ -615,7 +615,8 @@ function cellsOn(ordinary, number, host, [cx, cy], ky, width = 1) {
       turn: Array.isArray(turns) ? turns[k] : turns,
     }));
   };
-  const zone = test => where(host, (x, y) => test(x - cx, (y - cy) / ky));
+  // (measured as on the whole shield: the frame may have made the ordinary smaller)
+  const zone = test => where(host, (x, y) => test((x - cx) / sx, (y - cy) / sy));
   switch (ordinary) {
     case 'fess': case 'chief': case 'base': return along(x => x, 0);
     case 'pale': return along((x, y) => y, 0);
@@ -651,7 +652,7 @@ function cellsOn(ordinary, number, host, [cx, cy], ky, width = 1) {
   }
 }
 
-function placeTertiary(host, hostEntry, group, frame, centre, ky, width) {
+function placeTertiary(host, hostEntry, group, frame, centre, scale, width) {
   const none = { ok: false, picture: BLOB_PICTURE, flipY: false, places: [], coverage: [] };
   const shape = pictureOf(group);
   const number = group.number || 1;
@@ -665,7 +666,7 @@ function placeTertiary(host, hostEntry, group, frame, centre, ky, width) {
       const strewn = placeSemy(shape, and(maskFromPolygons(hostEntry.shapes), seen), SEMY_EXTENT * 0.8);
       return strewn.places.length ? { ok: true, ...chargeParts(shape, strewn.places) } : none;
     }
-    const cells = cellsOn(host.ordinary, number, and(maskFromPolygons(hostEntry.shapes), seen), centre, ky, width);
+    const cells = cellsOn(host.ordinary, number, and(maskFromPolygons(hostEntry.shapes), seen), centre, scale, width);
     if (!cells) return none;
     places = cells.map(cell => {
       const probe = probeFor(shape, cell.turn);
@@ -709,12 +710,17 @@ function remembered(key, make) {
 
 function compose(groups, r, division) {
   const frame = frameOf(groups);
-  const frameName = frame.chief ? 'chief' : null;
-  const centre = frameCentre(frameName);
-  // How much the space below a chief is squeezed, top to bottom (geometry.js).
-  const ky = frame.chief ? (centre[1] - CHIEF_BOTTOM) / 49 : 1;
+  // The frames shapes are drawn in (geometry.js): the field below a chief and
+  // inside a bordure; the primary ordinary there too, and also inside an orle
+  // (the field itself runs on under an orle); a bordure or orle beside a
+  // chief follows the chief's lower edge.
+  const fieldFrame = frameName(frame.chief, frame.bordure ? BORDURE_WIDTH : 0);
+  const innerFrame = frameName(frame.chief, frame.inset);
+  const edgeFrame = frameName(frame.chief);
+  const centre = frameCentre(innerFrame);
+  const scale = frameScale(innerFrame);      // how much smaller the frame draws things, across and down
   const entries = groups.map((g, i) => ({ ...r[i], kind: g.kind, ok: true, tertiary: null }));
-  r.forEach((x, i) => { if (x.role === 'peripheral') Object.assign(entries[i], ordinaryParts(groups[i], division, frameName)); });
+  r.forEach((x, i) => { if (x.role === 'peripheral') Object.assign(entries[i], ordinaryParts(groups[i], division, edgeFrame)); });
 
   const pi = r.findIndex(x => x.role === 'primary');
   const primary = pi >= 0 ? groups[pi] : null;
@@ -732,7 +738,7 @@ function compose(groups, r, division) {
     g === primary ? (g.kind === 'ordinary' ? width : [...wanted].sort().join()) : ''].join('|');
 
   if (primary && primary.kind === 'ordinary') {
-    Object.assign(entries[pi], ordinaryParts(primary, division, frameName, width));
+    Object.assign(entries[pi], ordinaryParts(primary, division, innerFrame, width));
     context.open = minus(frame.mask, maskFromPolygons(entries[pi].shapes));
     context.upright = primary.ordinary !== 'bend' && primary.ordinary !== 'bendSinister';
   } else if (primary) {
@@ -788,13 +794,14 @@ function compose(groups, r, division) {
 
   groups.forEach((g, i) => {
     if (!g.charged) return;
-    const place = () => placeTertiary(g, entries[i], g.charged, frame, centre, ky, g === primary ? width : 1);
+    const place = () => placeTertiary(g, entries[i], g.charged, frame, centre, g === primary ? scale : [1, 1], g === primary ? width : 1);
     // (A secondary group's own place depends on the primary group, so a
     // placing on one is not remembered.)
     entries[i].tertiary = r[i].role === 'secondary' ? place()
       : remembered(['on', drawnAs(g), g.charged.number || 1, pictureOf(g.charged).key].join('|'), place);
   });
-  return { frame: frameName, entries };
+  // `within`: how far in from the edge a primary ordinary must stop (inside an orle), or 0.
+  return { frame: fieldFrame, within: frame.orle ? frame.inset : 0, edge: edgeFrame, entries };
 }
 
 // How one charge group shows in the layout, for a signature of the shield.
@@ -809,16 +816,70 @@ const layoutCache = new Map();
 //   for an ordinary:  shapes (null for a bordure or orle), coverage
 //   for charges:      picture, flipY, places [{ cx, cy, size, turn }], coverage
 //   tertiary  null, or the same again for the charges lying on this group
-// `frame` is 'chief' when the field is drawn in the space below a chief.
+// `frame` names the space the field is drawn in (geometry.js: FRAMES): below
+// a chief, inside a bordure. `variant` (if any) is the way the field's
+// pattern is drawn to suit the charges (see fieldVariant below).
 // Coverage is, for each charge, the sample points of the shield it covers.
 export function layoutShield(field, groups) {
+  const base = placeAll(field, groups);
+  const variant = fieldVariant(field, groups, base);
+  return variant === null ? base : { ...base, variant };
+}
+
+// ---- The field's pattern, chosen to suit the charges ---------------------------------
+// Charges are never moved sideways to find a part of a patterned field they
+// contrast with (see nudge above). Instead the PATTERN is chosen to suit the
+// charges (the maintainer, November 2026): three swords on paly of six each
+// stand in the middle of a stripe, but on paly of eight each stands on a
+// line between two stripes, as it should. So paly is drawn in six pieces,
+// or eight, or four, whichever leaves every charge either across a line or on
+// the tincture it contrasts with. (Sliding the stripes half a stripe along
+// would do it too, but would leave an odd number of pieces, which is not
+// paly.) Only paly so far; ROADMAP item 11 is the same idea for the rest.
+const PALY_PIECES = [6, 8, 4];
+function fieldVariant(field, groups, layout) {
+  if (!field || field.type !== 'divided' || field.division !== 'paly' ||
+      field.parts.some(p => p.type !== 'plain' || p.tincture === null)) return null;
+  const tone = t => TINCTURES[t].tone;
+  const charges = groups.map((g, i) => ({ g, e: layout.entries[i] }))
+    .filter(x => x.g.kind === 'charge' && x.e.ok && x.g.number !== SEMY && x.g.tincture && TINCTURES[x.g.tincture]);
+  if (!charges.length) return null;
+  // How well the worst-placed charge sits: 1 = wholly on the tincture it
+  // contrasts with, or evenly across a line; 0 = wholly on the wrong one.
+  const worst = pieces => {
+    const map = partMap('paly', layout.frame, pieces === 6 ? null : pieces);
+    let least = 1;
+    for (const { g, e } of charges) {
+      const right = field.parts.findIndex(p => tone(p.tincture) !== tone(g.tincture) && baseTincture(p.tincture) !== baseTincture(g.tincture));
+      if (right < 0) continue;
+      for (const points of e.coverage) {
+        if (!points.length) continue;
+        const on = points.filter(i => map[i] === right).length / points.length;
+        least = Math.min(least, Math.max(on, 2 * Math.min(on, 1 - on)));
+      }
+    }
+    return least;
+  };
+  // The first that does well enough, in that order of preference; failing
+  // that, whichever does best.
+  let best = 6, bestScore = -1;
+  for (const pieces of PALY_PIECES) {
+    const score = worst(pieces);
+    if (score >= 0.6) return pieces === 6 ? null : pieces;
+    if (score > bestScore + 0.1) { best = pieces; bestScore = score; }
+  }
+  return best === 6 ? null : best;
+}
+
+function placeAll(field, groups) {
   const division = field && field.type === 'divided' ? field.division : null;
   const r = roles(groups);
   // One group and nothing on it, in the usual arrangement for one, two or
   // three charges: placed as it always has been.
   const alone = groups.length === 1 && !groups[0].charged ? groups[0] : null;
   if (alone && (alone.kind === 'ordinary' || (!alone.arranged && (alone.number || 1) <= MAX_NUMBER))) {
-    const g = alone, frame = g.kind === 'ordinary' && g.ordinary === 'chief' ? 'chief' : null;
+    // (the field is drawn in the space below a chief, or inside a bordure)
+    const g = alone, frame = g.kind !== 'ordinary' ? null : g.ordinary === 'chief' ? 'chief' : g.ordinary === 'bordure' ? frameName(false, BORDURE_WIDTH) : null;
     if (g.kind === 'ordinary') {
       return { frame, entries: [{ ...r[0], kind: g.kind, ok: true, tertiary: null,
                                   shapes: ordinaryShapes(g.ordinary, division), coverage: [ordinarySamples(g.ordinary, division)] }] };

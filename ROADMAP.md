@@ -87,6 +87,27 @@ here were made with the maintainer; add to it as things are decided.
 - **From the maintainer's sketches** (November 2026): four charges around a
   bend go two on each side; two around a cross go in bend; four around a
   chevron inverted go one above and three below.
+- **Nothing touches a bordure or orle** (the maintainer, November 2026, after
+  a bordure cut the point off a chevron). Inside a bordure the field and any
+  ordinary are drawn smaller, to fit the space the bordure leaves, the same
+  way they are drawn in the space below a chief. Inside an orle the field
+  still runs to the shield's edge, and an ordinary stops just short of the
+  orle.
+- **Paly suits its charges** (the maintainer, November 2026; a first step of
+  item 11). A paly field is drawn with six, eight or four pieces, whichever
+  puts each charge across a line or on the tincture it contrasts with. The
+  rules judge the shield as it is drawn. (The maintainer asked for the
+  stripes to be moved sideways; see the questions below for why the number
+  of pieces is changed instead.)
+- **Every colour menu is the slim one,** and a greyed colour says why in one
+  line under the menu: "Azure is not available because the charge cannot be
+  the same colour as the background" (the maintainer's example).
+- **"clear all"** beside the title takes back every answer (it leaves the
+  palette, the herald tick, pinned suggestions and collapsed sections alone).
+- **"save as png"** and **"save as png (outlines only)"** under the search
+  button (`core/export.js`). Coloured in: see-through outside the shield and
+  wherever a colour has not been chosen. Outlines only: black lines on
+  nothing. 1000 dots across; the file is named after the blazon.
 
 ## Next, in the maintainer's words
 
@@ -169,7 +190,13 @@ here were made with the maintainer; add to it as things are decided.
   mode choices, "(arranged any way)", "the usual way", "How the different
   charges go together", the two notes shown when there is nothing to
   arrange (one charge; semy), and eight new
-  rule messages.
+  rule messages. Newest: the line under a colour menu. Its shape and the
+  ending "the charge cannot be the same colour as the background" are the
+  maintainer's example; the other endings are drafts ("of low contrast -
+  please choose a metal", "it needs a background divided into two colours",
+  "counterchanging over this many pieces needs period evidence", "that would
+  be too many colours and charges", "no shield with the other choices can
+  have it"), as is "Sorry, the picture could not be saved in this browser."
 
 Raised by the work on several charges and arrangements (November 2026).
 Each is a herald's call; the code does the cautious thing until answered:
@@ -182,33 +209,36 @@ Each is a herald's call; the code does the cautious thing until answered:
   follow the maintainer's sketch.) How should they go?
 - **Three around a cross, two or three around a saltire, three around a
   pale or bend:** not drawn; the Glossary's Table 7 gives no arrangement.
-- **Unity of arrangement (SENA A3D2e).** The maintainer asked for "in bend",
-  "in fess", "in chevron" to be discouraged in some cases with several
-  charges. What is built: charges in a named arrangement, with another
-  charge above or below them ("in bend three swords and in chief a mullet"),
-  are not suggested, because the two can be taken for one group that needs
-  two arrangement phrases; a herald can still choose it. With a bordure or
-  chief, or charges lying on them, they are suggested as usual. Is that the
-  case that was meant, and are there others?
+- **Paly: more or fewer pieces instead of moved stripes.** The maintainer
+  asked for the stripes to be moved sideways so that swords lie on the lines
+  between them or on their high-contrast colour. Moving six stripes half a
+  stripe sideways leaves seven pieces, with the same tincture down both
+  edges, which is no longer paly (it reads as three pallets). So the stripes
+  stay put and their number changes: six pieces as usual, or eight, or four,
+  whichever suits the charges. Is that acceptable, and is "paly of eight"
+  fine to draw without saying so in the blazon?
+- **Outlines of furs.** "save as png (outlines only)" draws an ermine field
+  or charge as plain, with no spots. Should the spots be drawn as outlines?
+- **What "clear all" leaves alone:** the palette, the herald tick, pinned
+  suggestions and which sections are collapsed. Should it clear any of them?
 - **Semy:** always blazoned "semy of ..." (never "mullety", "crusilly",
   "bezanty", "semy-de-lys"). Strewn charges are 12 across on the shield's
   100 (long thin ones a little longer). With three charges around a fess as
   well, fewer than seven strewn charges fit, so that combination (which
   SENA Appendix J lists) is not offered.
-- **The other colour menus** (background colours, a charge's colour) still
-  use the larger squares, because they show why a colour is greyed. Slim
-  them the same way?
 - **Stripes under a chief** (barry, bendy, chevronelly) are still squeezed
-  into the space below it; only checky and lozengy keep their shape.
-- **Narrow charges on paly** (three swords) now each sit wholly on one
-  stripe, since they are no longer moved sideways, and are reported as low
-  contrast when that stripe is their own kind of tincture.
+  into the space below it; only checky and lozengy keep their shape. Inside
+  a bordure nothing is squeezed: everything is made smaller evenly.
+- **Narrow charges on barry, bendy and the other striped fields** still sit
+  where they fall and are reported as low contrast when they lie wholly on
+  their own kind of tincture; only paly chooses its pieces so far (item 11).
 - **Six charges on a divided field** are set out three, two and one, which
   Table 7 gives only for an undivided field.
 - **"In chevron"** is offered although SENA Appendix K's list of standard
   arrangements does not have it (the O&A has a category for it).
-- **An ordinary through the middle with an orle** is held back: the ordinary
-  is drawn running under the orle to the shield's edge, which may be wrong.
+- **An ordinary through the middle with an orle** is still held back. It is
+  now drawn stopping just short of the orle ("a fess within an orle"): if
+  that is how it should look, the hold in `rules.js` can be taken off.
 - **A narrower chevron on a per chevron inverted field** leaves a small
   diamond of the upper colour under the chevron's point.
 - **Sizes to judge by eye** on `tests/groups.html`: an ordinary with charges
@@ -220,6 +250,16 @@ Each is a herald's call; the code does the cautious thing until answered:
   small to offer.
 
 Answered (kept for the record):
+
+- Unity of arrangement (SENA A3D2e): the reading built is right, namely that
+  charges in a named arrangement with another charge above or below them
+  ("in bend three swords and in chief a mullet") are held back, since the
+  two can be taken for one group needing two arrangement phrases; with a
+  bordure or chief, or charges lying on them, they are offered as usual
+  (maintainer, November 2026: "I'll update later if it turns out I got it
+  wrong").
+- All the colour menus are slim, with one line under the menu saying why
+  colours are greyed (maintainer, November 2026; built).
 
 - "A cross between two roundels" says "in bend" in the blazon; four charges
   are two and two by default, with no special message; "How are they

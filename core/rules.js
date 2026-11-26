@@ -158,10 +158,12 @@ function checkField(field, problems, depth = 0) {
 // equally on all three portions of the field".
 // `frame`: 'chief' when the field is drawn in the space below a chief, and
 // this charge with it (geometry.js); the parts are then where they are drawn.
-function classBehind(field, points, frame = null) {
+// `variant`: the way the whole field's pattern is drawn (layout.js:
+// fieldVariant); a part's own division has none.
+function classBehind(field, points, frame = null, variant = null) {
   if (field.type === 'plain') return classOf(field.tincture);
-  const map = partMap(field.division, frame);
-  const sizes = partSizes(field.division, frame);
+  const map = partMap(field.division, frame, variant);
+  const sizes = partSizes(field.division, frame, variant);
   const groups = field.parts.map(() => []);
   for (const i of points) groups[map[i]].push(i);
   // A field of many pieces (barry, chevronelly, checky...) is judged as a
@@ -182,23 +184,23 @@ function classBehind(field, points, frame = null) {
 
 // How many sample points each part of a division has.
 const sizeCache = new Map();
-function partSizes(division, frame = null) {
-  const key = `${division}|${frame}`;
+function partSizes(division, frame = null, variant = null) {
+  const key = `${division}|${frame}|${variant}`;
   if (!sizeCache.has(key)) {
     const sizes = [];
-    for (const part of partMap(division, frame)) sizes[part] = (sizes[part] || 0) + 1;
+    for (const part of partMap(division, frame, variant)) sizes[part] = (sizes[part] || 0) + 1;
     sizeCache.set(key, sizes);
   }
   return sizeCache.get(key);
 }
 
 // How much of a charge lies on each tincture of the field: { azure: 0.5, ... }
-function tincturesBehind(field, points, frame = null, out = {}, total = points.length) {
+function tincturesBehind(field, points, frame = null, out = {}, total = points.length, variant = null) {
   if (field.type === 'plain') {
     out[field.tincture] = (out[field.tincture] || 0) + points.length / total;
     return out;
   }
-  const map = partMap(field.division, frame);
+  const map = partMap(field.division, frame, variant);
   const groups = field.parts.map(() => []);
   for (const i of points) groups[map[i]].push(i);
   field.parts.forEach((p, i) => { if (groups[i].length) tincturesBehind(p, groups[i], frame, out, total); });
@@ -208,7 +210,7 @@ function tincturesBehind(field, points, frame = null, out = {}, total = points.l
 // One group on the field, against the field. `coverage` is, for each of its
 // charges, the sample points it covers (from the layout); `crossed` is true
 // when a charge in the middle of the shield lies over the field's lines.
-function checkGroup(field, group, coverage, frame, crossed, problems) {
+function checkGroup(field, group, coverage, frame, crossed, problems, variant = null) {
   // SENA A3D1c: "Combining a two-part field division with a parallel ...
   // peripheral ordinary - such as ... per fess and a chief or base - creates
   // ambiguity between a peripheral ordinary and a central ordinary.
@@ -247,7 +249,7 @@ function checkGroup(field, group, coverage, frame, crossed, problems) {
   for (const points of coverage) {
     if (!points.length) continue;
     // SENA A3B4a, applied to the part of the field behind this one charge.
-    const behind = classBehind(field, points, frame);
+    const behind = classBehind(field, points, frame, variant);
     if (!goodContrast(chargeClass, behind)) lowContrast = hintAgainst(behind);
     // SENA A3B4b: "the field and charges on it may share a tincture only if
     // (1) the charges appear only on a section of the field with a different
@@ -255,7 +257,7 @@ function checkGroup(field, group, coverage, frame, crossed, problems) {
     // charge(s) is an ordinary or simple geometric shape arranged in a way
     // that both ... are clearly identifiable." (2) depends on the drawing,
     // so it is not offered.
-    const under = tincturesBehind(field, points, frame);
+    const under = tincturesBehind(field, points, frame, {}, points.length, variant);
     for (const t of Object.keys(under)) {
       if (under[t] > BARELY && baseTincture(t) === baseTincture(group.tincture)) shares = true;
     }
@@ -301,7 +303,7 @@ export function checkShield({ field, groups = [], noCharge = false }) {
     // a chief on a per pall field as lying on the top part); everything else
     // on the field as it is drawn.
     const frame = group.kind === 'ordinary' && group.ordinary === 'chief' ? null : layout.frame;
-    checkGroup(field, group, entry.coverage || [], frame, crossed, problems);
+    checkGroup(field, group, entry.coverage || [], frame, crossed, problems, layout.variant || null);
     if (group.charged) checkTertiary(field, group, group.charged, problems);
   });
 
@@ -327,8 +329,9 @@ function checkGroups(field, groups, problems) {
   if (!r.every(x => x.chosen)) return layout;
 
   // An ordinary through the middle of the shield together with an orle: the
-  // tools draw the ordinary running under the orle to the shield's edge,
-  // which may not be how it should look, so they do not offer it.
+  // tools draw the ordinary stopping just short of the orle (draw.js), which
+  // the maintainer has not yet said is how it should look, so they do not
+  // offer it (ROADMAP.md, questions).
   if (primary && isCentralOrdinary(primary) && groups.some(g => g.kind === 'ordinary' && g.ordinary === 'orle')) {
     problems.push({ id: 'arrangement-unsupported', sena: null, level: 'house' });
   }

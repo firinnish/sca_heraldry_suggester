@@ -27,6 +27,10 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
     above, below), for pages to show as pictures and the generator to pick
     from. It lists what makes sense; `rules.js` says what is allowed.
   - `core/draw.js`: the SVG picture.
+  - `core/export.js`: the same picture as a PNG to save (`shieldPNG`):
+    coloured in, with anything whose colour is not chosen left see-through,
+    or the outlines alone. Read its notes before changing how `draw.js`
+    writes a charge's `<image>`: the two must stay in step.
   - `core/oanda.js`: Complex Search patterns and link.
   - `core/rules.js`: SENA's style rules. See below.
   - `core/generate.js`: random shields within constraints. It guesses and asks
@@ -118,6 +122,23 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
 - An ordinary with charges around it is drawn narrower (`SLIM` in
   `layout.js`, `width` in `geometry.js`), keeping its middle line. One alone
   keeps the full width, so `tests/alignment.html` is unaffected.
+- FRAMES (`geometry.js`: `frameName`, `frameCentre`, `frameScale`): the
+  space the field and the ordinaries are drawn in. Below a chief they are
+  squeezed into the space under it; inside a bordure they are made smaller
+  evenly about the fess point, so nothing touches the bordure (maintainer,
+  November 2026, after a bordure cut the point off a chevron). Inside an
+  orle the field is NOT made smaller (it runs under the orle to the edge),
+  but an ordinary is, and is drawn through a mask so it stops just short of
+  the orle. `layoutShield` returns `frame` (for the field), `within` and
+  `edge` (for that mask). An ordinary through the middle with an orle is
+  still a `house` hold until the maintainer has seen it.
+- PALY SUITS ITS CHARGES: `layoutShield` also returns `variant`, the number
+  of pieces a paly field is drawn with (six, eight or four: `fieldVariant`
+  in `layout.js`), chosen so each charge lies across a line or on the
+  tincture it contrasts with. Drawing and the rules both use it. The
+  maintainer asked for the stripes to be slid sideways; that gives seven
+  pieces, which is not paly, hence the count instead (question in ROADMAP).
+  Extend this to other patterns under ROADMAP item 11.
 - A bordure or orle follows `framePath`: beside a chief it runs along under
   the chief. The maintainer sketched this and three placements (four around
   a bend, two around a cross, four around a chevron inverted) in November
@@ -148,8 +169,8 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   one legal possibility (a background part, the charge's colour). "don't
   specify" (the maintainer's words) keeps it open for searching.
 - With a chief, the field is drawn in the space below it (divisions through
-  the middle of that space); the rules still judge contrast on the whole-
-  shield shapes.
+  the middle of that space), and inside a bordure in the space inside it;
+  the rules judge contrast on the shapes as drawn.
 - Each question card sets one thing. "select this shield" on a suggestion
   copies everything into the questions; "pin suggestion" keeps it.
 - "What charges are on the field?" (the maintainer's words) takes up to
@@ -172,9 +193,18 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   `catalog.js`: with one kind of charge, and even before any is picked. With
   two or more kinds it also shows how they go together. Choosing another
   number drops an arrangement that no longer fits.
-- Question 1's colours are a slim menu (the maintainer's sketch): small
-  squares, the heraldic name in bold, the everyday word in brackets, each
-  set in its own outline. The other colour menus are still the larger kind.
+- Every colour menu is the slim one (the maintainer's sketch; `slimSets` in
+  the page): small squares, the heraldic name in bold, the everyday word in
+  brackets, each set in its own outline. A greyed colour does not carry its
+  reason; ONE line under the menu does, colours with the same reason
+  sharing a sentence: "Azure is not available because the charge cannot be
+  the same colour as the background" (the maintainer's example; the
+  sentence ends are in `TEXT.because`).
+- "clear all" (beside the title) takes back every answer but leaves the
+  palette, the herald tick, pinned suggestions and collapsed sections.
+  "save as png" and "save as png (outlines only)" (under the search button)
+  save the shield shown top right through `core/export.js`. All three
+  labels are the maintainer's words.
 - The maintainer cannot easily run a local server (python is not on their
   terminal's PATH). To let them try unmerged work, commit it to a branch and
   put a copy in a `preview/` folder on `main` (core, apps/search, charges,

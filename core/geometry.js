@@ -163,7 +163,11 @@ const DIVISION_SHAPES = {
     }
     return parts;
   },
-  paly: () => stripes((a, b) => rect(a, -FAR, b - a, 3 * FAR), 1 - 2 * UNIT, W + FAR, UNIT),
+  // Paly is of six pieces unless a `variant` says eight or four: layout.js
+  // picks whichever suits the charges on it (the maintainer, November 2026).
+  // The number of pieces is always even, so the first tincture is at the
+  // dexter edge and the last at the sinister, as paly must be.
+  paly: (pieces = 6) => stripes((a, b) => rect(a, -FAR, b - a, 3 * FAR), 1 - 2 * (98 / pieces), W + FAR, 98 / pieces),
   barry: () => stripes((a, b) => rect(-FAR, a, 3 * FAR, b - a), 1 - 2 * UNIT, H + FAR, UNIT),
   // Bendy: a bend covers exactly two pieces. The first piece is in the
   // sinister chief corner.
@@ -191,6 +195,23 @@ const divisionCache = new Map();
 // lower edge and the fess point to the middle of the space left.
 // (The rules still judge contrast on the unsqueezed shapes: a chief lies on
 // the parts of the field it borders, as SENA treats it.)
+//
+// The same goes for the space INSIDE A BORDURE (the maintainer, November
+// 2026, on a chevron whose point was hidden under a bordure): the field and
+// any ordinary are drawn smaller, to fit inside it. That is the same shrink
+// both ways about the middle, so nothing changes shape.
+//
+// A frame has a name, used wherever shapes are asked for:
+//   null          the whole shield
+//   'chief'       the space below a chief
+//   'in11'        the space 11 in from the shield's edge (inside a bordure)
+//   'chief+in11'  both
+export const frameName = (chief, inset = 0) => ((chief ? 'chief' : '') + (inset ? (chief ? '+' : '') + 'in' + inset : '')) || null;
+const frameParts = frame => ({
+  chief: !!frame && frame.startsWith('chief'),
+  inset: frame && frame.includes('in') ? Number(frame.slice(frame.indexOf('in') + 2)) : 0,
+});
+
 let chiefFessY = null;
 function squeezeBelowChief(polygons) {
   const k = (frameCentre('chief')[1] - CHIEF_BOTTOM) / (C - 1);
@@ -198,9 +219,10 @@ function squeezeBelowChief(polygons) {
 }
 
 // The middle of the space a frame leaves: the fess point for the whole
-// shield, or the middle of the space below a chief.
+// shield (and for the space inside a bordure), or the middle of the space
+// below a chief.
 export function frameCentre(frame = null) {
-  if (frame !== 'chief') return FESS_POINT;
+  if (!frameParts(frame).chief) return FESS_POINT;
   if (chiefFessY === null) {
     const below = SAMPLES.filter(([, y]) => y > CHIEF_BOTTOM);
     chiefFessY = below.reduce((s, [, y]) => s + y, 0) / below.length;
@@ -208,18 +230,52 @@ export function frameCentre(frame = null) {
   return [C, chiefFessY];
 }
 
+// How much smaller a frame draws things, across and down: [1, 1] for the
+// whole shield.
+export function frameScale(frame = null) {
+  const { chief, inset } = frameParts(frame);
+  const cy = frameCentre(frame)[1];
+  const across = (98 - 2 * inset) / 98;
+  const below = chief ? (cy - CHIEF_BOTTOM) / (C - 1) : 1;
+  const down = !inset ? 1 : chief ? (cy - CHIEF_BOTTOM - inset) / (cy - CHIEF_BOTTOM) : across;
+  return [across, below * down];
+}
+
+// Shapes drawn for the whole shield, moved into a frame. `square` = a
+// pattern of squares, which is never squeezed (see KEEPS_ITS_SHAPE): it is
+// only made smaller, the same both ways, with its top edge on the frame's.
+function intoFrame(polygons, frame, square = false) {
+  const { chief, inset } = frameParts(frame);
+  if (!chief && !inset) return polygons;
+  if (square) {
+    if (!inset) return polygons;                       // below a chief: as it is
+    const s = (98 - 2 * inset) / 98, top = (chief ? CHIEF_BOTTOM : 1) + inset;
+    return polygons.map(p => p.map(([x, y]) => [C + (x - C) * s, top + (y - 1) * s]));
+  }
+  let out = chief ? squeezeBelowChief(polygons) : polygons;
+  if (inset) {
+    const cy = frameCentre(frame)[1], s = (98 - 2 * inset) / 98;
+    const down = chief ? (cy - CHIEF_BOTTOM - inset) / (cy - CHIEF_BOTTOM) : s;
+    out = out.map(p => p.map(([x, y]) => [C + (x - C) * s, cy + (y - cy) * down]));
+  }
+  return out;
+}
+
 // Patterns of squares are never squeezed (the maintainer, November 2026:
-// "it's never correct to squish checky"). They stay as they are, which
-// already lines them up with a chief: its lower edge is the edge of a row.
+// "it's never correct to squish checky"). Below a chief they stay as they
+// are, which already lines them up with it: its lower edge is the edge of a
+// row.
 const KEEPS_ITS_SHAPE = new Set(['checky', 'lozengy']);
 
-// `frame`: null for the whole shield, or 'chief' for the space below a chief.
-export function divisionShapes(division, frame = null) {
-  const key = `${division}|${frame}`;
+// `frame`: the space the field is drawn in (see FRAMES above).
+// `variant`: for a division that can be drawn more than one way (paly: how
+// many pieces), which way; null for the usual.
+export function divisionShapes(division, frame = null, variant = null) {
+  const key = `${division}|${frame}|${variant}`;
   if (!divisionCache.has(key)) {
     if (!DIVISION_SHAPES[division]) throw new Error('No shape for division: ' + division);
-    const parts = DIVISION_SHAPES[division]();
-    divisionCache.set(key, frame === 'chief' && !KEEPS_ITS_SHAPE.has(division) ? parts.map(squeezeBelowChief) : parts);
+    const parts = variant === null ? DIVISION_SHAPES[division]() : DIVISION_SHAPES[division](variant);
+    divisionCache.set(key, parts.map(polygons => intoFrame(polygons, frame, KEEPS_ITS_SHAPE.has(division))));
   }
   return divisionCache.get(key);
 }
@@ -288,18 +344,18 @@ export function ordinaryShapes(ordinary, division = null, frame = null, width = 
   if (ordinary === 'bordure' || ordinary === 'orle') return null;
   if (!ORDINARY_SHAPES[ordinary]) throw new Error('No shape for ordinary: ' + ordinary);
   const shapes = ORDINARY_SHAPES[ordinary](division, width);
-  return frame === 'chief' && ordinary !== 'chief' && ordinary !== 'base' ? squeezeBelowChief(shapes) : shapes;
+  return ordinary !== 'chief' && ordinary !== 'base' ? intoFrame(shapes, frame) : shapes;
 }
 
 // The outline of the space a frame leaves, as the text of an SVG path: the
 // whole shield, or the part of it below a chief. A bordure or orle follows
 // this line, so beside a chief it runs along under the chief instead of
 // being cut off by it (the maintainer, November 2026).
-export const framePath = (frame = null) => (frame === 'chief'
+export const framePath = (frame = null) => (frameParts(frame).chief
   ? `M1 ${+CHIEF_BOTTOM.toFixed(2)} H99 V40.2 C99 68 76 100.3 50 118.5 C24 100.3 1 68 1 40.2 Z` : SHIELD_PATH);
 // How far a point is from that outline (only asked of points inside it).
 export const distanceToFrame = (x, y, frame = null) =>
-  (frame === 'chief' ? Math.min(distanceToEdge(x, y), y - CHIEF_BOTTOM) : distanceToEdge(x, y));
+  (frameParts(frame).chief ? Math.min(distanceToEdge(x, y), y - CHIEF_BOTTOM) : distanceToEdge(x, y));
 
 // ---- Sample points ---------------------------------------------------------
 // A grid of points covering the inside of the shield. "How much of this charge
@@ -312,10 +368,10 @@ for (let y = 3; y < H; y += 2) {
 // For a division: which part each sample point is in. `frame` as for
 // divisionShapes: 'chief' gives the division as drawn below a chief.
 const partMapCache = new Map();
-export function partMap(division, frame = null) {
-  const key = `${division}|${frame}`;
+export function partMap(division, frame = null, variant = null) {
+  const key = `${division}|${frame}|${variant}`;
   if (!partMapCache.has(key)) {
-    const shapes = divisionShapes(division, frame);
+    const shapes = divisionShapes(division, frame, variant);
     partMapCache.set(key, SAMPLES.map(([x, y]) => {
       const i = shapes.findIndex(polygons => inAny(x, y, polygons));
       return i < 0 ? 0 : i;
@@ -356,7 +412,7 @@ export function ordinarySamples(ordinary, division = null, frame = null, width =
   if (!ordinarySampleCache.has(key)) {
     const shapes = ordinaryShapes(ordinary, division, frame, width);
     // A bordure or orle follows the frame's outline (see framePath).
-    const inFrame = ([, y]) => frame !== 'chief' || y > CHIEF_BOTTOM;
+    const inFrame = ([, y]) => !frameParts(frame).chief || y > CHIEF_BOTTOM;
     const covered = shapes ? samplesInside(shapes)
       : ordinary === 'orle'
         ? SAMPLES.map((p, i) => { const d = distanceToFrame(p[0], p[1], frame); return inFrame(p) && d >= ORLE_GAP && d < ORLE_GAP + ORLE_WIDTH ? i : -1; }).filter(i => i >= 0)
