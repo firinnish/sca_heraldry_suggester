@@ -38,7 +38,7 @@
 // the same seed and constraints always give the same shield. Pages use this
 // to keep pictures from changing every time the screen is redrawn.
 
-import { DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, familyOf, arrangementsFor } from './catalog.js';
+import { DIVISIONS, ORDINARIES, ARRANGEMENTS, SEMY, COLOUR_ORDER, METAL_ORDER, familyOf, arrangementsFor } from './catalog.js';
 import { plain, divided, ordinaryGroup, chargeGroupFromLibrary, shieldTinctures, blazon, typeOf, COUNTERCHANGED } from './shield.js';
 import { checkShield, checkArrangement } from './rules.js';
 import { arrangements, arrange } from './arrange.js';
@@ -231,7 +231,9 @@ function guessGroups(c, rng, library) {
     if (rng() < 3 / 13) return { flat: [], arrangement: [] };
     items = [{ charge: null, number: null, tincture: null }];
   }
-  items = items.map(it => ({ ...it, charge: it.charge || randomChoice(rng, library, { ordinary: it.number > 1 ? 0 : 4 }) }));
+  // (More than one of something, or a way of setting them out, means a charge and not an ordinary.)
+  items = items.map(it => ({ ...it, charge: it.charge ||
+    randomChoice(rng, library, { ordinary: (it.number && it.number !== 1) || (it.arranged && it.arranged !== 'usual') ? 0 : 4 }) }));
   if (items.some(it => !it.charge)) return null;
 
   // Suggestions may add a charge or two that was not asked for: something
@@ -271,8 +273,10 @@ function guessGroups(c, rng, library) {
     const g = flat[i], as = arrangement[i].as, fixed = items[i].number;
     if (g.kind === 'ordinary') continue;
     let choices;
-    if (as === 'primary') choices = circled ? [[1, 1]] : [[1, 22], [2, 6], [3, 12], [4, 1], [5, 1], [6, 1]];
-    else if (as === 'around') choices = aroundNumbers(flat[primary]).map(n => [n, n === 3 ? 3 : 1]);
+    const named = items[i].arranged && items[i].arranged !== 'usual' ? ARRANGEMENTS[items[i].arranged] : null;
+    if (as === 'primary' && named) choices = named.numbers.map(n => [n, n === 3 ? 3 : 1]);     // as many as that arrangement takes
+    else if (as === 'primary') choices = circled ? [[1, 1]] : [[1, 44], [2, 12], [3, 24], [4, 3], [5, 2], [6, 2], [SEMY, 3]];
+    else if (as === 'around') choices = [...aroundNumbers(flat[primary]).map(n => [n, n === 3 ? 6 : 2]), [SEMY, 1]];
     else if (as === 'on') choices = onNumbers(flat[arrangement[i].on]).filter(n => n <= 4).map(n => [n, n === 1 || n === 3 ? 3 : 1]);
     else choices = PLACE_NUMBERS[as].map(n => [n, n === 2 ? 1 : 3]);
     // (Where no number has a default arrangement, one is still guessed, so
@@ -282,15 +286,14 @@ function guessGroups(c, rng, library) {
 
   // How each group's own charges are set out (catalog.js: ARRANGEMENTS): as
   // chosen ('usual' = the usual way for their number), or, for the primary
-  // group, now and then something other than the usual way. Four charges
-  // have no usual way, so always get a named arrangement.
+  // group, now and then something other than the usual way.
   for (const i of order) {
     const g = flat[i], fixed = items[i].arranged;
     if (g.kind === 'ordinary') continue;
     if (fixed) g.arranged = fixed === 'usual' ? null : fixed;
     else if (arrangement[i].as === 'primary' && g.number > 1) {
       const named = arrangementsFor(g.number);
-      if (named.length && (g.number === 4 || rng() < 0.25)) g.arranged = pick(rng, named);
+      if (named.length && rng() < 0.25) g.arranged = pick(rng, named);
     }
   }
 

@@ -44,6 +44,15 @@
     display: flex; flex-direction: column; align-items: center; gap: 5px;
     background: #fff; border: 2px solid var(--line); border-radius: 8px; padding: 8px 6px; font-size: 0.82rem;
   }
+  /* The slim colour menu (question 1): small squares with their names beside them. */
+  .slim-sets { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+  .slim-label { font-size: 0.72rem; font-weight: bold; margin: 0 0 3px 6px; }
+  .slim-row { display: flex; flex-wrap: wrap; gap: 2px 4px; border: 1.5px solid var(--muted); border-radius: 16px; padding: 3px 8px; }
+  .slim { display: flex; align-items: center; gap: 6px; background: none; border: 2px solid transparent; border-radius: 8px; padding: 3px 6px; font-size: 0.82rem; text-align: center; }
+  .slim svg { width: 28px; height: 28px; flex: none; }
+  .slim span { display: flex; flex-direction: column; line-height: 1.15; }
+  .slim small { font-size: 0.68rem; color: var(--muted); font-weight: normal; }
+  .slim[aria-pressed="true"] { border-color: var(--accent); background: #f3f0fa; }
   .swatch { width: 88px; }
   .swatch svg { width: 42px; height: 42px; }
   .swatch.small { width: 66px; padding: 6px 4px; font-size: 0.72rem; }
@@ -106,8 +115,10 @@
   .suggestion { flex: none; width: 132px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 2px solid var(--line); border-radius: 8px; padding: 6px; background: #fff; }
   .suggestion.pinned { border-color: var(--accent); background: #f3f0fa; }
   .suggestion svg { width: 70px; height: auto; }
-  .suggestion p { margin: 0; font-size: 0.66rem; font-style: italic; text-align: center; line-height: 1.2; height: 3.6em; overflow: hidden; }
+  /* (The whole blazon shows, however long: its last words are the colours.) */
+  .suggestion p { margin: 0; font-size: 0.66rem; font-style: italic; text-align: center; line-height: 1.2; min-height: 3.6em; }
   .suggestion button { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 5px; padding: 3px 4px; font-size: 0.68rem; }
+  .suggestion p + button { margin-top: auto; }
 </style>
 </head>
 <body>
@@ -131,7 +142,7 @@
 
 <script type="module">
 import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, familyOf,
-         ARRANGEMENTS, USUAL_ARRANGEMENT, arrangementsFor } from '../../core/catalog.js';
+         ARRANGEMENTS, USUAL_ARRANGEMENT, SEMY, arrangementsFor } from '../../core/catalog.js';
 import { plain, divided, isComplete, isNested, leafTinctures, shieldTinctures, blazon, ordinaryGroup,
          chargeGroupFromLibrary, COUNTERCHANGED } from '../../core/shield.js';
 import { shieldSVG, swatchSVG, counterchangedSwatchSVG } from '../../core/draw.js';
@@ -159,9 +170,9 @@ const TEXT = {
   collapse: 'collapse',
   expand: 'expand',
   shieldColoursHelp: 'Pick all the colours you want to be considered in suggestions, to narrow down the options in the future questions',
-  coloursLabel: 'Colours',                                              // DRAFT
-  metalsLabel: 'Metals',                                                // DRAFT
-  fursLabel: 'Furs',                                                    // DRAFT
+  coloursLabel: 'colours',      // (these three as in the maintainer's sketch of the colour menu)
+  metalsLabel: 'metals',
+  fursLabel: 'furs',
   fieldColours: 'What colours are used in the background?',
   fieldColoursHelp: "If you're not sure what counts as background (field) in heraldry, use the question above to select colours and scroll down for more questions",
   dividedHeading: 'How is the background divided?',
@@ -178,10 +189,13 @@ const TEXT = {
   chargeRemove: 'remove',                                               // DRAFT
   chargeNumber: 'How many?',                                            // DRAFT
   chargeColour: 'What colour is it?',                                   // DRAFT
-  chargeArranged: 'How are they set out?',                              // DRAFT
+  semy: 'semy',
   // "How are they arranged?": shown once two or more charges are chosen.
   arrangeHeading: 'How are they arranged?',                             // DRAFT
-  arrangeNeedsTwo: 'Pick two or more charges above to see the ways they can go together.', // DRAFT
+  arrangeNothing: 'One charge on its own sits in the middle of the shield. Choose two or more of it, or another charge, to see the ways they can be arranged.', // DRAFT
+  arrangeSemy: 'Semy charges are spread evenly over the whole background, so there is nothing to arrange.', // DRAFT
+  arrangeTogether: 'How the different charges go together',             // DRAFT
+  arrangedUsual: 'the usual way',                                       // DRAFT
   arrangeNone: 'The tools cannot yet put these together on one shield.', // DRAFT
   // The words under each arrangement picture: (a, b) are the two charges' names.
   arrAround: (a, b) => `${a} around the ${b}`,                          // DRAFT
@@ -243,7 +257,7 @@ const TEXT = {
     'quaternary': 'A charge cannot go on a charge that is itself on another charge',
     'arrangement-unsupported': 'The tools cannot draw this arrangement yet',
     'no-room': 'There is not enough room to draw this clearly',
-    'needs-arrangement': 'Four charges have no usual arrangement - please choose how they are set out',
+    'arrangement-unity': 'With another charge above or below, charges in a line may be taken for one group with two arrangements',
     'not-possible': 'Not possible with the colours chosen',
   },
 };
@@ -266,7 +280,7 @@ const words = TEXT.placeholders;
 const UNSPECIFIED = 'unspecified';
 const tinctureOf = item => (item.tincture === UNSPECIFIED ? null : item.tincture);
 const MAX_ITEMS = 3;           // how many different charges can be chosen
-const NUMBERS = [1, 2, 3, 4, 5, 6];  // the "How many?" buttons
+const NUMBERS = [1, 2, 3, 4, 5, 6, SEMY];  // the "How many?" buttons
 
 // ---- What the user has chosen ------------------------------------------------
 // Anything left empty is "not chosen yet": the shield on the right shows it in
@@ -318,8 +332,9 @@ function tidy() {
     }
   }
   // How a charge's own charges are set out only lasts while it suits how many there are.
+  // (It may be chosen before how many: then any number that suits it is offered.)
   for (const item of state.items) {
-    const fits = item.arranged === 'usual' ? !!USUAL_ARRANGEMENT[item.number] : arrangementsFor(item.number).includes(item.arranged);
+    const fits = item.number === null || (item.arranged === 'usual' ? !!USUAL_ARRANGEMENT[item.number] : arrangementsFor(item.number).includes(item.arranged));
     if (item.arranged && !fits) item.arranged = null;
   }
   // An arrangement only lasts while it suits the charges chosen.
@@ -443,7 +458,7 @@ function itemList(keep = -1) {
   const live = item => !!item.choice && (item.choice.kind === 'ordinary' || library.charges.some(c => c.id === item.choice.id));
   const list = [], at = [];
   state.items.forEach((item, i) => {
-    if (!(live(item) || i === keep || (!item.choice && (item.number || tinctureOf(item))))) return;
+    if (!(live(item) || i === keep || (!item.choice && (item.number || tinctureOf(item) || item.arranged)))) return;
     at[i] = list.length;
     list.push({ charge: live(item) ? item.choice : null, number: item.number, tincture: tinctureOf(item), arranged: item.arranged || null });
   });
@@ -575,10 +590,22 @@ function paletteChooser() {
   return html;
 }
 
+// The slim colour menu for question 1 (the maintainer's sketch, November
+// 2026): a small square of each colour with its heraldic name beside it and
+// the everyday word underneath in brackets, each set inside its own outline.
+function slimSets() {
+  const one = id => {
+    const t = TINCTURES[id];
+    return `<button class="slim" type="button" data-q1="${id}" aria-pressed="${state.shieldColours.includes(id)}">${swatchSVG(id)}` +
+      `<span><b>${esc(t.name)}</b>${t.kind === 'fur' ? '' : `<small>(${esc(t.plain)})</small>`}</span></button>`;
+  };
+  const set = (label, order) => `<div class="slim-set"><div class="slim-label">${esc(label)}</div><div class="slim-row">${order.map(one).join('')}</div></div>`;
+  return `<div class="slim-sets">${set(TEXT.coloursLabel, COLOUR_ORDER)}${set(TEXT.metalsLabel, METAL_ORDER)}${set(TEXT.fursLabel, FUR_ORDER)}</div>`;
+}
+
 function renderColourPanels() {
   $('shieldColoursPanel').innerHTML = `<h2>${esc(TEXT.shieldColours)}</h2><p class="help">${esc(TEXT.shieldColoursHelp)}</p>` +
-    swatchSets(ALL_TINCTURES, id => swatchButton(id, { on: state.shieldColours.includes(id), attr: 'data-q1' })) +
-    paletteChooser();
+    slimSets() + paletteChooser();
   $('fieldColoursPanel').innerHTML = `<h2>${esc(TEXT.fieldColours)}</h2><p class="help">${esc(TEXT.fieldColoursHelp)}</p>` +
     swatchSets(offered(), id => swatchButton(id, { on: state.fieldColours.includes(id), attr: 'data-q2', small: true })) +
     `<div class="row" style="margin-top:10px"><button class="name-btn" type="button" data-field-unspecified aria-pressed="${state.fieldUnspecified}">${esc(TEXT.dontSpecify)}</button></div>`;
@@ -769,7 +796,7 @@ function slotBlock(slot, c) {
   const numberButton = n => {
     const why = possible({ number: n });
     return `<button class="name-btn${why ? ` greyed" aria-disabled="${!state.herald}" title="${esc(why)}` : ''}" type="button" ` +
-      `data-number="${n}" data-slot="${slot}" aria-pressed="${item.number === n}">${n}</button>`;
+      `data-number="${n}" data-slot="${slot}" aria-pressed="${item.number === n}">${n === SEMY ? esc(TEXT.semy) : n}</button>`;
   };
   const colourButton = id => swatchButton(id, { on: item.tincture === id, attr: `data-slot="${slot}" data-charge-tincture`, small: true, why: possible({ tincture: id }) });
   let html = '';
@@ -779,17 +806,6 @@ function slotBlock(slot, c) {
   }
   if (!item.choice || item.choice.kind === 'charge') {
     html += `<div class="row-label">${esc(TEXT.chargeNumber)}</div><div class="row">${NUMBERS.map(numberButton).join('')}</div>`;
-    // Two or more: how they are set out, each way as a picture (the usual
-    // way for that many first).
-    if (item.number >= 2) {
-      const ways = [...(USUAL_ARRANGEMENT[item.number] ? ['usual'] : []), ...arrangementsFor(item.number)];
-      html += `<div class="row-label">${esc(TEXT.chargeArranged)}</div><div class="row">` + ways.map(id =>
-        lazyCard('charge', 'charge-arranged', { ...c, items: wantedItems({ slot, set: { arranged: id } }) }, found => ({
-          attrs: `data-slot="${slot}" data-arranged="${id}"`, shield: found && found.shield,
-          label: id === 'usual' ? USUAL_ARRANGEMENT[item.number] : ARRANGEMENTS[id].name, on: item.arranged === id,
-          problems: found ? found.problems : [], why: found === null ? TEXT.rules['not-possible'] : null,
-        }))).join('') + `</div>`;
-    }
   }
   return html + `<div class="row-label">${esc(TEXT.chargeColour)}</div>` +
     swatchSets(offered(), colourButton) + `<div class="row" style="margin-top:10px">${colourButton(COUNTERCHANGED)}` +
@@ -859,9 +875,47 @@ function renderChargePanel() {
 }
 
 // ---- "How are they arranged?" ----------------------------------------------------
-// Every way the chosen charges can go together, each as a picture, so that
-// nobody needs to know the words "primary", "secondary" and "tertiary". Ways
-// the rules forbid are shown greyed, with the reason.
+// Two things, both as pictures, with the ways the rules forbid greyed and the
+// reason given:
+//   * how each charge's own charges are arranged (in pale, in bend...), which
+//     needs only one kind of charge;
+//   * with two or more kinds, every way they can go together, so that nobody
+//     needs to know the words "primary", "secondary" and "tertiary".
+
+// A row of pictures for each charge whose own charges can be arranged: the
+// usual way for that many, then each named arrangement. Only charges that can
+// be in the middle of the shield have a choice so far (ROADMAP item 7), and a
+// single charge, or charges strewn (semy), have none. With nothing picked
+// yet the row shows charges at random.
+function arrangedRows(c, current) {
+  if (state.noCharge) return '';
+  const picked = state.items.filter(item => item.choice);
+  if (picked.some(item => item.choice.kind === 'ordinary' && !ORDINARIES[item.choice.id].peripheral)) return '';
+  const main = current ? current.findIndex(x => x.as === 'primary') : -1;
+  // (Once one charge has been given an arrangement, only that one has a row:
+  // it is the one in the middle, and the others have no choice yet.)
+  const already = state.items.some(item => item.arranged);
+  const slots = state.items.map((item, slot) => ({ item, slot })).filter(({ item, slot }) => {
+    if (item.number === 1 || item.number === SEMY) return false;
+    if (!item.choice) return slot === 0 && state.items.length === 1;
+    if (already && !item.arranged) return false;
+    return item.choice.kind === 'charge' && (!current || picked.indexOf(item) === main);
+  }).slice(0, 2);
+  return slots.map(({ item, slot }) => {
+    const ways = ['usual', ...(item.number ? arrangementsFor(item.number) : Object.keys(ARRANGEMENTS))];
+    return (picked.length > 1 ? `<div class="row-label">${esc(choiceName(item.choice, true))}</div>` : '') +
+      `<div class="row">` + ways.map(id => {
+        // (the usual way is shown with three if how many has not been chosen)
+        const set = id === 'usual' ? { arranged: id, number: item.number || 3 } : { arranged: id };
+        return lazyCard('arrange', 'charge-arranged', { ...c, items: wantedItems({ slot, set }) }, found => ({
+          attrs: `data-slot="${slot}" data-arranged="${id}"`, shield: found && found.shield,
+          label: id !== 'usual' ? ARRANGEMENTS[id].name : (USUAL_ARRANGEMENT[item.number] || TEXT.arrangedUsual), on: item.arranged === id,
+          problems: found ? found.problems : [], why: found === null ? TEXT.rules['not-possible'] : null,
+        }));
+      }).join('') + `</div>`;
+  }).join('');
+}
+
 function renderArrangePanel() {
   forgetLater('arrange');
   const c = constraints();
@@ -869,14 +923,20 @@ function renderArrangePanel() {
   const groups = picked.map(x => x.group);
   let html = `<h2>${esc(TEXT.arrangeHeading)}</h2>`;
   shownArrangements = [];
-  if (groups.length < 2) {
-    $('arrangePanel').innerHTML = html + `<p class="note" style="margin:0">${esc(TEXT.arrangeNeedsTwo)}</p>`;
+  const current = chosenArrangement(groups.length);
+  const several = groups.length >= 2;
+  // How each charge's own charges are arranged ("in pale", "in bend"...).
+  const own = arrangedRows(c, current);
+  if (!several && !own) {
+    const strewn = state.items.some(item => item.number === SEMY);
+    $('arrangePanel').innerHTML = html + `<p class="note" style="margin:0">${esc(strewn ? TEXT.arrangeSemy : TEXT.arrangeNothing)}</p>`;
     return;
   }
-  const current = chosenArrangement(groups.length);
-  const ways = arrangements(groups);
-  if (!ways.length) html += `<p class="note" style="margin:0">${esc(TEXT.arrangeNone)}</p>`;
-  else {
+  // How different charges go together (with two or more kinds of charge).
+  const ways = several ? arrangements(groups) : [];
+  if (several && own) html += `<div class="row-label" style="margin-top:0">${esc(TEXT.arrangeTogether)}</div>`;
+  if (several && !ways.length) html += `<p class="note" style="margin:0">${esc(TEXT.arrangeNone)}</p>`;
+  else if (several) {
     // What goes under a picture: "lions around the chevron; mullets on the chief".
     const label = (way, example) => {
       const drawn = example ? unarrange(example.groups).groups : [];
@@ -903,11 +963,14 @@ function renderArrangePanel() {
         on: sameArrangement(way, current), problems: found ? found.problems : [], why: found === null ? TEXT.rules['not-possible'] : null,
       }))).join('') + `</div>`;
   }
-  html += `<div class="row" style="margin-top:10px"><button class="name-btn" type="button" data-arrangement-unspecified ` +
-    `aria-pressed="${state.arrangementUnspecified}">${esc(TEXT.dontSpecify)}</button></div>`;
+  if (several) {
+    html += `<div class="row" style="margin-top:10px"><button class="name-btn" type="button" data-arrangement-unspecified ` +
+      `aria-pressed="${state.arrangementUnspecified}">${esc(TEXT.dontSpecify)}</button></div>`;
+  }
+  html += own;
 
   // "I'm a herald": say directly what each charge is.
-  if (state.herald) {
+  if (state.herald && several) {
     const opt = (value, text, selected) => `<option value="${value}"${selected ? ' selected' : ''}>${esc(text)}</option>`;
     html += `<div class="roles">` + picked.map(({ item, group }, i) => {
       const now = current ? current[i] : null;
@@ -1127,7 +1190,7 @@ document.addEventListener('click', e => {
   } else if (d.remove) {
     removeItem(Number(d.remove));
   } else if (d.number) {
-    const n = Number(d.number), item = state.items[Number(d.slot)];
+    const n = d.number === SEMY ? SEMY : Number(d.number), item = state.items[Number(d.slot)];
     item.number = item.number === n ? null : n;
     refocus = `[data-number="${d.number}"][data-slot="${d.slot}"]`;
   } else if (d.chargeTincture) {

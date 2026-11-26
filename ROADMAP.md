@@ -52,14 +52,30 @@ here were made with the maintainer; add to it as things are decided.
   - Suggestions may add a charge that was not picked (a bordure, charges
     around an ordinary).
 - **Charges set out in a named arrangement** (November 2026; the start of
-  item 7). "How many?" goes up to six, and for two or more a row of pictures
-  asks "How are they set out?": the usual way for that number, or in pale,
-  in fess, in bend, in bend sinister (two to six charges), in chevron and in
-  chevron inverted (three or five), in cross and in saltire (four or five),
-  one and two, two and two. Five are usually two, two and one, and six
-  three, two and one (Glossary Table 7). Four have no usual arrangement, so
-  one has to be chosen. The charges of a line are evenly spaced, all one
-  size, and packed by their real shapes. The blazon puts it as the O&A's
+  item 7). "How many?" goes up to six, then "semy". "How are they arranged?"
+  shows, even for one kind of charge (and before any is picked), a picture
+  of each way its charges can be arranged: the usual way for that number,
+  or in pale, in fess, in bend, in bend sinister (two to six charges), in
+  chevron and in chevron inverted (three or five), in cross and in saltire
+  (four or five), one and two. Four are usually two and two (the
+  maintainer), five two, two and one, and six three, two and one (Glossary
+  Table 7). An arrangement can be chosen before the number. The charges of a
+  line are evenly spaced, all one size, and packed by their real shapes.
+  With another charge above or below them, a line of charges is held back
+  (SENA A3D2e, unity of arrangement: see the questions below).
+- **Semy** (the maintainer, November 2026): as many small charges as fit,
+  in staggered rows like ermine spots, whole ones only; over the field, in
+  the space around other charges, or over an ordinary. Fewer than seven is
+  not offered. Blazoned as the O&A does ("Azure semy of lyres argent",
+  "Argent semy of violets purpure, a crescent sable") and searched with the
+  O&A's `seme`, `seme on field` and `PS`, checked against real records.
+- **Smaller things from the maintainer, November 2026:** the first colour
+  question is a slim menu (their sketch); checky and lozengy are never
+  squeezed under a chief; a fur on checky or lozengy has a spot in every
+  piece, even one cut by the shield's edge; charges are never moved sideways
+  to find a contrasting part of a patterned field (up or down only); "a
+  cross between in bend two roundels" says "in bend"; long blazons under the
+  suggestions are no longer cut off. The blazon puts it as the O&A's
   records do ("in pale three roundels Or", "four mullets two and two"), and
   the search gets the arrangement's own O&A category (INPALE and the like),
   checked against real records.
@@ -122,6 +138,20 @@ here were made with the maintainer; add to it as things are decided.
    are in SENA A3; cotises are their own charge group in the O&A).
 10. **A base, like a chief,** should probably make the field be drawn in the
    space left above it (a chief does this already).
+11. **Choose the pattern to suit the charges** (the maintainer's idea,
+   November 2026, after three swords on lozengy looked wrong moved off
+   centre; Makejoye's drawing has them centred on larger lozenges). Instead
+   of moving charges to find contrast, keep the charges where they belong
+   and pick the field: of the lozengy, checky, paly... drawings available
+   (several sizes and offsets of each, and later every such background in
+   the Traceable Heraldic Art library), use the one on which the chosen
+   charges and ordinaries sit best. A way to do it with what is built: draw
+   the charges first (`layoutShield` already does), then score each
+   candidate background by how evenly each charge lies across the two
+   tinctures and how little of its outline runs along a line of the field,
+   and take the best. The backgrounds would need to be described as data
+   (cell size, offset) rather than the one fixed shape each has now in
+   `geometry.js`.
 
 ## Questions waiting for the maintainer
 
@@ -136,7 +166,9 @@ here were made with the maintainer; add to it as things are decided.
   on the field?", "remove", "How are they arranged?" and the words under its
   pictures ("lions around the chevron", "lion on the chevron", "lion above
   the chevron", "lion below the chevron", "lion with a bordure"), the herald
-  mode choices, "(arranged any way)", "How are they set out?", and eight new
+  mode choices, "(arranged any way)", "the usual way", "How the different
+  charges go together", the two notes shown when there is nothing to
+  arrange (one charge; semy), and eight new
   rule messages.
 
 Raised by the work on several charges and arrangements (November 2026).
@@ -150,8 +182,27 @@ Each is a herald's call; the code does the cautious thing until answered:
   follow the maintainer's sketch.) How should they go?
 - **Three around a cross, two or three around a saltire, three around a
   pale or bend:** not drawn; the Glossary's Table 7 gives no arrangement.
-- **"A cross between two roundels"** is drawn in bend, as the maintainer
-  sketched, but the blazon does not say "in bend". Should it?
+- **Unity of arrangement (SENA A3D2e).** The maintainer asked for "in bend",
+  "in fess", "in chevron" to be discouraged in some cases with several
+  charges. What is built: charges in a named arrangement, with another
+  charge above or below them ("in bend three swords and in chief a mullet"),
+  are not suggested, because the two can be taken for one group that needs
+  two arrangement phrases; a herald can still choose it. With a bordure or
+  chief, or charges lying on them, they are suggested as usual. Is that the
+  case that was meant, and are there others?
+- **Semy:** always blazoned "semy of ..." (never "mullety", "crusilly",
+  "bezanty", "semy-de-lys"). Strewn charges are 12 across on the shield's
+  100 (long thin ones a little longer). With three charges around a fess as
+  well, fewer than seven strewn charges fit, so that combination (which
+  SENA Appendix J lists) is not offered.
+- **The other colour menus** (background colours, a charge's colour) still
+  use the larger squares, because they show why a colour is greyed. Slim
+  them the same way?
+- **Stripes under a chief** (barry, bendy, chevronelly) are still squeezed
+  into the space below it; only checky and lozengy keep their shape.
+- **Narrow charges on paly** (three swords) now each sit wholly on one
+  stripe, since they are no longer moved sideways, and are reported as low
+  contrast when that stripe is their own kind of tincture.
 - **Six charges on a divided field** are set out three, two and one, which
   Table 7 gives only for an undivided field.
 - **"In chevron"** is offered although SENA Appendix K's list of standard
@@ -170,6 +221,10 @@ Each is a herald's call; the code does the cautious thing until answered:
 
 Answered (kept for the record):
 
+- "A cross between two roundels" says "in bend" in the blazon; four charges
+  are two and two by default, with no special message; "How are they
+  arranged?" is the wording, not "How are they set out?" (maintainer,
+  November 2026).
 - A group "in chief" plus a bordure counts as a group around the primary
   under Appendix J (maintainer, November 2026).
 - The middle charge of three on a chevron is drawn upright, not "fesswise"

@@ -30,7 +30,7 @@
 // NOT CHOSEN YET: anything the shield description leaves open (see shield.js)
 // is simply left out of the pattern, so the search matches any value for it.
 
-import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, SEMY } from './catalog.js';
 import { COUNTERCHANGED, tincturesIn, isComplete, roles, isPeripheral } from './shield.js';
 
 const FORM_URL = 'https://oanda.sca.org/oanda_complex.cgi';
@@ -165,10 +165,21 @@ function tinctureFeatures(group, field) {
 // A group whose place in the design has not been chosen (shield.js: roles)
 // gets a line without "primary" or "secondary", so the search finds it
 // wherever it is.
+// SEMY (checked against real records): the number is "seme". Strewn charges
+// alone on the field are the primary group, and the armory is also marked PS
+// ("seme as primary"): "Azure semy of lyres argent" has HARP:argent:gpa:seme
+// and PS:argent. Strewn around a primary charge they are "seme on field" (a
+// kind of secondary), and not always given the number: "Sable semy of
+// trefoils, a garb Or" has FOIL-3:or:seme on field. So that line leaves the
+// number out.
+const numberWord = n => (n === SEMY ? 'seme' : String(n));
+
 function groupLine(group, field, word, count = group.number) {
   const def = group.kind === 'ordinary' ? ORDINARIES[group.ordinary] : null;
   const bits = [def ? def.code : group.category];
-  if ((!def || def.numbered) && count !== null) bits.push(String(count));
+  const strewnOnField = count === SEMY && word === 'secondary';
+  if (strewnOnField) word = 'seme on field';
+  else if ((!def || def.numbered) && count !== null) bits.push(numberWord(count));
   bits.push(...tinctureFeatures(group, field));
   if (def) bits.push('pl');
   if (group.posture) bits.push(group.posture);
@@ -180,7 +191,7 @@ function primaryLines(group, field) {
   const tincture = tinctureFeatures(group, field);
   const def = group.kind === 'ordinary' ? ORDINARIES[group.ordinary] : null;
   const code = def ? def.code : group.category;
-  const number = (!def || def.numbered) && group.number !== null ? String(group.number) : null;
+  const number = (!def || def.numbered) && group.number !== null ? numberWord(group.number) : null;
   const lines = [];
   if (number) lines.push([code, number, 'primary']);
   if (tincture.length) lines.push([code, ...tincture, 'primary']);
@@ -209,11 +220,13 @@ export function shieldPatterns(field, groups = [], { noCharge = false } = {}) {
     else patterns.push(groupLine(g, field, 'secondary'));
     if (g.charged) {
       const each = g.kind === 'ordinary' ? 1 : g.number;
-      const count = g.charged.number === null || each === null ? null : g.charged.number * each;
+      const count = g.charged.number === SEMY || each === SEMY ? SEMY
+        : g.charged.number === null || each === null ? null : g.charged.number * each;
       tertiary.push(groupLine(g.charged, field, 'tertiary', count));
     }
   });
   const flags = [];
+  if (groups.some((g, i) => r[i].role === 'primary' && r[i].chosen && g.number === SEMY)) flags.push('PS');
   if (groups.length && groups.every(isPeripheral)) flags.push('PO');
   if (!groups.length && noCharge) flags.push('FO');
   return [...patterns, ...tertiary].slice(0, MAX_PATTERNS - flags.length).concat(flags);

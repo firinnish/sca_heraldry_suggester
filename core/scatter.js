@@ -87,6 +87,24 @@ export function scatter(key, regions, { room = 4.8, spacing = [12.7, 15.5], grid
   for (const c of candidates) {
     if (placed.every(([px, py]) => ((c.x - px) / sx) ** 2 + ((c.y - py) / sy) ** 2 >= 1)) placed.push([c.x, c.y]);
   }
+
+  // EVERY PIECE GETS ONE (the maintainer, November 2026). Where the region is
+  // made of many small pieces (the lozenges of lozengy, the squares of
+  // checky), a piece cut by the shield's edge may have had no room for a
+  // whole spot. A spot half cut off by the edge is much better than a piece
+  // with none, so each such piece gets one at its own middle.
+  const pieces = prepared.length ? prepared[prepared.length - 1] : [];
+  const outer = prepared.slice(0, -1);
+  if (pieces.length > 4) {
+    for (const b of pieces) {
+      if (placed.some(([px, py]) => px >= b.x0 && px <= b.x1 && py >= b.y0 && py <= b.y1 && pointInPolygon(px, py, b.p))) continue;
+      const cx = b.p.reduce((s, q) => s + q[0], 0) / b.p.length, cy = b.p.reduce((s, q) => s + q[1], 0) / b.p.length;
+      // only pieces that show: some corner (or the middle) inside the shield, and inside the parts this one is a part of
+      const shows = [[cx, cy], ...b.p].some(([x, y]) => insideShield(x, y) &&
+        outer.every(boxes => boxes.some(o => pointInPolygon(x, y, o.p))));
+      if (shows) placed.push([cx, cy]);
+    }
+  }
   cache.set(cacheKey, placed);
   return placed;
 }

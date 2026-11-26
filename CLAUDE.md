@@ -95,14 +95,26 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   contrast with it), A3D1c (a chief on per fess is allowed with a charge over
   the line). `no-room` (house) = a charge would be drawn too small.
 - A group's own charges can be set out in a NAMED ARRANGEMENT: `arranged` on
-  the group ('pale', 'chevron', 'twoAndTwo'...; null = the usual way for
+  the group ('pale', 'chevron', 'oneAndTwo'...; null = the usual way for
   their number). The vocabulary, with O&A categories, is `ARRANGEMENTS` in
   `catalog.js`. `placeArranged` in `layout.js` holds each as a pattern of
   steps across and down, then stretches and slides the pattern until the
   charges are as large as they can be. Only the primary group so far. Four
-  charges have no usual arrangement (`needs-arrangement`). In the page and
-  the generator, 'usual' means "the usual way, chosen on purpose" and null
-  "not chosen".
+  charges are two and two by default (maintainer). In the page and the
+  generator, 'usual' means "the usual way, chosen on purpose" and null "not
+  chosen". A named arrangement with another charge above or below is a
+  `house` problem (`arrangement-unity`, SENA A3D2e).
+- SEMY: a group's `number` can be `SEMY` (catalog.js). `placeSemy` in
+  `layout.js` strews whole charges in staggered rows over a space (the
+  field, the space around other charges, an ordinary). Fewer than
+  `SEMY_FEWEST` (7) is reported as `no-room`. Blazon: "Azure semy of X Or",
+  named with the field. O&A: number `seme`; alone it is primary and the
+  armory is also `PS`; around a primary charge the line is `...:seme on field`.
+- Patterned fields: checky and lozengy are never squeezed under a chief
+  (`KEEPS_ITS_SHAPE` in `geometry.js`). A fur on a field of small pieces
+  gets a spot in every piece, even one cut by the edge (`scatter.js`).
+  Charges are never nudged sideways on a patterned field, only up or down
+  (`nudge` in `layout.js`); the better long-term answer is ROADMAP item 11.
 - An ordinary with charges around it is drawn narrower (`SLIM` in
   `layout.js`, `width` in `geometry.js`), keeping its middle line. One alone
   keeps the full width, so `tests/alignment.html` is unaffected.
@@ -154,10 +166,15 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   click is never held up by it. The greying of "How many?" and the colours
   is worked out the same way (`slotBlock`); until it is ready the block
   shows what was greyed before.
-- "How many?" goes to six. For two or more, "How are they set out?" shows
-  each arrangement as a picture, labelled with its heraldic name from
-  `catalog.js`. Choosing another number drops an arrangement that no longer
-  fits.
+- "How many?" goes to six, then "semy" (the maintainer's word). "How are
+  they arranged?" (their wording) shows each way a charge's own charges can
+  be arranged as a picture, labelled with its heraldic name from
+  `catalog.js`: with one kind of charge, and even before any is picked. With
+  two or more kinds it also shows how they go together. Choosing another
+  number drops an arrangement that no longer fits.
+- Question 1's colours are a slim menu (the maintainer's sketch): small
+  squares, the heraldic name in bold, the everyday word in brackets, each
+  set in its own outline. The other colour menus are still the larger kind.
 - The maintainer cannot easily run a local server (python is not on their
   terminal's PATH). To let them try unmerged work, commit it to a branch and
   put a copy in a `preview/` folder on `main` (core, apps/search, charges,

@@ -208,13 +208,18 @@ export function frameCentre(frame = null) {
   return [C, chiefFessY];
 }
 
+// Patterns of squares are never squeezed (the maintainer, November 2026:
+// "it's never correct to squish checky"). They stay as they are, which
+// already lines them up with a chief: its lower edge is the edge of a row.
+const KEEPS_ITS_SHAPE = new Set(['checky', 'lozengy']);
+
 // `frame`: null for the whole shield, or 'chief' for the space below a chief.
 export function divisionShapes(division, frame = null) {
   const key = `${division}|${frame}`;
   if (!divisionCache.has(key)) {
     if (!DIVISION_SHAPES[division]) throw new Error('No shape for division: ' + division);
     const parts = DIVISION_SHAPES[division]();
-    divisionCache.set(key, frame === 'chief' ? parts.map(squeezeBelowChief) : parts);
+    divisionCache.set(key, frame === 'chief' && !KEEPS_ITS_SHAPE.has(division) ? parts.map(squeezeBelowChief) : parts);
   }
   return divisionCache.get(key);
 }

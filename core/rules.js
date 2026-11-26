@@ -25,11 +25,11 @@
 //
 // GOOD CONTRAST (SENA A3B2) is metal against colour, or neutral against either.
 
-import { TINCTURES, familyOf, baseTincture } from './catalog.js';
+import { TINCTURES, SEMY, familyOf, baseTincture } from './catalog.js';
 import { COUNTERCHANGED, isComplete, isNested, leafTinctures, tincturesIn, shieldTinctures,
          roles, allGroups, typeOf, isCentralOrdinary } from './shield.js';
 import { partMap } from './geometry.js';
-import { layoutShield, extentOf } from './layout.js';
+import { layoutShield, extentOf, SEMY_FEWEST } from './layout.js';
 
 const MAX_COMPLEXITY = 8;          // SENA A3E2
 // A charge drawn smaller than this (its greater measure, on a shield 100
@@ -336,12 +336,16 @@ function checkGroups(field, groups, problems) {
   // What the tools cannot draw (yet): an arrangement with no default (the
   // Glossary's Table 7 says "None, must be specified"), or one that leaves a
   // charge too small to make out.
+  // Strewn charges (semy) are small on purpose; what they need is company:
+  // fewer than seven is not semy (the maintainer's rule).
   const small = e => e.places.some(p => extentOf(e.picture, p.size) < MIN_EXTENT);
   layout.entries.forEach((e, i) => {
-    for (const part of [e, groups[i].charged ? e.tertiary : null]) {
+    for (const [part, group] of [[e, groups[i]], [groups[i].charged ? e.tertiary : null, groups[i].charged]]) {
       if (!part) continue;
-      if (!part.ok) problems.push({ id: 'arrangement-unsupported', sena: null, level: 'house' });
-      else if (part.places && small(part)) problems.push({ id: 'no-room', sena: null, level: 'house' });
+      const strewn = group.number === SEMY;
+      if (strewn && part.places && part.places.length < SEMY_FEWEST) problems.push({ id: 'no-room', sena: null, level: 'house' });
+      else if (!part.ok) problems.push({ id: 'arrangement-unsupported', sena: null, level: 'house' });
+      else if (!strewn && part.places && small(part)) problems.push({ id: 'no-room', sena: null, level: 'house' });
     }
   });
   return layout;
@@ -376,23 +380,31 @@ export function checkArrangement(groups) {
   const types = groups.map(typeOf);
   if (new Set(types).size < types.length) problems.push({ id: 'same-charge-twice', sena: 'A3D1a', level: 'sena' });
 
-  // The Glossary's Table 7 gives four charges on their own no usual
-  // arrangement ("None, must be specified"): one has to be chosen. (They are
-  // drawn two and two meanwhile.)
-  if (primary && primary.kind === 'charge' && primary.number === 4 && !primary.arranged) {
-    problems.push({ id: 'needs-arrangement', sena: null, level: 'house' });
-  }
-  // Only the primary group can be set out in a named arrangement so far.
-  if (allGroups(groups).some(g => g.arranged && g !== primary)) {
-    problems.push({ id: 'arrangement-unsupported', sena: null, level: 'house' });
-  }
-
   // SENA Appendix I3: "Charges on tertiary charges are known as quaternary
   // charges and are not allowed".
   if (groups.some(g => g.charged && g.charged.charged)) problems.push({ id: 'quaternary', sena: 'Appendix I3', level: 'sena' });
 
   // The rest depends on the arrangement, so waits until it has been chosen.
   if (!r.every(x => x.chosen)) return problems;
+
+  // Only the primary group can be set out in a named arrangement so far.
+  if (allGroups(groups).some(g => g.arranged && g !== primary)) {
+    problems.push({ id: 'arrangement-unsupported', sena: null, level: 'house' });
+  }
+  // SENA A3D2e, Unity of Arrangement: "Charges within a charge group should
+  // be in an arrangement that can be blazoned with a single arrangement
+  // phrase." Charges set out in a line with another charge above or below
+  // them can be taken for ONE group (Appendix I1: charges each "entirely in
+  // a single section of the field ... are collectively the primary charge
+  // group"; and on an undivided field a charge well below the centre "would
+  // give the impression of a single primary charge group, no matter how it
+  // was blazoned"), and that group would then need two arrangement phrases:
+  // SENA's own example of what is not unified is "in pale a tower and in
+  // cross four gouttes". It depends on the drawing, so the tools hold it
+  // back (the maintainer, November 2026); a herald may choose it.
+  if (primary && primary.arranged && groups.some((g, i) => r[i].role === 'secondary' && g.number !== SEMY)) {
+    problems.push({ id: 'arrangement-unity', sena: 'A3D2e', level: 'house' });
+  }
 
   // SENA Appendix J: "All designs with two charge groups on the field are
   // presumed to be registerable ... All designs with three or more charge
@@ -404,10 +416,15 @@ export function checkArrangement(groups) {
   //    charge group (semy, in orle, or numbered charges), and a peripheral
   //    ordinary", each with tertiary charges on the primary group, on the
   //    ordinaries, or both.
+  // and, with charges strewn over the field:
+  //   "A central ordinary, a secondary charge group around the ordinary
+  //    (numbered charges), and another secondary charge group (semy)".
   if (groups.length >= 3) {
     const secondary = groups.filter((g, i) => r[i].role === 'secondary');
-    const listed = groups.length === 3 && primary && secondary.length === 1 && !secondary[0].charged &&
-      r.filter(x => x.role === 'peripheral').length === 1;
+    const edges = r.filter(x => x.role === 'peripheral').length;
+    const listed = groups.length === 3 && primary && secondary.every(g => !g.charged) && (
+      (secondary.length === 1 && edges === 1) ||
+      (secondary.length === 2 && edges === 0 && isCentralOrdinary(primary) && secondary.filter(g => g.number === SEMY).length === 1));
     // (A group only above or below the primary one, "in chief three
     // mullets", counts as a group around it: the maintainer, November 2026.)
     if (!listed) problems.push({ id: 'too-many-groups', sena: 'Appendix J', level: 'sena' });
