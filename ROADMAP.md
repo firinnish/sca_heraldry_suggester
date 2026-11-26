@@ -63,6 +63,15 @@ here were made with the maintainer; add to it as things are decided.
    these as their own lines, e.g. `INPALE:3:or:g3pa`,
    `ARRANGEMENT-IN FESS:3:argent:g3pa`. Also more than three charges.
 
+8. **Several ordinaries and their diminutives** (maintainer, November 2026):
+   two or three chevronels, bendlets, pallets, bars; two orles = a double
+   tressure. Needs the O&A numbers and names for each, and sits with
+   secondary charges and arrangements (item 1).
+9. **Fimbriation and cotising** where SENA allows it (voiding and fimbriation
+   are in SENA A3; cotises are their own charge group in the O&A).
+10. **A base, like a chief,** should probably make the field be drawn in the
+   space left above it (a chief does this already).
+
 ## Questions waiting for the maintainer
 
 - **Suggestions: how many, and how laid out?** Built as one row of 12 along

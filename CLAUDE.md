@@ -75,6 +75,12 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   "colours used in the background" means exactly those.
 - An option the rules forbid is shown greyed with the reason, never hidden
   ("misses a chance for education"). Option groups are limited to about 18.
+- The shield top right assumes a colour when the shield's colours leave only
+  one legal possibility (a background part, the charge's colour). "don't
+  specify" (the maintainer's words) keeps it open for searching.
+- With a chief, the field is drawn in the space below it (divisions through
+  the middle of that space); the rules still judge contrast on the whole-
+  shield shapes.
 - Each question card sets one thing. "select this shield" on a suggestion
   copies everything into the questions; "pin suggestion" keeps it.
 

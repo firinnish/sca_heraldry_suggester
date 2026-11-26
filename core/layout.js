@@ -30,6 +30,8 @@ const SPACES = {
   3: [[1, 1, 50, 50], [50, 1, 99, 50], [1, 50, 99, 118.5]],
 };
 export const MAX_NUMBER = 3;
+const WIDE = 1.25;                 // wider than tall by this much counts as wide
+const TWO_WIDE = [[1, 1, 99, 50], [1, 50, 99, 118.5]];
 
 // A charge with no picture is drawn as a blob: a slightly squashed circle.
 export const BLOB_PICTURE = {
@@ -92,7 +94,9 @@ export function placeGroup(group, field = null) {
   const number = group.number || 1;
   const key = [picture.href || 'blob', group.mirror, flipY, number].join('|');
   if (!placeCache.has(key)) {
-    const spaces = SPACES[number];
+    // Two charges wider than they are tall (a lion passant, a sword fesswise)
+    // are by default one above the other ("in pale"), not side by side.
+    const spaces = number === 2 && picture.aspect >= WIDE ? TWO_WIDE : SPACES[number];
     if (!spaces) throw new Error(`No layout yet for ${number} charges`);
     const outline = picture.outline.map(([u, v]) => [group.mirror ? -u : u, flipY ? -v : v]);
     const step = Math.max(1, Math.floor(outline.length / 70));
@@ -120,6 +124,16 @@ const SIDEWAYS = new Set(['paly']);
 const BOTH_WAYS = new Set(['checky', 'lozengy', 'gyronny']);
 const nudgeCache = new Map();
 
+// The sample point at (x, y), if there is one.
+let sampleIndex = null;
+function sampleAt(x, y) {
+  if (!sampleIndex) {
+    sampleIndex = new Map();
+    SAMPLES.forEach(([sx, sy], i) => sampleIndex.set(`${sx},${sy}`, i));
+  }
+  return sampleIndex.get(`${x},${y}`);
+}
+
 function nudge(base, group, field, key) {
   const t = group.tincture;
   if (!field || field.type !== 'divided' || familyOf(field.division) !== 'many' || !t || !TINCTURES[t] ||
@@ -145,21 +159,32 @@ function nudge(base, group, field, key) {
     });
   });
 
+  // Moves are in steps of 2, the spacing of the sample grid, so a charge's
+  // coverage after a move is just its coverage before, shifted along the grid:
+  // worked out once per size, not once per move.
   const moves = [];
-  for (let d = -NUDGE_RANGE; d <= NUDGE_RANGE; d++) {
+  for (let d = -NUDGE_RANGE; d <= NUDGE_RANGE; d += 2) {
     if (!SIDEWAYS.has(field.division)) moves.push([0, d]);
     if (SIDEWAYS.has(field.division) || BOTH_WAYS.has(field.division)) moves.push([d, 0]);
   }
+  const shift = (coverage, dx, dy) => coverage.map(points => points.map(i => {
+    const [x, y] = SAMPLES[i];
+    return sampleAt(x + dx, y + dy);
+  }).filter(i => i !== undefined));
   let best = { result: base, score: share(base.coverage) };
   const needed = best.score + 0.05;          // only move for a real gain
   for (const scale of NUDGE_SIZES) {
+    const sized = scale === 1 ? base.coverage
+      : base.places.map(p => covers(base.thinned, p.cx, p.cy, p.size * scale));
     for (const [dx, dy] of moves) {
       const places = base.places.map(p => ({ cx: p.cx + dx, cy: p.cy + dy, size: p.size * scale }));
       if (!fits(places, scale)) continue;
-      const coverage = places.map(p => covers(base.outline, p.cx, p.cy, p.size));
-      const score = share(coverage) - (1 - scale) - Math.hypot(dx, dy) * 0.002;
-      if (score > best.score && share(coverage) >= needed) best = { result: { ...base, places, coverage }, score };
+      const coverage = shift(sized, dx, dy);
+      const got = share(coverage);
+      const score = got - (1 - scale) - Math.hypot(dx, dy) * 0.002;
+      if (score > best.score && got >= needed) best = { result: { ...base, places, coverage }, score };
     }
+    if (best.result !== base) break;         // no need to shrink if moving was enough
   }
   nudgeCache.set(cacheKey, best.result);
   return best.result;

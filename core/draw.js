@@ -9,7 +9,7 @@
 
 import { TINCTURES } from './catalog.js';
 import { COUNTERCHANGED, counterchangedField } from './shield.js';
-import { W, H, SHIELD_PATH, BORDURE_WIDTH, pathOf, divisionShapes, ordinaryShapes } from './geometry.js';
+import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes, ordinaryShapes } from './geometry.js';
 import { placeGroup } from './layout.js';
 import { scatter } from './scatter.js';
 
@@ -55,7 +55,7 @@ function paintFor(tincture, ctx) {
 // `regions` and `key` say which piece of the shield this field fills (a part
 // of a division, a part of that part...), so that a fur's spots can be placed
 // whole inside it rather than cut by its edges.
-function drawField(field, ctx, regions = [], key = 'whole') {
+function drawField(field, ctx, regions = [], key = 'whole', frame = null) {
   if (field && field.type === 'plain' && field.tincture !== null && TINCTURES[field.tincture].fur) {
     const t = TINCTURES[field.tincture];
     const spots = TINCTURES[t.fur.spots].hex;
@@ -68,10 +68,10 @@ function drawField(field, ctx, regions = [], key = 'whole') {
       : UNKNOWN_FIELD[ctx.unknowns++ % UNKNOWN_FIELD.length];
     return `<rect width="${W}" height="${H}" fill="${paint}"/>`;
   }
-  return divisionShapes(field.division).map((polygons, i) => {
+  return divisionShapes(field.division, frame).map((polygons, i) => {
     const clipId = `${ctx.id}-c${ctx.clips++}`;
     ctx.defs.push(`<clipPath id="${clipId}"><path d="${pathOf(polygons)}"/></clipPath>`);
-    return `<g clip-path="url(#${clipId})">${drawField(field.parts[i], ctx, [...regions, polygons], `${key}/${field.division}${i}`)}</g>`;
+    return `<g clip-path="url(#${clipId})">${drawField(field.parts[i], ctx, [...regions, polygons], `${key}/${frame || ''}${field.division}${i}`, frame)}</g>`;
   }).join('');
 }
 
@@ -93,6 +93,15 @@ function painter(group, field, ctx) {
 function drawOrdinary(group, field, ctx) {
   const paint = painter(group, field, ctx);
   const id = `${ctx.id}-o${ctx.clips++}`;
+  if (group.ordinary === 'orle') {
+    // A band set in from the edge: a wide stroke along the outline, minus a
+    // narrower one. The lines are the same band made a little wider.
+    const band = (maskId, grow) => `<mask id="${maskId}">` +
+      `<path d="${SHIELD_PATH}" fill="none" stroke="#fff" stroke-width="${2 * (ORLE_GAP + ORLE_WIDTH) + grow}"/>` +
+      `<path d="${SHIELD_PATH}" fill="none" stroke="#000" stroke-width="${2 * ORLE_GAP - grow}"/></mask>`;
+    ctx.defs.push(band(id, 0), band(id + 'l', 1.6));
+    return `<rect width="${W}" height="${H}" fill="${LINE}" mask="url(#${id}l)"/>` + paint(`mask="url(#${id})"`);
+  }
   if (group.ordinary === 'bordure') {
     // A wide line along the shield's edge; the half outside the shield is
     // trimmed off by the shield's own outline.
@@ -163,7 +172,9 @@ function drawGroup(group, field, ctx) {
 // picture is not loaded is drawn as a blob. `field` may be null (not chosen).
 export function shieldSVG(field, { title = '', charges = [] } = {}) {
   const ctx = newContext();
-  const body = drawField(field, ctx) + charges.map(g => drawGroup(g, field, ctx)).join('');
+  // With a chief, the field is drawn in the space below it (geometry.js).
+  const frame = charges.some(g => g.kind === 'ordinary' && g.ordinary === 'chief') ? 'chief' : null;
+  const body = drawField(field, ctx, [], 'whole', frame) + charges.map(g => drawGroup(g, field, ctx)).join('');
   const safeTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;');
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">` +
     (title ? `<title>${safeTitle}</title>` : '') +

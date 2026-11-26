@@ -82,6 +82,9 @@
   .link-btn { background: none; border: none; padding: 2px 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-size: 0.92rem; text-align: left; }
   .palette-list { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
   .palette-option { display: inline-flex; align-items: center; gap: 8px; }
+  .collapse-btn { margin-left: 10px; background: none; border: 1px solid var(--line); border-radius: 5px; padding: 1px 8px; font: inherit; font-size: 0.75rem; font-weight: normal; color: var(--muted); cursor: pointer; vertical-align: middle; }
+  .panel.collapsed > :not(h2):not(.suggestions-head) { display: none; }
+  .panel.collapsed .suggestions-head > :not(h2) { display: none; }
   .help { font-size: 0.88rem; color: var(--muted); margin: -4px 0 12px; }
   .problems { margin: 0 0 12px; padding: 8px 10px 8px 26px; border: 1px solid #e3c4b8; background: #fbf1ec; border-radius: 6px; color: var(--warn); font-size: 0.82rem; }
   details { margin-top: 12px; font-size: 0.8rem; color: var(--muted); }
@@ -140,6 +143,9 @@ const TEXT = {
   morePalettes: 'see more palettes',
   fewerPalettes: 'hide other palettes',                                   // DRAFT
   paletteSource: 'source',
+  dontSpecify: "don't specify",
+  collapse: 'collapse',
+  expand: 'expand',
   shieldColoursHelp: 'Pick all the colours you want to be considered in suggestions, to narrow down the options in the future questions',
   coloursLabel: 'Colours',                                              // DRAFT
   metalsLabel: 'Metals',                                                // DRAFT
@@ -214,6 +220,9 @@ const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
 const $ = id => document.getElementById(id);
 const toggle = (list, x) => (list.includes(x) ? list.filter(y => y !== x) : [...list, x]);
 const words = TEXT.placeholders;
+// The charge colour "don't specify": search without a colour, and assume none.
+const UNSPECIFIED = 'unspecified';
+const chosenChargeTincture = () => (state.chargeTincture === UNSPECIFIED ? null : state.chargeTincture);
 
 // ---- What the user has chosen ------------------------------------------------
 // Anything left empty is "not chosen yet": the shield on the right shows it in
@@ -231,7 +240,9 @@ const state = {
   pinned: [],            // suggestions the user has pinned
   epoch: 0,
   palette: DEFAULT_PALETTE, // the colour scheme shields are drawn in
-  showPalettes: false,      // is the list of other palettes open?              // goes up when the user asks for different suggestions
+  showPalettes: false,
+  fieldUnspecified: false,  // "don't specify" ticked for the background's colours
+  collapsed: new Set(),     // ids of question sections the user has collapsed      // is the list of other palettes open?              // goes up when the user asks for different suggestions
 };
 let library = { charges: [], pictures: [] };   // filled in once charges/ has loaded
 let shown = [];                                // the suggestions on screen, by position
@@ -245,9 +256,10 @@ const offered = () => palette() || ALL_TINCTURES;
 
 // Keep the answers consistent with each other after any change.
 function tidy() {
-  // A colour used for the background or the charge is used in the shield.
-  if (state.shieldColours.length >= 2) {
-    for (const t of [...state.fieldColours, state.chargeTincture]) {
+  // A colour used for the background or the charge is used in the shield
+  // (once any shield colour is ticked: then they are all in the palette).
+  if (state.shieldColours.length >= 1) {
+    for (const t of [...state.fieldColours, chosenChargeTincture()]) {
       if (t && t !== COUNTERCHANGED && !state.shieldColours.includes(t)) state.shieldColours.push(t);
     }
   }
@@ -281,8 +293,50 @@ function groupFor(choice, tincture, number) {
 function currentShield() {
   const field = currentField();
   const chosen = state.charge && state.charge !== 'none'
-    ? groupFor(state.charge, state.chargeTincture, state.chargeNumber) : null;
+    ? groupFor(state.charge, chosenChargeTincture(), state.chargeNumber) : null;
   return { field, groups: chosen ? [chosen] : [], noCharge: state.charge === 'none' };
+}
+
+// The shield shown top right: as chosen, but where the colours chosen for
+// the shield leave only ONE legal possibility for something not yet chosen
+// (a part of the background, the charge's colour), that one is assumed. The
+// user can still choose otherwise, or tick "don't specify" to keep it open.
+function shownShield() {
+  const shield = currentShield();
+  const p = palette();
+  if (!p) return shield;
+  let field = shield.field;
+  if (field && !state.fieldUnspecified && !isComplete(field)) field = onlyWay(field, p) || field;
+  let groups = shield.groups;
+  const g = groups[0];
+  if (g && g.tincture === null && state.chargeTincture !== UNSPECIFIED && field && isComplete(field)) {
+    const ok = [...p, COUNTERCHANGED].filter(t => !checkShield({ field, groups: [{ ...g, tincture: t }] }).length);
+    if (ok.length === 1) groups = [{ ...g, tincture: ok[0] }];
+  }
+  return { ...shield, field, groups };
+}
+
+// The one way to fill a field's unchosen colours from `palette` that the
+// rules allow, or null if there are none or several.
+function onlyWay(field, palette) {
+  let slots = 0;
+  const count = f => { if (f.type === 'plain') slots += f.tincture === null ? 1 : 0; else f.parts.forEach(count); };
+  count(field);
+  if (!slots || slots > 3) return null;
+  const fill = (f, values) => f.type === 'plain'
+    ? (f.tincture === null ? plain(values.shift()) : f)
+    : { ...f, parts: f.parts.map(part => fill(part, values)) };
+  let found = null;
+  const tryAll = (chosen) => {
+    if (chosen.length === slots) {
+      const f = fill(field, [...chosen]);
+      if (!checkShield({ field: f }).length) { if (found) throw 'several'; found = f; }
+      return;
+    }
+    for (const t of palette) tryAll([...chosen, t]);
+  };
+  try { tryAll([]); } catch (e) { return null; }
+  return found;
 }
 
 // What is fixed, in the form generate.js wants.
@@ -296,7 +350,7 @@ function constraints() {
     field: isComplete(field) ? field : undefined,
     charge: state.charge,
     number: state.chargeNumber,
-    chargeTincture: state.chargeTincture,
+    chargeTincture: chosenChargeTincture(),
   };
 }
 
@@ -376,7 +430,8 @@ function renderColourPanels() {
     swatchSets(ALL_TINCTURES, id => swatchButton(id, { on: state.shieldColours.includes(id), attr: 'data-q1' })) +
     paletteChooser();
   $('fieldColoursPanel').innerHTML = `<h2>${esc(TEXT.fieldColours)}</h2><p class="help">${esc(TEXT.fieldColoursHelp)}</p>` +
-    swatchSets(offered(), id => swatchButton(id, { on: state.fieldColours.includes(id), attr: 'data-q2', small: true }));
+    swatchSets(offered(), id => swatchButton(id, { on: state.fieldColours.includes(id), attr: 'data-q2', small: true })) +
+    `<div class="row" style="margin-top:10px"><button class="name-btn" type="button" data-field-unspecified aria-pressed="${state.fieldUnspecified}">${esc(TEXT.dontSpecify)}</button></div>`;
 }
 
 function card({ attrs, shield, label, on, problems = [], why = null }) {
@@ -555,7 +610,8 @@ function renderChargePanel() {
       return swatchButton(id, { on: state.chargeTincture === id, attr: 'data-charge-tincture', small: true, why });
     };
     html += `<div class="row-label">${esc(TEXT.chargeColour)}</div>` +
-      swatchSets(offered(), colourButton) + `<div class="row" style="margin-top:10px">${colourButton(COUNTERCHANGED)}</div>`;
+      swatchSets(offered(), colourButton) + `<div class="row" style="margin-top:10px">${colourButton(COUNTERCHANGED)}` +
+      `<button class="name-btn" type="button" data-charge-tincture="${UNSPECIFIED}" aria-pressed="${state.chargeTincture === UNSPECIFIED}">${esc(TEXT.dontSpecify)}</button></div>`;
   }
 
   html += `<input type="search" id="chargeFilter" value="${esc(state.chargeFilter)}" placeholder="${esc(TEXT.chargeSearch)}" aria-label="${esc(TEXT.chargeSearch)}">`;
@@ -577,7 +633,7 @@ function renderChargePanel() {
 
 // ---- The shield being built (top right) ----------------------------------------
 function renderCurrent() {
-  const shield = currentShield();
+  const shield = shownShield();
   const text = blazon(shield.field, shield.groups, words);
   const patterns = shieldPatterns(shield.field, shield.groups, { noCharge: shield.noCharge });
   const problems = checkShield(shield);
@@ -636,6 +692,20 @@ function render() {
   renderChargePanel();
   renderCurrent();
   renderSuggestions();
+  addCollapseButtons();
+}
+
+// A "collapse" / "expand" button beside each section's heading.
+const COLLAPSIBLE = ['shieldColoursPanel', 'fieldColoursPanel', 'divisionPanel', 'chargePanel', 'suggestionsPanel'];
+function addCollapseButtons() {
+  for (const id of COLLAPSIBLE) {
+    const panel = $(id), heading = panel.querySelector('h2');
+    if (!heading) continue;
+    const closed = state.collapsed.has(id);
+    panel.classList.toggle('collapsed', closed);
+    heading.insertAdjacentHTML('beforeend',
+      ` <button class="collapse-btn" type="button" data-collapse="${id}" aria-expanded="${!closed}">${esc(closed ? TEXT.expand : TEXT.collapse)}</button>`);
+  }
 }
 
 // ---- "select this shield": copy a suggestion into the questions ------------------
@@ -674,7 +744,14 @@ document.addEventListener('click', e => {
       state.builder = null;
     }
     refocus = `[data-q1="${d.q1}"]`;
+  } else if ('fieldUnspecified' in d) {
+    state.fieldUnspecified = !state.fieldUnspecified;
+    refocus = '[data-field-unspecified]';
+  } else if ('collapse' in d) {
+    if (state.collapsed.has(d.collapse)) state.collapsed.delete(d.collapse); else state.collapsed.add(d.collapse);
+    refocus = `[data-collapse="${d.collapse}"]`;
   } else if (d.q2) {
+    state.fieldUnspecified = false;
     state.fieldColours = toggle(state.fieldColours, d.q2);
     state.builder = null;
     refocus = `[data-q2="${d.q2}"]`;

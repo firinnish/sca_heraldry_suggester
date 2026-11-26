@@ -106,6 +106,7 @@ export const ORDINARIES = {
   pile:            { name: 'pile',             code: 'PILE',      numbered: true },
   chief:           { name: 'chief',            code: 'CHIEF',     numbered: false, peripheral: true },
   bordure:         { name: 'bordure',          code: 'BORDURE',   numbered: false, peripheral: true },
+  orle:            { name: 'orle',             code: 'ORLE AND TRESSURE', numbered: true, peripheral: true },
   base:            { name: 'base',             code: 'BASE',      numbered: false, peripheral: true },
 };
 

@@ -181,18 +181,40 @@ const DIVISION_SHAPES = {
 };
 
 const divisionCache = new Map();
-export function divisionShapes(division) {
-  if (!divisionCache.has(division)) {
-    if (!DIVISION_SHAPES[division]) throw new Error('No shape for division: ' + division);
-    divisionCache.set(division, DIVISION_SHAPES[division]());
+// FRAMES: with a chief, the field is drawn in the space below it, as if that
+// space were the whole shield (the maintainer's rule): its divisions cut
+// through the middle of that space, not the middle of the whole shield.
+// Every shape is squeezed downwards so that the top edge moves to the chief's
+// lower edge and the fess point to the middle of the space left.
+// (The rules still judge contrast on the unsqueezed shapes: a chief lies on
+// the parts of the field it borders, as SENA treats it.)
+let chiefFessY = null;
+function squeezeBelowChief(polygons) {
+  if (chiefFessY === null) {
+    const below = SAMPLES.filter(([, y]) => y > CHIEF_BOTTOM);
+    chiefFessY = below.reduce((s, [, y]) => s + y, 0) / below.length;
   }
-  return divisionCache.get(division);
+  const k = (chiefFessY - CHIEF_BOTTOM) / (C - 1);
+  return polygons.map(p => p.map(([x, y]) => [x, CHIEF_BOTTOM + (y - 1) * k]));
+}
+
+// `frame`: null for the whole shield, or 'chief' for the space below a chief.
+export function divisionShapes(division, frame = null) {
+  const key = `${division}|${frame}`;
+  if (!divisionCache.has(key)) {
+    if (!DIVISION_SHAPES[division]) throw new Error('No shape for division: ' + division);
+    const parts = DIVISION_SHAPES[division]();
+    divisionCache.set(key, frame === 'chief' ? parts.map(squeezeBelowChief) : parts);
+  }
+  return divisionCache.get(key);
 }
 
 // ---- Ordinaries ------------------------------------------------------------
 // Each is a list of polygons (they run past the edge and are trimmed by the
 // shield's outline). The bordure is special: a strip along the shield's edge.
 export const BORDURE_WIDTH = 11;
+// An orle: a band following the edge, set in from it.
+export const ORLE_GAP = 8, ORLE_WIDTH = 6.5;
 
 const DIAGONAL_PERP = DIAGONAL_HALF / Math.SQRT2;   // half a bend measured across it
 const ORDINARY_SHAPES = {
@@ -232,7 +254,7 @@ const DIAGONAL_LINES = new Set(['perBend', 'perBendSinister', 'perSaltire', 'gyr
 // `division` (optional): the field's division, for ordinaries that are
 // placed to suit it.
 export function ordinaryShapes(ordinary, division = null) {
-  if (ordinary === 'bordure') return null;
+  if (ordinary === 'bordure' || ordinary === 'orle') return null;
   if (!ORDINARY_SHAPES[ordinary]) throw new Error('No shape for ordinary: ' + ordinary);
   return ORDINARY_SHAPES[ordinary](division);
 }
@@ -290,7 +312,9 @@ export function ordinarySamples(ordinary, division = null) {
   if (!ordinarySampleCache.has(key)) {
     const shapes = ordinaryShapes(ordinary, division);
     const covered = shapes ? samplesInside(shapes)
-      : SAMPLES.map((p, i) => (distanceToEdge(p[0], p[1]) < BORDURE_WIDTH ? i : -1)).filter(i => i >= 0);
+      : ordinary === 'orle'
+        ? SAMPLES.map((p, i) => { const d = distanceToEdge(p[0], p[1]); return d >= ORLE_GAP && d < ORLE_GAP + ORLE_WIDTH ? i : -1; }).filter(i => i >= 0)
+        : SAMPLES.map((p, i) => (distanceToEdge(p[0], p[1]) < BORDURE_WIDTH ? i : -1)).filter(i => i >= 0);
     ordinarySampleCache.set(key, covered);
   }
   return ordinarySampleCache.get(key);
