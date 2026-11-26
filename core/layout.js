@@ -766,7 +766,8 @@ function compose(groups, r, division) {
     if (fine && strewn(i)) {
       // Semy around the primary group: over all the space left.
       const others = secondary.filter(j => j !== i).map(j => JSON.stringify(signature(groups[j]))).join();
-      if (r[i].place === 'around') {
+      // (Not around charges that are themselves strewn: two lots of semy cannot be told apart.)
+      if (r[i].place === 'around' && primary.number !== SEMY) {
         parts = remembered(['strewn', drawnAs(primary), others, pictureOf(g).key].join('|'), () => {
           const placed = placeSemy(pictureOf(g), context.open);
           return placed.places.length ? chargeParts(placed.shape, placed.places) : null;
