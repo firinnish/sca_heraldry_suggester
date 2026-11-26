@@ -58,9 +58,14 @@ function draw() {
     const house = checkShield({ field, groups }).filter(p => p.level === 'house').map(p => p.id);
     if (!drawn) problems++;
     return `<figure class="${drawn ? '' : 'none'}">${shieldSVG(field, { charges: groups, title: text })}` +
-      `<figcaption>${text.replace(/^[^,]*, /, '')}${house.length ? '<br>[' + house.join(', ') + ']' : ''}</figcaption></figure>`;
+      `<figcaption>${/semy/.test(text) ? text : text.replace(/^[^,]*, /, '')}${house.length ? '<br>[' + house.join(', ') + ']' : ''}</figcaption></figure>`;
   };
   const section = (title, shields) => `<h2>${title}</h2><div class="grid">${shields.join('')}</div>`;
+  // The same on a background of its own (not the one chosen at the top).
+  const shield2 = (ownField, groups) => {
+    const text = blazon(ownField, groups);
+    return `<figure>${shieldSVG(ownField, { charges: groups, title: text })}<figcaption>${text}</figcaption></figure>`;
+  };
   let html = '';
 
   html += section('Around each ordinary (two, three and four)', central.flatMap(id =>
@@ -88,6 +93,8 @@ function draw() {
     shield([main({ role: 'primary' }), other({ number: 3, role: 'secondary', place: 'around' }), ord(id)]),
     ...central.slice(0, 6).map(c => shield([ord(c, { tincture: 'or' }), ord(id)])),
     shield([ordinaryGroup('fess', 'or'), other({ number: 3, role: 'secondary', place: 'around' }), ord(id)])]));
+  html += section('A cross between two (the blazon says "in bend")', [
+    shield([ord('cross'), main({ number: 2, role: 'secondary', place: 'around' })])]);
   html += section('A chief and a bordure together', [
     shield([main(), ordinaryGroup('bordure', 'argent'), ordinaryGroup('chief', 'or')]),
     shield([ordinaryGroup('bordure', 'argent'), ordinaryGroup('chief', 'or', { charged: other({ number: 3, tincture: 'gules' }) })])]);
@@ -102,6 +109,23 @@ function draw() {
     shield([main({ number: 4, arranged: 'cross' }), ordinaryGroup('base', 'argent')]),
     shield([main({ number: 3, arranged: 'bend', role: 'primary' }), other({ number: 1, role: 'secondary', place: 'chief' })]),
     shield([main({ number: 5, role: 'primary' }), other({ number: 1, role: 'secondary', place: 'chief' })])]);
+  html += section('Semy: strewn over the field, around other things, and on ordinaries (fewer than seven is flagged)', [
+    shield([main({ number: 'semy' })]),
+    shield([main({ number: 'semy' }), ordinaryGroup('bordure', 'argent')]),
+    shield([main({ number: 'semy' }), ordinaryGroup('chief', 'argent')]),
+    shield([other({ number: 1, role: 'primary', tincture: 'argent' }), main({ number: 'semy', role: 'secondary', place: 'around' })]),
+    ...central.map(id => shield([ord(id), main({ number: 'semy', role: 'secondary', place: 'around' })])),
+    shield([ord('fess'), other({ number: 3, role: 'secondary', place: 'around' }), main({ number: 'semy', role: 'secondary', place: 'around' })]),
+    ...['fess', 'pale', 'bend', 'chevron', 'cross', 'chief', 'base'].map(id => shield([ord(id, { charged: main({ number: 'semy', tincture: 'gules' }) })]))]);
+  html += section('A chief on patterns of squares (the pattern is never squeezed), and furs on them (a spot in every piece)', [
+    shield2(divided('checky', [plain('azure'), plain('argent')]), [ordinaryGroup('chief', 'or')]),
+    shield2(divided('lozengy', [plain('azure'), plain('argent')]), [ordinaryGroup('chief', 'or')]),
+    shield2(divided('checky', [plain('azure'), plain('argent')]), [ordinaryGroup('pale', 'or'), ordinaryGroup('chief', 'gules')]),
+    shield2(divided('lozengy', [plain('pean'), plain('or')]), []),
+    shield2(divided('checky', [plain('ermine'), plain('gules')]), []),
+    shield2(divided('lozengy', [plain('or'), plain('purpure')]), [main({ number: 3, tincture: 'sable' })]),
+    shield2(divided('checky', [plain('or'), plain('purpure')]), [main({ number: 3, tincture: 'sable' })]),
+    shield2(divided('paly', [plain('or'), plain('purpure')]), [main({ number: 1, tincture: 'sable' })])]);
   html += section('Arrangement not chosen yet (drawn as a guess)', [
     shield([ord('chevron'), main({ number: 3 })]), shield([main(), other({ number: 3 })]), shield([main(), other()])]);
 

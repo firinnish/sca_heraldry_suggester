@@ -23,7 +23,7 @@
 import { getPicture } from './art.js';
 import { SAMPLES, insideShield, pointInPolygon, samplesInBox, ordinarySamples, ordinaryShapes, suitsDivision, partMap,
          frameCentre, CHIEF_BOTTOM, BASE_TOP, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, ARM_HALF } from './geometry.js';
-import { TINCTURES, ARRANGEMENTS, familyOf, baseTincture } from './catalog.js';
+import { TINCTURES, ARRANGEMENTS, SEMY, familyOf, baseTincture } from './catalog.js';
 import { roles } from './shield.js';
 import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, centroid, heights, sides, cuts,
          probeOf, turned, largestFit, fitsAt, bestSpot, clearDistance } from './space.js';
@@ -124,13 +124,15 @@ export function placeGroup(group, field = null) {
 // On a field of many pieces (barry, chevronelly, checky...) SENA counts the
 // field as neutral, so a gules lion is allowed on chevronelly azure and Or.
 // It still looks better with as much of the lion on the Or as possible. So
-// the group is slid a little (up/down, or sideways for paly), shrinking only
-// if it must, to put the most of it on the contrasting tincture. The same
-// nudge is used by the drawing and the rules, so they always agree.
+// the group is slid a little up or down, shrinking only if it must, to put
+// the most of it on the contrasting tincture. The same nudge is used by the
+// drawing and the rules, so they always agree.
+// NEVER SIDEWAYS (the maintainer, November 2026): charges off the centre
+// line look wrong, so a group keeps its place left to right whatever the
+// field. (A better answer, for later, is to choose the field's pattern to
+// suit the charges instead of moving the charges: see ROADMAP.md.)
 const NUDGE_RANGE = 12;            // furthest a charge is moved
 const NUDGE_SIZES = [1, 0.95, 0.9];
-const SIDEWAYS = new Set(['paly']);
-const BOTH_WAYS = new Set(['checky', 'lozengy', 'gyronny']);
 const nudgeCache = new Map();
 
 // The sample point at (x, y), if there is one.
@@ -172,10 +174,7 @@ function nudge(base, group, field, key) {
   // coverage after a move is just its coverage before, shifted along the grid:
   // worked out once per size, not once per move.
   const moves = [];
-  for (let d = -NUDGE_RANGE; d <= NUDGE_RANGE; d += 2) {
-    if (!SIDEWAYS.has(field.division)) moves.push([0, d]);
-    if (SIDEWAYS.has(field.division) || BOTH_WAYS.has(field.division)) moves.push([d, 0]);
-  }
+  for (let d = -NUDGE_RANGE; d <= NUDGE_RANGE; d += 2) moves.push([0, d]);
   const shift = (coverage, dx, dy) => coverage.map(points => points.map(i => {
     const [x, y] = SAMPLES[i];
     return sampleAt(x + dx, y + dy);
@@ -368,7 +367,11 @@ function ordinaryParts(group, division, frame, width = 1) {
 // share, all as large as the tightest share allows.
 function placeIn(group, region, splitAt = null) {
   const shape = pictureOf(group);
-  const number = group.number || 1;
+  if (group.number === SEMY) return placeSemy(shape, region);
+  // (How many has not been chosen, but how they are set out has: drawn as
+  // three, or as many as that arrangement takes.)
+  const number = group.number || (group.arranged && ARRANGEMENTS[group.arranged]
+    ? [3, 5, 4, 2].find(n => ARRANGEMENTS[group.arranged].numbers.includes(n)) : 1);
   if (group.arranged || number > MAX_NUMBER) return placeArranged(group, shape, number, region);
   const [cx, cy] = splitAt || centroid(region);
   let shares;
@@ -404,12 +407,10 @@ const PATTERNS = {
   cross: n => [[0, -1], [-1, 0], [1, 0], [0, 1], ...(n === 5 ? [[0, 0]] : [])],
   saltire: n => [[-1, -1], [1, -1], [-1, 1], [1, 1], ...(n === 5 ? [[0, 0]] : [])],
   oneAndTwo: () => rowsOf(1, 2),
-  twoAndTwo: () => rowsOf(2, 2),
 };
 // The usual arrangements of more than three (Glossary Table 7: five are
-// "two, two, and one", six "three, two, and one"). Four have none ("None,
-// must be specified"); they are drawn two and two so that something shows,
-// and rules.js asks for an arrangement to be chosen.
+// "two, two, and one", six "three, two, and one"). The table gives four
+// none; the maintainer's default for four is two and two.
 const USUAL = { 4: () => rowsOf(2, 2), 5: () => rowsOf(2, 2, 1), 6: () => rowsOf(3, 2, 1) };
 // Patterns whose steps across and down are kept the same length, so that
 // their lines run at 45 degrees like every other diagonal on the shield.
@@ -502,6 +503,43 @@ function placeArranged(group, shape, number, region) {
   if (!(bestSize > 0)) return null;
   const size = FILL * bestSize;
   return { shape, places: pattern.map(([u, v]) => ({ cx: cx + best[2] + u * best[0], cy: cy + best[3] + v * best[1], size, turn: 0 })) };
+}
+
+// ---- 2c. Semy: charges strewn over a space ----------------------------------------------
+// As many small charges as fit, in staggered rows like ermine spots (the
+// maintainer, November 2026). Only whole charges are placed: one that would
+// be cut by the edge of the space, or by another charge, is left out. Of a
+// few ways of lining the rows up with the space, the one that fits most
+// charges is used. Returns { shape, places } (places may be empty).
+const SEMY_EXTENT = 12;            // how large a strewn charge is, in its greater measure
+const SEMY_GAP = [0.6, 0.45];      // the gap between charges across, and between rows, as a share of that
+const SEMY_ROOM = 1.15;            // each keeps this much of its own size clear
+export const SEMY_FEWEST = 7;      // fewer than this is not semy (the maintainer's rule)
+
+function placeSemy(shape, region, base = SEMY_EXTENT) {
+  const probe = probeFor(shape);
+  // A long thin charge (a sword) is drawn rather longer than a round one, or
+  // it would be lost; and the rows are spaced to suit its own shape.
+  const aspect = shape.picture.aspect, slender = Math.max(aspect, 1 / aspect);
+  const extent = base * Math.min(1.6, slender ** 0.35);
+  const size = extent / Math.max(1, 1 / aspect);
+  const gx = size + base * SEMY_GAP[0], gy = size / aspect + base * SEMY_GAP[1];
+  const [mx, my] = centroid(region);
+  let best = [];
+  for (const lift of [0, gy / 3, 2 * gy / 3]) {
+    for (const odd of [0, 1]) {
+      const places = [];
+      for (let row = -10; row <= 10; row++) {
+        const y = my + lift + row * gy, shift = ((row & 1) === odd) ? gx / 2 : 0;
+        for (let col = -8; col <= 8; col++) {
+          const x = mx + shift + col * gx;
+          if (fitsAt(probe, region, x, y, size * SEMY_ROOM)) places.push({ cx: x, cy: y, size, turn: 0 });
+        }
+      }
+      if (places.length > best.length) best = places;
+    }
+  }
+  return { shape, places: best };
 }
 
 // What a placed group covers: a mask (for the groups that must keep clear of
@@ -623,6 +661,10 @@ function placeTertiary(host, hostEntry, group, frame, centre, ky, width) {
     // The part of the ordinary that shows: a chief lies over a bordure, a
     // bordure over everything else.
     const seen = host.ordinary === 'chief' ? shieldMask() : host.ordinary === 'base' ? (frame.inset ? insetMask(frame.inset) : shieldMask()) : frame.mask;
+    if (number === SEMY) {                              // strewn over the ordinary, a little smaller than on the field
+      const strewn = placeSemy(shape, and(maskFromPolygons(hostEntry.shapes), seen), SEMY_EXTENT * 0.8);
+      return strewn.places.length ? { ok: true, ...chargeParts(shape, strewn.places) } : none;
+    }
     const cells = cellsOn(host.ordinary, number, and(maskFromPolygons(hostEntry.shapes), seen), centre, ky, width);
     if (!cells) return none;
     places = cells.map(cell => {
@@ -704,8 +746,8 @@ function compose(groups, r, division) {
     const whole = region === frame.mask && !frame.chief && !frame.base;
     const found = remembered(['primary', drawnAs(primary)].join('|'), () => placeIn(primary, region, whole ? centre : null));
     // (a copy: the remembered placing must not be changed by what follows)
-    const placed = found && { shape: found.shape, places: found.places.map(p => ({ ...p })) };
-    if (!placed) entries[pi].ok = false;
+    const placed = found && found.places.length ? { shape: found.shape, places: found.places.map(p => ({ ...p })) } : null;
+    if (!placed) Object.assign(entries[pi], { ok: false, picture: BLOB_PICTURE, flipY: false, places: [], coverage: [] });
     else {
       if (wanted.includes('around')) placed.places.forEach(p => { p.size *= AROUND_SHRINK; });
       Object.assign(entries[pi], chargeParts(placed.shape, placed.places));
@@ -715,15 +757,32 @@ function compose(groups, r, division) {
     }
   }
 
-  for (const i of secondary) {
+  // (Strewn charges last: they fill whatever the others leave.)
+  const strewn = i => groups[i].number === SEMY;
+  for (const i of [...secondary.filter(i => !strewn(i)), ...secondary.filter(strewn)]) {
     const g = groups[i];
-    const number = g.number || (r[i].place === 'around' ? [3, 2, 4].find(n => aroundNumbers(primary).includes(n)) : 1);
-    const parts = g.kind === 'ordinary' || r[i].clash || !entries[pi].ok ? null
-      : remembered(['beside', drawnAs(primary), r[i].place, number, pictureOf(g).key].join('|'), () => {
+    const fine = g.kind !== 'ordinary' && !r[i].clash && entries[pi].ok;
+    let parts = null;
+    if (fine && strewn(i)) {
+      // Semy around the primary group: over all the space left.
+      const others = secondary.filter(j => j !== i).map(j => JSON.stringify(signature(groups[j]))).join();
+      // (Not around charges that are themselves strewn: two lots of semy cannot be told apart.)
+      if (r[i].place === 'around' && primary.number !== SEMY) {
+        parts = remembered(['strewn', drawnAs(primary), others, pictureOf(g).key].join('|'), () => {
+          const placed = placeSemy(pictureOf(g), context.open);
+          return placed.places.length ? chargeParts(placed.shape, placed.places) : null;
+        });
+      }
+    } else if (fine) {
+      const number = g.number || (r[i].place === 'around' ? [3, 2, 4].find(n => aroundNumbers(primary).includes(n)) : 1);
+      parts = remembered(['beside', drawnAs(primary), r[i].place, number, pictureOf(g).key].join('|'), () => {
         const slots = secondarySlots(primary, r[i].place, number, { ...context, band: primary.kind === 'ordinary' ? null : bands[r[i].place] });
         const placed = slots && placeSecondary(g, slots, centre[0], largest, context.upright);
         return placed && chargeParts(placed.shape, placed.places);
       });
+      // (anything strewn afterwards keeps clear of these)
+      if (parts && secondary.some(strewn)) context.open = minus(context.open, hullMask(pictureOf(g), parts.places));
+    }
     Object.assign(entries[i], parts || { ok: false, picture: BLOB_PICTURE, flipY: false, places: [], coverage: [] });
   }
 

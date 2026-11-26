@@ -135,14 +135,23 @@ export const ARRANGEMENTS = {
   cross:           { name: 'in cross',            code: 'ARRANGEMENT-IN CROSS',     numbers: [4, 5] },
   saltire:         { name: 'in saltire',          code: 'INSA',                     numbers: [4, 5] },
   oneAndTwo:       { name: 'one and two',         code: null,                       numbers: [3], after: true },
-  twoAndTwo:       { name: 'two and two',         code: null,                       numbers: [4], after: true },
 };
 // The arrangements a group of `number` charges can be given.
 export const arrangementsFor = number => Object.keys(ARRANGEMENTS).filter(id => ARRANGEMENTS[id].numbers.includes(number));
 // The usual arrangement for each number, which a blazon does not mention
-// (the Glossary's Table 7; two side by side is the maintainer's). Four
-// charges have none: "None, must be specified".
-export const USUAL_ARRANGEMENT = { 2: 'side by side', 3: 'two and one', 5: 'two, two and one', 6: 'three, two and one' };
+// (the Glossary's Table 7; two side by side, and four two and two, are the
+// maintainer's: the table gives four no default).
+export const USUAL_ARRANGEMENT = { 2: 'side by side', 3: 'two and one', 4: 'two and two', 5: 'two, two and one', 6: 'three, two and one' };
+
+// Charges around an ordinary where the blazon has to say how they are set
+// out, because there is no default: "a cross between in bend two roundels"
+// (the maintainer, November 2026; the O&A has some fifty blazons like it).
+export const AROUND_NAMED = { cross: { 2: 'in bend' } };
+
+// SEMY: instead of a number, a group's `number` can be SEMY: the charges are
+// strewn over the whole field (or over the ordinary they lie on), as many as
+// fit. "Azure semy of mullets Or."
+export const SEMY = 'semy';
 
 export function divisionsWithParts(n) {
   return Object.keys(DIVISIONS).filter(id => DIVISIONS[id].parts === n);

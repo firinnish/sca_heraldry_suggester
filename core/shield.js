@@ -21,7 +21,7 @@
 // Drawing shows these in grey, the blazon says so in words, the search leaves
 // them out, and the rules skip whatever they cannot judge yet.
 
-import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, AROUND_NAMED, SEMY } from './catalog.js';
 
 const checkTincture = t => {
   if (t !== null && !TINCTURES[t]) throw new Error('Unknown tincture: ' + t);
@@ -85,10 +85,12 @@ export function divided(division, parts, line = 'plain') {
 //            EACH ("three roundels each charged with a mullet" is number 1).
 //   arranged: how the group's own charges are set out, when it is not the
 //            usual way for their number: 'pale' ("in pale three roundels"),
-//            'chevron', 'twoAndTwo'... (catalog.js: ARRANGEMENTS), or null
-//            for the usual way (two side by side, three two and one, five
-//            two, two and one, six three, two and one). For now only the
-//            primary group can be set out differently.
+//            'chevron', 'oneAndTwo'... (catalog.js: ARRANGEMENTS), or null
+//            for the usual way (two side by side, three two and one, four
+//            two and two, five two, two and one, six three, two and one).
+//            For now only the primary group can be set out differently.
+//   number:  may also be SEMY (catalog.js): strewn over the field, or over
+//            the ordinary the group lies on, as many as fit.
 //
 // A chief, bordure, orle or base is always a secondary group of its own kind
 // ("peripheral"), whatever `role` says, and a central ordinary is always the
@@ -257,6 +259,7 @@ function groupWords(group, words) {
   const many = group.plural ? group.plural.toLowerCase() : one + 's';
   let text;
   if (group.number === 1) text = (/^[aeiou]/.test(one) ? 'an ' : 'a ') + one;
+  else if (group.number === SEMY) text = 'semy of ' + many;
   else if (group.number === null) text = words.number + ' ' + many;
   else text = (NUMBER_WORDS[group.number] || group.number) + ' ' + many;
   if (group.posture) text += ' ' + group.posture;
@@ -285,9 +288,14 @@ export function blazonGroup(group, words = PLACEHOLDER_WORDS) {
 // mullets Or"). `between` is a secondary group to work in after the group.
 function groupPhrase(group, words, { bare = false, between = null } = {}) {
   const own = groupWords(group, words) + (bare ? '' : ' ' + groupTincture(group, words));
-  const around = between ? ' between ' + blazonGroup(between, words) : '';
+  // "a cross between in bend two roundels": where there is no default, the
+  // blazon says how the charges around an ordinary are set out.
+  const named = between && group.kind === 'ordinary' ? (AROUND_NAMED[group.ordinary] || {})[between.number] : null;
+  const around = between ? ` between ${named ? named + ' ' : ''}${blazonGroup(between, words)}` : '';
   if (!group.charged) return own + around;
   const on = blazonGroup(group.charged, words);
+  // "a fess Or semy of mullets gules": strewn charges are not "on" it
+  if (group.charged.number === SEMY) return `${own} ${on}${around}`;
   const several = group.kind !== 'ordinary' && group.number !== 1;
   return several ? `${own} each charged with ${on}${around}` : `on ${own}${around} ${on}`;
 }
@@ -341,5 +349,16 @@ function groupsWords(groups, words) {
 
 // The whole blazon: "Gules, a lion rampant Or"
 export function blazon(field, groups = [], words = PLACEHOLDER_WORDS) {
-  return [blazonField(field, words), ...(groups.length ? [groupsWords(groups, words)] : [])].join(', ');
+  // Charges strewn over the field are named with the field, before anything
+  // else: "Azure semy of lyres argent", "Argent semy of violets purpure, a
+  // crescent sable", "Sable semy of trefoils, a garb Or" (the O&A's wording).
+  const r = roles(groups);
+  const strewn = r.every(x => x.chosen)
+    ? groups.filter((g, i) => g.number === SEMY && (r[i].role === 'primary' || (r[i].role === 'secondary' && r[i].place === 'around')))
+    : [];
+  const rest = groups.filter(g => !strewn.includes(g));
+  const next = rest.find((g, i) => roles(rest)[i].role === 'primary') || rest[0];
+  const fieldText = blazonField(field, words) + strewn.map(g =>
+    ' ' + groupWords(g, words) + (next && sameTincture(g, next) ? '' : ' ' + groupTincture(g, words))).join('');
+  return [fieldText, ...(rest.length ? [groupsWords(rest, words)] : [])].join(', ');
 }
