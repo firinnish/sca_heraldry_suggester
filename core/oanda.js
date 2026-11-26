@@ -30,7 +30,7 @@
 // NOT CHOSEN YET: anything the shield description leaves open (see shield.js)
 // is simply left out of the pattern, so the search matches any value for it.
 
-import { TINCTURES, DIVISIONS, ORDINARIES } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS } from './catalog.js';
 import { COUNTERCHANGED, tincturesIn, isComplete, roles, isPeripheral } from './shield.js';
 
 const FORM_URL = 'https://oanda.sca.org/oanda_complex.cgi';
@@ -187,6 +187,11 @@ function primaryLines(group, field) {
   if (def) lines.push([code, 'pl', 'primary']);
   if (group.posture) lines.push([code, group.posture, 'primary']);
   if (!lines.length) lines.push([code, 'primary']);
+  // A named arrangement is one more thing about the group, with a category
+  // of its own: "Argent, in pale three suns sable" has INPALE:3:g3pa:sable
+  // beside STAR:3:g3pa:...:sable. ("One and two" and "two and two" have none.)
+  const arranged = group.arranged ? ARRANGEMENTS[group.arranged] : null;
+  if (arranged && arranged.code) lines.push([arranged.code, 'primary']);
   return lines.map(bits => bits.join(':'));
 }
 

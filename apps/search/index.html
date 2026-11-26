@@ -130,7 +130,8 @@
 </main>
 
 <script type="module">
-import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, familyOf } from '../../core/catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, familyOf,
+         ARRANGEMENTS, USUAL_ARRANGEMENT, arrangementsFor } from '../../core/catalog.js';
 import { plain, divided, isComplete, isNested, leafTinctures, shieldTinctures, blazon, ordinaryGroup,
          chargeGroupFromLibrary, COUNTERCHANGED } from '../../core/shield.js';
 import { shieldSVG, swatchSVG, counterchangedSwatchSVG } from '../../core/draw.js';
@@ -177,6 +178,7 @@ const TEXT = {
   chargeRemove: 'remove',                                               // DRAFT
   chargeNumber: 'How many?',                                            // DRAFT
   chargeColour: 'What colour is it?',                                   // DRAFT
+  chargeArranged: 'How are they set out?',                              // DRAFT
   // "How are they arranged?": shown once two or more charges are chosen.
   arrangeHeading: 'How are they arranged?',                             // DRAFT
   arrangeNeedsTwo: 'Pick two or more charges above to see the ways they can go together.', // DRAFT
@@ -238,10 +240,10 @@ const TEXT = {
     'same-charge-twice': 'The same charge cannot be in two different groups on the field',
     'ordinary-is-primary': 'With an ordinary across the middle, the ordinary is the primary charge',
     'too-many-groups': 'Three or more groups of charges on the field need period evidence, apart from a few patterns',
-    'groups-unsure': 'It is not certain this many groups of charges is allowed without period evidence',
     'quaternary': 'A charge cannot go on a charge that is itself on another charge',
     'arrangement-unsupported': 'The tools cannot draw this arrangement yet',
     'no-room': 'There is not enough room to draw this clearly',
+    'needs-arrangement': 'Four charges have no usual arrangement - please choose how they are set out',
     'not-possible': 'Not possible with the colours chosen',
   },
 };
@@ -264,7 +266,7 @@ const words = TEXT.placeholders;
 const UNSPECIFIED = 'unspecified';
 const tinctureOf = item => (item.tincture === UNSPECIFIED ? null : item.tincture);
 const MAX_ITEMS = 3;           // how many different charges can be chosen
-const NUMBERS = [1, 2, 3, 4];  // the "How many?" buttons
+const NUMBERS = [1, 2, 3, 4, 5, 6];  // the "How many?" buttons
 
 // ---- What the user has chosen ------------------------------------------------
 // Anything left empty is "not chosen yet": the shield on the right shows it in
@@ -281,6 +283,8 @@ const state = {
   //   choice:   null | { kind: 'ordinary', id } | { kind: 'charge', id, file }
   //   number:   null | 1, 2, 3...
   //   tincture: null | a tincture id | COUNTERCHANGED | UNSPECIFIED
+  //   arranged: how its own charges are set out: undefined or null (not
+  //             chosen) | 'usual' | an id from ARRANGEMENTS in core/catalog.js
   items: [{ choice: null, number: null, tincture: null }],
   noCharge: false,       // "no charge" chosen
   arrangement: null,     // how the chosen charges go together (core/arrange.js), or null
@@ -313,6 +317,11 @@ function tidy() {
       if (t && t !== COUNTERCHANGED && !state.shieldColours.includes(t)) state.shieldColours.push(t);
     }
   }
+  // How a charge's own charges are set out only lasts while it suits how many there are.
+  for (const item of state.items) {
+    const fits = item.arranged === 'usual' ? !!USUAL_ARRANGEMENT[item.number] : arrangementsFor(item.number).includes(item.arranged);
+    if (item.arranged && !fits) item.arranged = null;
+  }
   // An arrangement only lasts while it suits the charges chosen.
   if (state.arrangement) {
     const groups = chosen().map(x => x.group);
@@ -338,19 +347,19 @@ function currentField() {
   return null;
 }
 
-function groupFor(choice, tincture, number) {
+function groupFor(choice, tincture, number, arranged = null) {
   if (choice.kind === 'ordinary') return ordinaryGroup(choice.id, tincture);
   const charge = library.charges.find(c => c.id === choice.id);
   if (!charge) return null;
   const picture = choice.file ? library.pictures.find(p => p.file === choice.file) : null;
-  return chargeGroupFromLibrary(charge, picture || null, { tincture, number });
+  return chargeGroupFromLibrary(charge, picture || null, { tincture, number, arranged: arranged === 'usual' ? null : arranged || null });
 }
 
 // The charges chosen so far that can be drawn (a charge from the library has
 // to wait for the library to load): [{ item, group }], in the order chosen.
 function chosen() {
   return state.items.filter(item => item.choice)
-    .map(item => ({ item, group: groupFor(item.choice, tinctureOf(item), item.number) }))
+    .map(item => ({ item, group: groupFor(item.choice, tinctureOf(item), item.number, item.arranged) }))
     .filter(x => x.group);
 }
 
@@ -436,7 +445,7 @@ function itemList(keep = -1) {
   state.items.forEach((item, i) => {
     if (!(live(item) || i === keep || (!item.choice && (item.number || tinctureOf(item))))) return;
     at[i] = list.length;
-    list.push({ charge: live(item) ? item.choice : null, number: item.number, tincture: tinctureOf(item) });
+    list.push({ charge: live(item) ? item.choice : null, number: item.number, tincture: tinctureOf(item), arranged: item.arranged || null });
   });
   return { list, at };
 }
@@ -484,6 +493,7 @@ function option(tag, c) {
 // and filled in a moment later, one at a time, without holding the page up.
 let later = [];          // [{ panel, run }] what is still to be worked out, for the page as it stands
 let laterTimer = null;
+let waitingCards = 0;    // gives each empty card a name of its own
 function fillLater() {
   clearTimeout(laterTimer);
   const step = () => {
@@ -501,7 +511,7 @@ const forgetLater = panel => { later = later.filter(x => x.panel !== panel); };
 function lazyCard(panel, tag, c, args) {
   const key = optionKey(tag, c);
   if (remembered.has(key)) return card(args(remembered.get(key)));
-  const id = `${panel}${later.length}`;
+  const id = `w${waitingCards++}`;
   later.push({ panel, run: () => {
     const waiting = document.querySelector(`[data-waiting="${id}"]`);
     if (!waiting) return;
@@ -720,6 +730,72 @@ function choiceName(choice, plural = false) {
   return [name, picture && picture.posture].filter(Boolean).join(' ');
 }
 
+// One chosen charge's block: its name, how many, how they are set out, and
+// what colour. A number or colour is greyed if no shield fitting the other
+// choices could have it. Finding that out takes a moment, so it is done
+// after the click has been answered (see "Pictures that take a moment");
+// until then the block shows what was greyed before.
+const lastTried = new Map();
+function slotBlock(slot, c) {
+  const item = state.items[slot];
+  const { list, at } = itemList(slot);
+  const jobs = [];
+  const tried = (key, values) => {
+    // (A number is judged with the charges set out any way: choosing
+    // another number drops a way of setting them out that no longer fits.)
+    const items = key === 'number' ? list.map((x, k) => (k === at[slot] ? { ...x, arranged: null } : x)) : list;
+    const about = { ...c, items, arrangement: chosenArrangement(list.filter(x => x.charge).length) };
+    const memo = `${SEED}|${key}|${at[slot]}|${library.pictures.length}|${JSON.stringify(about)}`;
+    const work = () => { lastTried.set(`${slot}|${key}`, remember(memo, () => whichWork(about, at[slot], key, values, memo, library))); };
+    if (remembered.has(memo)) work(); else jobs.push(work);
+    return lastTried.get(`${slot}|${key}`) || new Map();
+  };
+  const numbers = tried('number', NUMBERS), colours = tried('tincture', [...offered(), COUNTERCHANGED]);
+  if (jobs.length) {
+    later.push({ panel: 'charge', run: () => {
+      jobs.forEach(job => job());
+      const block = document.querySelector(`[data-block="${slot}"]`);
+      if (!block) return;
+      // redraw the block, keeping the keyboard's place in it
+      const focused = [...block.querySelectorAll('button')].indexOf(document.activeElement);
+      block.innerHTML = slotBlock(slot, c);
+      if (focused >= 0) block.querySelectorAll('button')[focused]?.focus({ preventScroll: true });
+    } });
+  }
+  const possible = set => {
+    const faults = 'number' in set ? numbers.get(set.number) : colours.get(set.tincture);
+    return faults ? ruleText(faults[0]) : '';
+  };
+  const numberButton = n => {
+    const why = possible({ number: n });
+    return `<button class="name-btn${why ? ` greyed" aria-disabled="${!state.herald}" title="${esc(why)}` : ''}" type="button" ` +
+      `data-number="${n}" data-slot="${slot}" aria-pressed="${item.number === n}">${n}</button>`;
+  };
+  const colourButton = id => swatchButton(id, { on: item.tincture === id, attr: `data-slot="${slot}" data-charge-tincture`, small: true, why: possible({ tincture: id }) });
+  let html = '';
+  if (item.choice) {
+    html += `<div class="slot-head"><strong>${esc(choiceName(item.choice))}</strong>` +
+      `<button class="link-btn" type="button" data-remove="${slot}">${esc(TEXT.chargeRemove)}</button></div>`;
+  }
+  if (!item.choice || item.choice.kind === 'charge') {
+    html += `<div class="row-label">${esc(TEXT.chargeNumber)}</div><div class="row">${NUMBERS.map(numberButton).join('')}</div>`;
+    // Two or more: how they are set out, each way as a picture (the usual
+    // way for that many first).
+    if (item.number >= 2) {
+      const ways = [...(USUAL_ARRANGEMENT[item.number] ? ['usual'] : []), ...arrangementsFor(item.number)];
+      html += `<div class="row-label">${esc(TEXT.chargeArranged)}</div><div class="row">` + ways.map(id =>
+        lazyCard('charge', 'charge-arranged', { ...c, items: wantedItems({ slot, set: { arranged: id } }) }, found => ({
+          attrs: `data-slot="${slot}" data-arranged="${id}"`, shield: found && found.shield,
+          label: id === 'usual' ? USUAL_ARRANGEMENT[item.number] : ARRANGEMENTS[id].name, on: item.arranged === id,
+          problems: found ? found.problems : [], why: found === null ? TEXT.rules['not-possible'] : null,
+        }))).join('') + `</div>`;
+    }
+  }
+  return html + `<div class="row-label">${esc(TEXT.chargeColour)}</div>` +
+    swatchSets(offered(), colourButton) + `<div class="row" style="margin-top:10px">${colourButton(COUNTERCHANGED)}` +
+    `<button class="name-btn" type="button" data-slot="${slot}" data-charge-tincture="${UNSPECIFIED}" aria-pressed="${item.tincture === UNSPECIFIED}">${esc(TEXT.dontSpecify)}</button></div>`;
+}
+
 function renderChargePanel() {
   forgetLater('charge');
   const c = constraints();
@@ -762,38 +838,7 @@ function renderChargePanel() {
   // For each charge chosen: how many, and what colour. Asked first so they
   // are not missed below the list (and, for the first, before any is chosen).
   if (!state.noCharge) {
-    state.items.forEach((item, slot) => {
-      // A number or colour is greyed if no shield fitting the other choices could have it.
-      const { list, at } = itemList(slot);
-      const tried = (key, values) => {
-        const about = { ...c, items: list, arrangement: chosenArrangement(list.filter(x => x.charge).length) };
-        const memo = `${SEED}|${key}|${at[slot]}|${library.pictures.length}|${JSON.stringify(about)}`;
-        return remember(memo, () => whichWork(about, at[slot], key, values, memo, library));
-      };
-      const numbers = tried('number', NUMBERS), colours = tried('tincture', [...offered(), COUNTERCHANGED]);
-      const possible = set => {
-        const faults = 'number' in set ? numbers.get(set.number) : colours.get(set.tincture);
-        return faults ? ruleText(faults[0]) : '';
-      };
-      const numberButton = n => {
-        const why = possible({ number: n });
-        return `<button class="name-btn${why ? ` greyed" aria-disabled="${!state.herald}" title="${esc(why)}` : ''}" type="button" ` +
-          `data-number="${n}" data-slot="${slot}" aria-pressed="${item.number === n}">${n}</button>`;
-      };
-      const colourButton = id => swatchButton(id, { on: item.tincture === id, attr: `data-slot="${slot}" data-charge-tincture`, small: true, why: possible({ tincture: id }) });
-      html += `<div class="slot">`;
-      if (item.choice) {
-        html += `<div class="slot-head"><strong>${esc(choiceName(item.choice))}</strong>` +
-          `<button class="link-btn" type="button" data-remove="${slot}">${esc(TEXT.chargeRemove)}</button></div>`;
-      }
-      if (!item.choice || item.choice.kind === 'charge') {
-        html += `<div class="row-label">${esc(TEXT.chargeNumber)}</div><div class="row">${NUMBERS.map(numberButton).join('')}</div>`;
-      }
-      html += `<div class="row-label">${esc(TEXT.chargeColour)}</div>` +
-        swatchSets(offered(), colourButton) + `<div class="row" style="margin-top:10px">${colourButton(COUNTERCHANGED)}` +
-        `<button class="name-btn" type="button" data-slot="${slot}" data-charge-tincture="${UNSPECIFIED}" aria-pressed="${item.tincture === UNSPECIFIED}">${esc(TEXT.dontSpecify)}</button></div>` +
-        `</div>`;
-    });
+    state.items.forEach((item, slot) => { html += `<div class="slot" data-block="${slot}">${slotBlock(slot, c)}</div>`; });
   }
 
   html += `<input type="search" id="chargeFilter" value="${esc(state.chargeFilter)}" placeholder="${esc(TEXT.chargeSearch)}" aria-label="${esc(TEXT.chargeSearch)}">`;
@@ -988,6 +1033,7 @@ function adopt(shield) {
   state.items = made.groups.map(g => ({
     choice: g.kind === 'ordinary' ? { kind: 'ordinary', id: g.ordinary, file: null } : { kind: 'charge', id: g.charge, file: g.art },
     number: g.kind === 'ordinary' ? null : g.number,
+    arranged: g.arranged || (g.kind !== 'ordinary' && USUAL_ARRANGEMENT[g.number] ? 'usual' : null),
     tincture: g.tincture,
   }));
   state.noCharge = !state.items.length;
@@ -1088,6 +1134,10 @@ document.addEventListener('click', e => {
     const item = state.items[Number(d.slot)];
     item.tincture = item.tincture === d.chargeTincture ? null : d.chargeTincture;
     refocus = `[data-charge-tincture="${d.chargeTincture}"][data-slot="${d.slot}"]`;
+  } else if (d.arranged) {
+    const item = state.items[Number(d.slot)];
+    item.arranged = item.arranged === d.arranged ? null : d.arranged;
+    refocus = `[data-arranged="${d.arranged}"][data-slot="${d.slot}"]`;
   } else if (d.arrangement) {
     // Clicking the chosen arrangement again un-chooses it.
     const way = shownArrangements[Number(d.arrangement)];

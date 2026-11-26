@@ -17,6 +17,9 @@
 //                               | { kind: 'charge', id, file }  (file null = no picture)
 //                     number:   null (any) | 1, 2, 3...
 //                     tincture: null (any) | a tincture id | COUNTERCHANGED
+//                     arranged: null (any) | 'usual' | an arrangement id
+//                               (catalog.js: ARRANGEMENTS), how its own
+//                               charges are set out
 //                   Every charge listed appears on the shield.
 //   arrangement:    how the listed charges go together (arrange.js), or null
 //                   for any way that makes sense.
@@ -35,7 +38,7 @@
 // the same seed and constraints always give the same shield. Pages use this
 // to keep pictures from changing every time the screen is redrawn.
 
-import { DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, familyOf } from './catalog.js';
+import { DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, familyOf, arrangementsFor } from './catalog.js';
 import { plain, divided, ordinaryGroup, chargeGroupFromLibrary, shieldTinctures, blazon, typeOf, COUNTERCHANGED } from './shield.js';
 import { checkShield, checkArrangement } from './rules.js';
 import { arrangements, arrange } from './arrange.js';
@@ -268,13 +271,27 @@ function guessGroups(c, rng, library) {
     const g = flat[i], as = arrangement[i].as, fixed = items[i].number;
     if (g.kind === 'ordinary') continue;
     let choices;
-    if (as === 'primary') choices = circled ? [[1, 1]] : [[1, 11], [2, 3], [3, 6]];
+    if (as === 'primary') choices = circled ? [[1, 1]] : [[1, 22], [2, 6], [3, 12], [4, 1], [5, 1], [6, 1]];
     else if (as === 'around') choices = aroundNumbers(flat[primary]).map(n => [n, n === 3 ? 3 : 1]);
     else if (as === 'on') choices = onNumbers(flat[arrangement[i].on]).filter(n => n <= 4).map(n => [n, n === 1 || n === 3 ? 3 : 1]);
     else choices = PLACE_NUMBERS[as].map(n => [n, n === 2 ? 1 : 3]);
     // (Where no number has a default arrangement, one is still guessed, so
     // that the rules can say the arrangement cannot be drawn.)
     g.number = fixed || (choices.length ? weighted(rng, choices) : 1);
+  }
+
+  // How each group's own charges are set out (catalog.js: ARRANGEMENTS): as
+  // chosen ('usual' = the usual way for their number), or, for the primary
+  // group, now and then something other than the usual way. Four charges
+  // have no usual way, so always get a named arrangement.
+  for (const i of order) {
+    const g = flat[i], fixed = items[i].arranged;
+    if (g.kind === 'ordinary') continue;
+    if (fixed) g.arranged = fixed === 'usual' ? null : fixed;
+    else if (arrangement[i].as === 'primary' && g.number > 1) {
+      const named = arrangementsFor(g.number);
+      if (named.length && (g.number === 4 || rng() < 0.25)) g.arranged = pick(rng, named);
+    }
   }
 
   // What colour each is. Charges around the main one are often its colour.
@@ -328,7 +345,7 @@ export function randomShield(c, seedText, library) {
   // If everything is already decided there is only one shield to test.
   const items = wanted(c);
   const decided = c.field && items && (items === 'none' || (!c.extras &&
-    items.every(it => it.charge && it.tincture && (it.number || it.charge.kind === 'ordinary')) &&
+    items.every(it => it.charge && it.tincture && (it.charge.kind === 'ordinary' || it.number === 1 || (it.number && it.arranged))) &&
     (items.length === 1 || c.arrangement)));
   for (let i = 0; i < (decided ? 1 : TRIES); i++) {
     const shield = guess(c, rng, library);
@@ -380,9 +397,21 @@ export function whichWork(c, slot, key, values, seedText, library) {
     // (An ordinary guessed for a charge not yet picked says nothing about numbers.)
     if (key === 'number' && parts.flat[slot].kind === 'ordinary') continue;
     for (const value of [...open]) {
-      const shield = shieldFrom({ ...parts, flat: parts.flat.map((g, k) => (k === slot ? { ...g, [key]: value } : g)) }, c);
-      if (!shield) continue;
-      const problems = problemsOf(shield, c);
+      // A different number may need the charges set out differently (unless
+      // how they are set out was asked for): the usual way for that number,
+      // or failing that one of the named ways.
+      const was = parts.flat[slot];
+      const ways = key !== 'number' || items[slot].arranged || was.kind === 'ordinary' ? [was.arranged]
+        : [...new Set([arrangementsFor(value).includes(was.arranged) ? was.arranged : null, null, ...arrangementsFor(value)])].slice(0, 4);
+      let problems = null;
+      for (const arranged of ways) {
+        const shield = shieldFrom({ ...parts, flat: parts.flat.map((g, k) => (k === slot ? { ...g, [key]: value, arranged } : g)) }, c);
+        if (!shield) continue;
+        const found = problemsOf(shield, c);
+        if (!problems || !found.length) problems = found;
+        if (!found.length) break;
+      }
+      if (!problems) continue;
       if (!problems.length) { open.delete(value); continue; }
       for (const p of problems) {
         const seen = faults.get(value).get(p.id) || { problem: p, count: 0 };

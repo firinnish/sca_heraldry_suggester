@@ -51,6 +51,26 @@ here were made with the maintainer; add to it as things are decided.
     checked against real records and on the live form.
   - Suggestions may add a charge that was not picked (a bordure, charges
     around an ordinary).
+- **Charges set out in a named arrangement** (November 2026; the start of
+  item 7). "How many?" goes up to six, and for two or more a row of pictures
+  asks "How are they set out?": the usual way for that number, or in pale,
+  in fess, in bend, in bend sinister (two to six charges), in chevron and in
+  chevron inverted (three or five), in cross and in saltire (four or five),
+  one and two, two and two. Five are usually two, two and one, and six
+  three, two and one (Glossary Table 7). Four have no usual arrangement, so
+  one has to be chosen. The charges of a line are evenly spaced, all one
+  size, and packed by their real shapes. The blazon puts it as the O&A's
+  records do ("in pale three roundels Or", "four mullets two and two"), and
+  the search gets the arrangement's own O&A category (INPALE and the like),
+  checked against real records.
+- **Ordinaries are drawn narrower when charges go around them** (the
+  maintainer, November 2026): 60% of their full width, or 80% if charges
+  also lie on them. They keep the same middle line.
+- **A bordure or orle beside a chief runs along under the chief** instead of
+  being cut off by it (the maintainer's sketch, November 2026).
+- **From the maintainer's sketches** (November 2026): four charges around a
+  bend go two on each side; two around a cross go in bend; four around a
+  chevron inverted go one above and three below.
 
 ## Next, in the maintainer's words
 
@@ -83,10 +103,16 @@ here were made with the maintainer; add to it as things are decided.
    a `line` on every division; the O&A's line words are in my.cat. Needs the
    drawing, the picker, the search coding, and SENA Appendix H (low-contrast
    complex lines: sable/purpure and sable/azure are ruled out).
-7. **Arrangements.** If the user says "in pale" (or in fess, in bend...),
+7. *(Started, see "Charges set out in a named arrangement" above.)*
+   **Arrangements.** If the user says "in pale" (or in fess, in bend...),
    arrange them that way and put it in the Complex Search. The O&A indexes
    these as their own lines, e.g. `INPALE:3:or:g3pa`,
    `ARRANGEMENT-IN FESS:3:argent:g3pa`. Also more than three charges.
+   **Still to do here:** named arrangements for the charges around, above
+   or on something (so far only the charges in the middle of the shield can
+   be set out differently); in annulo, in orle and in pall; more than six
+   charges; charges turned to follow their line ("three swords bendwise in
+   bend"); two charges "crossed in saltire".
 
 8. **Several ordinaries and their diminutives** (maintainer, November 2026):
    two or three chevronels, bendlets, pallets, bars; two orles = a double
@@ -110,42 +136,47 @@ here were made with the maintainer; add to it as things are decided.
   on the field?", "remove", "How are they arranged?" and the words under its
   pictures ("lions around the chevron", "lion on the chevron", "lion above
   the chevron", "lion below the chevron", "lion with a bordure"), the herald
-  mode choices, "(arranged any way)", and seven new rule messages.
+  mode choices, "(arranged any way)", "How are they set out?", and eight new
+  rule messages.
 
-Raised by the work on several charges (November 2026). Each is a herald's
-call; the code does the cautious thing until answered:
+Raised by the work on several charges and arrangements (November 2026).
+Each is a herald's call; the code does the cautious thing until answered:
 
-- **A group "in chief" plus a bordure or chief.** SENA Appendix J allows
-  three groups on the field as "a primary charge group, a secondary charge
-  group around [it] (semy or numbered charges), and a peripheral ordinary".
-  Does a group only above or below the primary ("a fess and in chief three
-  mullets, a bordure") count as "around" it? Held back for now: heralds can
-  choose it, the tools do not suggest it (`groups-unsure` in `rules.js`).
-  The maintainer is asking a more senior herald (November 2026).
 - **A charge, a chief and a bordure** (and any other three groups not on
-  Appendix J's list) are treated as needing documentation, so not allowed.
-- **The middle charge of three on a chevron.** The Glossary's Table 7 says
-  charges on a chevron follow it, "central charge fesswise". The ones on the
-  arms are turned to follow them; the one at the point is drawn upright,
-  because a cup or lion lying on its side there looked wrong.
-  ANSWERED (maintainer, November 2026): upright is correct.
-- **Should an ordinary be drawn narrower when charges go around it?**
-  ANSWERED (maintainer, November 2026): yes, it should. NOT BUILT YET: every
-  ordinary still keeps the one shape it has alone, so three charges around a
-  chevron are on the small side, and one charge above a chevron has no room.
-  Needs narrower shapes in `geometry.js` that still line up with the field
-  divisions (check `tests/alignment.html`), chosen by `layout.js` when a
-  secondary group is present.
+  SENA Appendix J's list) are treated as needing documentation, so the tools
+  do not offer them, though they are now drawn properly.
+- **Four charges around a chevron the right way up** are not drawn: with
+  one above the point there is no room. (Four around a chevron inverted
+  follow the maintainer's sketch.) How should they go?
+- **Three around a cross, two or three around a saltire, three around a
+  pale or bend:** not drawn; the Glossary's Table 7 gives no arrangement.
+- **"A cross between two roundels"** is drawn in bend, as the maintainer
+  sketched, but the blazon does not say "in bend". Should it?
+- **Six charges on a divided field** are set out three, two and one, which
+  Table 7 gives only for an undivided field.
+- **"In chevron"** is offered although SENA Appendix K's list of standard
+  arrangements does not have it (the O&A has a category for it).
 - **An ordinary through the middle with an orle** is held back: the ordinary
   is drawn running under the orle to the shield's edge, which may be wrong.
-- **Suggestions now add charges nobody picked** (a lion picked may be
-  suggested inside a bordure). ANSWERED (maintainer, November 2026): wanted.
-- **Up to three kinds of charge**, and "How many?" now goes to 4 (four
-  around a cross or saltire is the default arrangement). Enough for now?
-- **Sizes to judge by eye** on `tests/groups.html`: a charge with others
-  around it is drawn at 72% of the size it has alone; charges around it are
-  at most 60% of its size; a charge on another charge at most 55%; anything
-  under 11 (on the shield's width of 100) counts as too small to offer.
+- **A narrower chevron on a per chevron inverted field** leaves a small
+  diamond of the upper colour under the chevron's point.
+- **Sizes to judge by eye** on `tests/groups.html`: an ordinary with charges
+  around it is 60% of its full width (80% if charges also lie on it); a
+  charge with others around it is drawn at 72% of the size it has alone;
+  charges around it are at most 60% of its size; a charge on another charge
+  at most 55%; a slanting line of charges reaches across at least 45% of the
+  shield; anything under 11 (on the shield's width of 100) counts as too
+  small to offer.
+
+Answered (kept for the record):
+
+- A group "in chief" plus a bordure counts as a group around the primary
+  under Appendix J (maintainer, November 2026).
+- The middle charge of three on a chevron is drawn upright, not "fesswise"
+  as the Glossary's Table 7 has it (maintainer, November 2026).
+- An ordinary is drawn narrower when charges go around it (maintainer,
+  November 2026; built).
+- Suggestions may add charges nobody picked (maintainer, November 2026).
 
 ## Smaller things noted along the way
 
@@ -158,9 +189,9 @@ call; the code does the cautious thing until answered:
   (A3D1b: two charges too alike, such as a lion and a catamount; needs a list
   of which charges count as the same), identifiability case (2) of A3B4b
   beyond ordinaries.
-- Two of a charge around another charge, and four of a primary charge, have
-  no default arrangement in the Glossary's Table 7, so are not drawn until
-  arrangements can be named (item 7).
+- Two of a charge around another charge have no default arrangement in the
+  Glossary's Table 7, so are not drawn until the charges around something
+  can be given a named arrangement (item 7).
 - A base still leaves the field and any ordinary where they are (item 10);
   charges already keep to the space above it.
 - The option pictures now fill in a moment after a click (so the click is

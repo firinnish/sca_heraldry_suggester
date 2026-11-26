@@ -26,7 +26,11 @@ const cellY = i => (Math.floor(i / GW) + 0.5) / PER_UNIT;
 export function maskFromPolygons(polygons) {
   const mask = new Uint8Array(CELLS);
   for (const p of polygons) {
-    for (let row = 0; row < GH; row++) {
+    // only the rows the polygon reaches
+    let low = Infinity, high = -Infinity;
+    for (const q of p) { if (q[1] < low) low = q[1]; if (q[1] > high) high = q[1]; }
+    const firstRow = Math.max(0, Math.floor(low * PER_UNIT) - 1), lastRow = Math.min(GH - 1, Math.ceil(high * PER_UNIT) + 1);
+    for (let row = firstRow; row <= lastRow; row++) {
       const y = (row + 0.5) / PER_UNIT;
       const crossings = [];
       for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
@@ -98,6 +102,13 @@ export function heights(mask) {
   let first = -1, last = -1;
   for (let i = 0; i < CELLS; i++) if (mask[i]) { if (first < 0) first = i; last = i; }
   return first < 0 ? [0, H] : [Math.floor(first / GW) / PER_UNIT, (Math.floor(last / GW) + 1) / PER_UNIT];
+}
+
+// The furthest left and right a mask reaches: [left, right].
+export function sides(mask) {
+  let first = GW, last = -1;
+  for (let i = 0; i < CELLS; i++) if (mask[i]) { const col = i % GW; if (col < first) first = col; if (col > last) last = col; }
+  return last < 0 ? [0, W] : [first / PER_UNIT, (last + 1) / PER_UNIT];
 }
 
 // The values of `measure(x, y)` that cut a mask into `n` pieces of equal
@@ -176,18 +187,53 @@ export function turned(outline, turn) {
   return outline.map(([x, y]) => [x * cos - y * sin, x * sin + y * cos]);
 }
 
+// How far apart the centres of two copies of a charge must be, in the
+// direction `angle` (degrees), for the copies not to overlap; in the
+// outline's own measure (the charge is 1 wide). Roundels can sit closer
+// together on a slant than their boxes would suggest; swords side by side
+// closer than swords end to end.
+// (It is the longest line that can be drawn across the charge in that
+// direction: slide a copy that far along it and the two just part. Found by
+// turning the outline so the direction lies flat, then measuring it across
+// at many heights.)
+export function clearDistance(outline, angle) {
+  const a = -angle * Math.PI / 180, cos = Math.cos(a), sin = Math.sin(a);
+  const step = Math.max(1, Math.floor(outline.length / 120));
+  const turnedFlat = outline.filter((_, i) => i % step === 0).map(([x, y]) => [x * cos - y * sin, x * sin + y * cos]);
+  const ys = turnedFlat.map(p => p[1]), low = Math.min(...ys), high = Math.max(...ys);
+  let longest = 0;
+  const LINES = 48;
+  for (let k = 0; k < LINES; k++) {
+    const y = low + (k + 0.5) / LINES * (high - low);
+    let from = Infinity, to = -Infinity;
+    for (let i = 0, j = turnedFlat.length - 1; i < turnedFlat.length; j = i++) {
+      const [xi, yi] = turnedFlat[i], [xj, yj] = turnedFlat[j];
+      if ((yi > y) !== (yj > y)) {
+        const x = (xj - xi) * (y - yi) / (yj - yi) + xi;
+        if (x < from) from = x;
+        if (x > to) to = x;
+      }
+    }
+    if (to - from > longest) longest = to - from;
+  }
+  return longest;
+}
+
 // The largest size (width) at which a charge centred at (cx, cy) fits in a
 // mask. Sizes are tried from small to large up to the first that does not
 // fit, so a charge never "jumps over" something in its way; then the last
 // step is narrowed down.
+// Does a charge of this size, centred at (cx, cy), fit in a mask?
+export function fitsAt(probe, mask, cx, cy, size) {
+  for (let k = 0; k < probe.length; k += 2) {
+    const col = Math.floor((cx + probe[k] * size) * PER_UNIT), row = Math.floor((cy + probe[k + 1] * size) * PER_UNIT);
+    if (col < 0 || col >= GW || row < 0 || row >= GH || !mask[row * GW + col]) return false;
+  }
+  return true;
+}
+
 export function largestFit(probe, mask, cx, cy) {
-  const fits = size => {
-    for (let k = 0; k < probe.length; k += 2) {
-      const col = Math.floor((cx + probe[k] * size) * PER_UNIT), row = Math.floor((cy + probe[k + 1] * size) * PER_UNIT);
-      if (col < 0 || col >= GW || row < 0 || row >= GH || !mask[row * GW + col]) return false;
-    }
-    return true;
-  };
+  const fits = size => fitsAt(probe, mask, cx, cy, size);
   const limit = 70 / (probe.reach || 0.5), STEPS = 24;   // nothing reaches further than the shield is big
   let lo = 0, hi = limit;
   for (let s = 1; s <= STEPS; s++) {

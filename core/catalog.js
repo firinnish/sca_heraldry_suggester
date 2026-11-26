@@ -110,6 +110,40 @@ export const ORDINARIES = {
   base:            { name: 'base',             code: 'BASE',      numbered: false, peripheral: true },
 };
 
+// ---- Arrangements ----------------------------------------------------------
+// How the charges of one group are set out, when it is not simply the usual
+// way for their number: "in pale three roundels", "in chevron five swords".
+// name:    how it is blazoned.
+// code:    the O&A category (my.cat: "arrangement, in pale|INPALE"). Real
+//          records carry it as a line of its own beside the charge's:
+//          "Argent, in pale three suns sable" has INPALE:3:g3pa:sable.
+//          null = the O&A has no category for it (checked: "three
+//          escallops one and two vert" has only the escallops' own line).
+// numbers: how many charges the tools can set out this way.
+// after:   true = blazoned after the charge ("four mullets two and two"),
+//          not before it ("in pale three suns"), as in the O&A's records.
+// The standard arrangements are listed in SENA Appendix K; "in chevron" is
+// not among them but is a category of the O&A.
+const LINE = [2, 3, 4, 5, 6];
+export const ARRANGEMENTS = {
+  pale:            { name: 'in pale',             code: 'INPALE',                   numbers: LINE },
+  fess:            { name: 'in fess',             code: 'ARRANGEMENT-IN FESS',      numbers: LINE },
+  bend:            { name: 'in bend',             code: 'ARRANGEMENT-IN BEND',      numbers: LINE },
+  bendSinister:    { name: 'in bend sinister',    code: 'ARRANGEMENT-IN BEND*3',    numbers: LINE },
+  chevron:         { name: 'in chevron',          code: 'ARRANGEMENT-IN CHEVRON',   numbers: [3, 5] },
+  chevronInverted: { name: 'in chevron inverted', code: 'ARRANGEMENT-IN CHEVRON*7', numbers: [3, 5] },
+  cross:           { name: 'in cross',            code: 'ARRANGEMENT-IN CROSS',     numbers: [4, 5] },
+  saltire:         { name: 'in saltire',          code: 'INSA',                     numbers: [4, 5] },
+  oneAndTwo:       { name: 'one and two',         code: null,                       numbers: [3], after: true },
+  twoAndTwo:       { name: 'two and two',         code: null,                       numbers: [4], after: true },
+};
+// The arrangements a group of `number` charges can be given.
+export const arrangementsFor = number => Object.keys(ARRANGEMENTS).filter(id => ARRANGEMENTS[id].numbers.includes(number));
+// The usual arrangement for each number, which a blazon does not mention
+// (the Glossary's Table 7; two side by side is the maintainer's). Four
+// charges have none: "None, must be specified".
+export const USUAL_ARRANGEMENT = { 2: 'side by side', 3: 'two and one', 5: 'two, two and one', 6: 'three, two and one' };
+
 export function divisionsWithParts(n) {
   return Object.keys(DIVISIONS).filter(id => DIVISIONS[id].parts === n);
 }
