@@ -16,7 +16,8 @@
 // part of the field each charge lies on), so the two can never disagree.
 
 import { getPicture } from './art.js';
-import { SAMPLES, insideShield, pointInPolygon, samplesInBox, ordinarySamples } from './geometry.js';
+import { SAMPLES, insideShield, pointInPolygon, samplesInBox, ordinarySamples, partMap } from './geometry.js';
+import { TINCTURES, familyOf, baseTincture } from './catalog.js';
 
 export const FILL = 0.95;
 
@@ -65,12 +66,26 @@ function largestSize(points, [x0, y0, x1, y1], cx, cy) {
 
 const placeCache = new Map();
 
+// Which sample points an outline covers when drawn at (cx, cy) at `size`.
+function covers(outline, cx, cy, size) {
+  const polygon = outline.map(([u, v]) => [cx + u * size, cy + v * size]);
+  const xs = polygon.map(p => p[0]), ys = polygon.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const covered = [];
+  SAMPLES.forEach(([x, y], i) => {
+    if (x >= x0 && x <= x1 && y >= y0 && y <= y1 && pointInPolygon(x, y, polygon)) covered.push(i);
+  });
+  return covered;
+}
+
 // Everything about how a (non-ordinary) charge group is placed:
 //   picture:  its picture (or the blob)
 //   flipY:    whether the picture must be turned over
 //   places:   for each charge { cx, cy, size }  (size = its width)
 //   coverage: for each charge, which sample points of the shield it covers
-export function placeGroup(group) {
+// `field` (optional) lets charges on a field of many pieces be nudged onto
+// the tincture they contrast with; see nudge() below.
+export function placeGroup(group, field = null) {
   const picture = (group.art && getPicture(group.art)) || BLOB_PICTURE;
   // Turn the picture over if it was drawn the other way up from what is wanted.
   const flipY = !!picture.href && !!group.inverted !== !!group.artInverted;
@@ -85,19 +100,73 @@ export function placeGroup(group) {
     const centres = spaces.map(centreOf);
     const size = FILL * Math.min(...spaces.map((space, i) => largestSize(thinned, space, centres[i][0], centres[i][1])));
     const places = centres.map(([cx, cy]) => ({ cx, cy, size }));
-    const coverage = places.map(({ cx, cy }) => {
-      const polygon = outline.map(([u, v]) => [cx + u * size, cy + v * size]);
-      const covered = [];
-      SAMPLES.forEach(([x, y], i) => { if (pointInPolygon(x, y, polygon)) covered.push(i); });
-      return covered;
-    });
-    placeCache.set(key, { picture, flipY, places, coverage });
+    const coverage = places.map(({ cx, cy }) => covers(outline, cx, cy, size));
+    placeCache.set(key, { picture, flipY, places, coverage, outline, thinned, spaces });
   }
-  return placeCache.get(key);
+  const base = placeCache.get(key);
+  return nudge(base, group, field, key);
+}
+
+// ---- Nudging charges onto the tincture they contrast with --------------------
+// On a field of many pieces (barry, chevronelly, checky...) SENA counts the
+// field as neutral, so a gules lion is allowed on chevronelly azure and Or.
+// It still looks better with as much of the lion on the Or as possible. So
+// the group is slid a little (up/down, or sideways for paly), shrinking only
+// if it must, to put the most of it on the contrasting tincture. The same
+// nudge is used by the drawing and the rules, so they always agree.
+const NUDGE_RANGE = 12;            // furthest a charge is moved
+const NUDGE_SIZES = [1, 0.95, 0.9];
+const SIDEWAYS = new Set(['paly']);
+const BOTH_WAYS = new Set(['checky', 'lozengy', 'gyronny']);
+const nudgeCache = new Map();
+
+function nudge(base, group, field, key) {
+  const t = group.tincture;
+  if (!field || field.type !== 'divided' || familyOf(field.division) !== 'many' || !t || !TINCTURES[t] ||
+      field.parts.some(p => p.type !== 'plain' || p.tincture === null)) return base;
+  // The part the charge contrasts with; give up if that is not just one part.
+  const contrasting = field.parts.map(p =>
+    TINCTURES[p.tincture].tone !== TINCTURES[t].tone && baseTincture(p.tincture) !== baseTincture(t));
+  if (contrasting.filter(Boolean).length !== 1) return base;
+  const target = contrasting.indexOf(true);
+  const cacheKey = `${key}|${field.division}|${target}`;
+  if (nudgeCache.has(cacheKey)) return nudgeCache.get(cacheKey);
+
+  const map = partMap(field.division);
+  const share = coverage => {
+    const all = coverage.flat();
+    return all.length ? all.filter(i => map[i] === target).length / all.length : 0;
+  };
+  const fits = (places, scale) => places.every(({ cx, cy }, i) => {
+    const [x0, y0, x1, y1] = base.spaces[i];
+    return base.thinned.every(([u, v]) => {
+      const x = cx + u * base.places[i].size * scale, y = cy + v * base.places[i].size * scale;
+      return x >= x0 && x <= x1 && y >= y0 && y <= y1 && insideShield(x, y);
+    });
+  });
+
+  const moves = [];
+  for (let d = -NUDGE_RANGE; d <= NUDGE_RANGE; d++) {
+    if (!SIDEWAYS.has(field.division)) moves.push([0, d]);
+    if (SIDEWAYS.has(field.division) || BOTH_WAYS.has(field.division)) moves.push([d, 0]);
+  }
+  let best = { result: base, score: share(base.coverage) };
+  const needed = best.score + 0.05;          // only move for a real gain
+  for (const scale of NUDGE_SIZES) {
+    for (const [dx, dy] of moves) {
+      const places = base.places.map(p => ({ cx: p.cx + dx, cy: p.cy + dy, size: p.size * scale }));
+      if (!fits(places, scale)) continue;
+      const coverage = places.map(p => covers(base.outline, p.cx, p.cy, p.size));
+      const score = share(coverage) - (1 - scale) - Math.hypot(dx, dy) * 0.002;
+      if (score > best.score && share(coverage) >= needed) best = { result: { ...base, places, coverage }, score };
+    }
+  }
+  nudgeCache.set(cacheKey, best.result);
+  return best.result;
 }
 
 // For any group, ordinary or not: the sample points each of its charges covers.
-export function groupCoverage(group) {
+export function groupCoverage(group, field = null) {
   if (group.kind === 'ordinary') return [ordinarySamples(group.ordinary)];
-  return placeGroup(group).coverage;
+  return placeGroup(group, field).coverage;
 }

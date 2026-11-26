@@ -51,6 +51,11 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   same division inside itself. The other "house" case is an ordinary sharing
   a tincture with a field of many pieces (SENA allows it only if drawn so the
   shared tinctures don't touch, which the drawing doesn't yet guarantee).
+- A field of many pieces (barry, chevronelly, checky...) counts as neutral
+  under a charge lying across its pieces (SENA A3B1; raised by Měryem,
+  November 2026). The drawing still nudges such charges onto the tincture
+  they contrast with (`nudge` in `layout.js`), and the rules use the same
+  placement, so the two always agree.
 - Contrast for a charge is judged against the part of the field it actually
   lies on (worked out from geometry + layout), which is how SENA treats a
   chief on a per pall field or two charges side by side on per pale.
@@ -118,6 +123,13 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   may depend on it being present.
 - The repository is public (GitHub Pages on a free account needs that) and
   other contributors are joining: keep it limited to what belongs there.
+
+## Palettes (`core/palettes.js`)
+- People choose the colour scheme shields are drawn in, under question 1;
+  the choice is kept in the browser. Each palette links to where it was
+  published. Names are the maintainer's wording. Forannán's "alternative"
+  palette has APPROXIMATE codes for azure, gules, purpure and vert (read from
+  a picture): replace them when the exact codes are known.
 
 ## The charge library (`charges/`)
 - This is the project's own database, replacing the Traceable Art one:

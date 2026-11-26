@@ -22,7 +22,7 @@ then open:
 
 | Folder | What it holds |
 | --- | --- |
-| `core/` | The shared engine. `catalog.js` (tinctures and field divisions, with their O&A codes), `shield.js` (the description of a shield, and its blazon), `draw.js` (the picture), `oanda.js` (Complex Search Form patterns and link). |
+| `core/` | The shared engine. `catalog.js` (tinctures and field divisions, with their O&A codes), `shield.js` (the description of a shield, and its blazon), `draw.js` (the picture), `oanda.js` (Complex Search Form patterns and link), `rules.js` (SENA's style rules), `generate.js` (random shields), `geometry.js` and `layout.js` (shapes and charge placement), `scatter.js` (ermine spots), `palettes.js` (colour schemes). |
 | `apps/search/` | "What are you searching for?": pick the background, get a filled-in Complex Search Form link. |
 | `apps/suggester/` | The earlier suggester prototype and the charge picker. |
 | `charges/` | The project's own charge library: `charges.csv` (one row per charge), `art.csv` (one row per picture), `art/` (the pictures), plus two generated lists, `priority.csv` and `oanda_categories.csv`. See [CONTRIBUTING.md](CONTRIBUTING.md). |

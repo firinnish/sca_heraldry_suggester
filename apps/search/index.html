@@ -74,6 +74,14 @@
   .search-link { display: block; text-align: center; background: var(--accent); color: #fff; text-decoration: none; padding: 10px 14px; border-radius: 6px; font-size: 0.95rem; }
   .search-link:hover { background: #453a6b; }
   .note { font-size: 0.82rem; color: var(--muted); margin: 10px 0 0; }
+  .palette-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 14px; font-size: 0.95rem; }
+  .chips { display: inline-flex; align-items: center; gap: 3px; }
+  .chip { display: inline-block; width: 16px; height: 16px; border: 1px solid #3a3226; border-radius: 2px; }
+  .chip-gap { display: inline-block; width: 1px; height: 18px; background: #3a3226; margin: 0 4px; }
+  .palette-source { font-size: 0.82rem; color: var(--accent); }
+  .link-btn { background: none; border: none; padding: 2px 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-size: 0.92rem; text-align: left; }
+  .palette-list { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
+  .palette-option { display: inline-flex; align-items: center; gap: 8px; }
   .help { font-size: 0.88rem; color: var(--muted); margin: -4px 0 12px; }
   .problems { margin: 0 0 12px; padding: 8px 10px 8px 26px; border: 1px solid #e3c4b8; background: #fbf1ec; border-radius: 6px; color: var(--warn); font-size: 0.82rem; }
   details { margin-top: 12px; font-size: 0.8rem; color: var(--muted); }
@@ -115,6 +123,7 @@ import { plain, divided, isComplete, isNested, leafTinctures, shieldTinctures, b
 import { shieldSVG, swatchSVG, counterchangedSwatchSVG } from '../../core/draw.js';
 import { shieldPatterns, complexSearchURL } from '../../core/oanda.js';
 import { loadLibrary } from '../../core/art.js';
+import { PALETTES, DEFAULT_PALETTE, usePalette, paletteById } from '../../core/palettes.js';
 import { checkShield, paletteLacks } from '../../core/rules.js';
 import { randomShield, randomShields, whyNot, randomFrom, shuffled } from '../../core/generate.js';
 
@@ -126,6 +135,11 @@ const TEXT = {
   title: 'What are you searching for?',
   herald: "I'm a herald and I know what I'm doing. Enter options manually",
   shieldColours: 'What colours are used in the shield?',
+  // The colour scheme chooser under question 1 (palette names are in core/palettes.js).
+  paletteLabel: 'palette:',
+  morePalettes: 'see more palettes',
+  fewerPalettes: 'hide other palettes',                                   // DRAFT
+  paletteSource: 'where this palette comes from',                       // DRAFT
   shieldColoursHelp: 'Pick all the colours you want to be considered in suggestions, to narrow down the options in the future questions',
   coloursLabel: 'Colours',                                              // DRAFT
   metalsLabel: 'Metals',                                                // DRAFT
@@ -215,7 +229,9 @@ const state = {
   chargeTincture: null,  // null | a tincture id | COUNTERCHANGED
   chargeFilter: '',
   pinned: [],            // suggestions the user has pinned
-  epoch: 0,              // goes up when the user asks for different suggestions
+  epoch: 0,
+  palette: DEFAULT_PALETTE, // the colour scheme shields are drawn in
+  showPalettes: false,      // is the list of other palettes open?              // goes up when the user asks for different suggestions
 };
 let library = { charges: [], pictures: [] };   // filled in once charges/ has loaded
 let shown = [];                                // the suggestions on screen, by position
@@ -336,9 +352,29 @@ function swatchSets(ids, make) {
   return `<div class="sets">${set(TEXT.coloursLabel, COLOUR_ORDER)}${set(TEXT.metalsLabel, METAL_ORDER)}${set(TEXT.fursLabel, FUR_ORDER)}</div>`;
 }
 
+// "palette: <name>" with little colour chips, and a list of the others.
+const CHIP_METALS = ['argent', 'or'];
+const CHIP_COLOURS = ['gules', 'vert', 'azure', 'purpure', 'sable'];
+function paletteChips(p) {
+  const chip = t => `<span class="chip" style="background:${p.colours[t]}"></span>`;
+  return `<span class="chips">${CHIP_METALS.map(chip).join('')}<span class="chip-gap"></span>${CHIP_COLOURS.map(chip).join('')}</span>`;
+}
+function paletteChooser() {
+  const current = paletteById(state.palette);
+  let html = `<div class="palette-row"><span>${esc(TEXT.paletteLabel)} <strong>${esc(current.name)}</strong></span>${paletteChips(current)}` +
+    `<a class="palette-source" href="${esc(current.source)}" target="_blank" rel="noopener">${esc(TEXT.paletteSource)}</a></div>` +
+    `<button class="link-btn" type="button" data-palettes aria-expanded="${state.showPalettes}">${esc(state.showPalettes ? TEXT.fewerPalettes : TEXT.morePalettes)}</button>`;
+  if (state.showPalettes) {
+    html += `<div class="palette-list">` + PALETTES.filter(p => p.id !== current.id).map(p =>
+      `<button class="link-btn palette-option" type="button" data-palette="${p.id}">${esc(p.name)} ${paletteChips(p)}</button>`).join('') + `</div>`;
+  }
+  return html;
+}
+
 function renderColourPanels() {
   $('shieldColoursPanel').innerHTML = `<h2>${esc(TEXT.shieldColours)}</h2><p class="help">${esc(TEXT.shieldColoursHelp)}</p>` +
-    swatchSets(ALL_TINCTURES, id => swatchButton(id, { on: state.shieldColours.includes(id), attr: 'data-q1' }));
+    swatchSets(ALL_TINCTURES, id => swatchButton(id, { on: state.shieldColours.includes(id), attr: 'data-q1' })) +
+    paletteChooser();
   $('fieldColoursPanel').innerHTML = `<h2>${esc(TEXT.fieldColours)}</h2><p class="help">${esc(TEXT.fieldColoursHelp)}</p>` +
     swatchSets(offered(), id => swatchButton(id, { on: state.fieldColours.includes(id), attr: 'data-q2', small: true }));
 }
@@ -677,6 +713,13 @@ document.addEventListener('click', e => {
     const i = Number(d.pin);
     if (i < state.pinned.length) state.pinned.splice(i, 1);
     else state.pinned.push(shown[i]);
+  } else if ('palettes' in d) {
+    state.showPalettes = !state.showPalettes;
+    refocus = '[data-palettes]';
+  } else if (d.palette) {
+    choosePalette(d.palette);
+    state.showPalettes = false;
+    refocus = '[data-palettes]';
   } else if ('reroll' in d) {
     state.epoch++;
     refocus = '[data-reroll]';
@@ -713,6 +756,15 @@ document.addEventListener('input', e => {
   box.focus({ preventScroll: true });
   box.setSelectionRange(at, at);
 });
+
+// The chosen palette is remembered in this browser for next time.
+function choosePalette(id) {
+  state.palette = usePalette(id).id;
+  try { localStorage.setItem('heraldryPalette', state.palette); } catch (e) { /* private window: just not remembered */ }
+}
+let saved = null;
+try { saved = localStorage.getItem('heraldryPalette'); } catch (e) { /* ignore */ }
+choosePalette(saved || DEFAULT_PALETTE);
 
 $('title').textContent = TEXT.title;
 $('heraldLabel').textContent = TEXT.herald;

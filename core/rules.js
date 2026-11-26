@@ -158,6 +158,13 @@ function classBehind(field, points) {
   const sizes = partSizes(field.division);
   const groups = field.parts.map(() => []);
   for (const i of points) groups[map[i]].push(i);
+  // A field of many pieces (barry, chevronelly, checky...) is judged as a
+  // whole: a charge lying across its pieces is on a neutral field (SENA
+  // A3B1), however much of the charge happens to fall on one tincture. (The
+  // drawing still nudges the charge onto the contrasting tincture: layout.js.)
+  if (familyOf(field.division) === 'many' && groups.every(g => g.length > BARELY * points.length)) {
+    return fieldClass(field);
+  }
   // A charge lies on a part if a good share of the charge is there, or if a
   // smaller share of the charge nevertheless covers a good share of the part.
   const touched = groups.map((g, i) => i).filter(i =>
@@ -224,7 +231,7 @@ function checkGroup(field, group, problems) {
 
   const chargeClass = classOf(group.tincture);
   let lowContrast = null, shares = false;
-  for (const points of groupCoverage(group)) {
+  for (const points of groupCoverage(group, field)) {
     if (!points.length) continue;
     // SENA A3B4a, applied to the part of the field behind this one charge.
     const behind = classBehind(field, points);

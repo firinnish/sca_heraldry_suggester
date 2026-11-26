@@ -151,7 +151,7 @@ function drawCharge(group, paint, picture, flipY, { cx, cy, size }, ctx) {
 function drawGroup(group, field, ctx) {
   if (group.kind === 'ordinary') return drawOrdinary(group, field, ctx);
   const paint = painter(group, field, ctx);
-  const { picture, flipY, places } = placeGroup(group);
+  const { picture, flipY, places } = placeGroup(group, field);
   return places.map(place => drawCharge(group, paint, picture, flipY, place, ctx)).join('');
 }
 
