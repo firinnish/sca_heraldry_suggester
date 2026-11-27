@@ -10,7 +10,8 @@ In this folder run
 
 then open:
 
-- http://localhost:8767/apps/search/ : the simple front end for the O&A Complex Search Form
+- http://localhost:8767/apps/search/ : Forannán's Shieldpainter (build mode), with the Complex Search link
+- http://localhost:8767/apps/searchonly/ : the compact search mode for heralds
 - http://localhost:8767/apps/suggester/charge_picker.html : the charge picker
 - http://localhost:8767/apps/suggester/heraldry_mvp.html : the first suggester prototype
 - http://localhost:8767/tests/ : checks the search patterns against the real armorial
@@ -25,7 +26,8 @@ then open:
 | Folder | What it holds |
 | --- | --- |
 | `core/` | The shared engine. `catalog.js` (tinctures and field divisions, with their O&A codes), `shield.js` (the description of a shield, and its blazon), `draw.js` (the picture), `export.js` (the picture as a PNG to save), `oanda.js` (Complex Search Form patterns and link), `rules.js` (SENA's style rules), `generate.js` (random shields), `geometry.js`, `layout.js` and `space.js` (shapes, and where charges go around and on each other), `arrange.js` (the ways several charges can go together), `scatter.js` (ermine spots), `palettes.js` (colour schemes). |
-| `apps/search/` | "What are you searching for?": pick the background and the charges, see the shield, get a filled-in Complex Search Form link. |
+| `apps/search/` | "Forannán's Shieldpainter 1.0", the build mode: pick the background and the charges from pictures, see the shield, get suggestions, save it as a PNG, and get a filled-in Complex Search Form link. |
+| `apps/searchonly/` | The search mode, for heralds: the same description made from compact menus, with no suggestions and pictures only on request. |
 | `apps/suggester/` | The earlier suggester prototype and the charge picker. |
 | `charges/` | The project's own charge library: `charges.csv` (one row per charge), `art.csv` (one row per picture), `art/` (the pictures), `tha.csv` and `tha/` (pictures from the Book of Traceable Heraldic Art, with their artists, shared under its Creative Commons CC-BY-SA licence: see `charges/tha/README.md`), plus two generated lists, `priority.csv` and `oanda_categories.csv`. See [CONTRIBUTING.md](CONTRIBUTING.md). |
 | `data/` | `charges.csv` and `taxonomy.csv` (edited by hand), `mycat.txt` (the O&A category list), and generated charge lists. |
