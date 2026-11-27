@@ -27,7 +27,9 @@
 //   arrangement:    how the listed charges go together (arrange.js), or null
 //                   for any way that makes sense.
 //   extras:         true = the shield may also have charges that are not
-//                   listed (used for suggestions, not for option pictures).
+//                   listed (used for suggestions, not for option pictures);
+//                   'simple' = it may, but only ordinaries and the simple
+//                   geometric charges (catalog.js: SIMPLE_CHARGES).
 //   charge, number, chargeTincture: the older way of asking for one charge;
 //                   the same as a list of one.
 //   allowBare:      true = a plain background with nothing on it is acceptable
@@ -41,7 +43,7 @@
 // the same seed and constraints always give the same shield. Pages use this
 // to keep pictures from changing every time the screen is redrawn.
 
-import { DIVISIONS, ORDINARIES, ARRANGEMENTS, SEMY, COLOUR_ORDER, METAL_ORDER, familyOf, arrangementsFor } from './catalog.js';
+import { DIVISIONS, ORDINARIES, ARRANGEMENTS, SEMY, COLOUR_ORDER, METAL_ORDER, SIMPLE_CHARGES, familyOf, arrangementsFor } from './catalog.js';
 import { plain, divided, ordinaryGroup, chargeGroupFromLibrary, shieldTinctures, blazon, typeOf, COUNTERCHANGED } from './shield.js';
 import { checkShield, checkArrangement } from './rules.js';
 import { arrangements, arrange } from './arrange.js';
@@ -165,13 +167,16 @@ function wanted(c) {
   return null;
 }
 
+const SIMPLE = new Set(SIMPLE_CHARGES);
 const CENTRAL = Object.keys(ORDINARIES).filter(id => !ORDINARIES[id].peripheral);
 const PERIPHERAL = Object.keys(ORDINARIES).filter(id => ORDINARIES[id].peripheral);
 const sameChoice = (a, b) => a.kind === b.kind && a.id === b.id;
 
 // A charge picked at random. `kinds` weights the possibilities.
-function randomChoice(rng, library, { ordinary = 4, peripheral = 0, charge = 6 } = {}) {
-  const pictures = library.pictures;
+// `among` (optional): the only charges that may be picked (a Set of ids).
+function randomChoice(rng, library, { ordinary = 4, peripheral = 0, charge = 6, among = null } = {}) {
+  const pictures = among ? library.pictures.filter(p => among.has(p.charge_id)) : library.pictures;
+  if (among && !pictures.length) charge = 0;
   const kinds = [
     ['ordinary', ordinary], ['peripheral', peripheral],
     ['picture', pictures.length ? charge : 0],
@@ -264,9 +269,11 @@ function guessGroups(c, rng, library) {
   // along the edge, an ordinary, or another charge.
   for (let chance = 0.35; c.extras && items.length < 3 && rng() < chance; chance = 0.2) {
     const has = test => items.some(it => it.charge.kind === 'ordinary' && test(it.charge.id));
+    // (`extras: 'simple'`: an added charge is a simple geometric shape, or an ordinary)
     const extra = randomChoice(rng, library, {
       ordinary: 0, charge: 5,
       peripheral: has(id => PERIPHERAL.includes(id)) ? 0 : 4,
+      among: c.extras === 'simple' ? SIMPLE : null,
     }) || null;
     const central = !has(id => CENTRAL.includes(id)) && rng() < 0.3 ? { kind: 'ordinary', id: pick(rng, CENTRAL) } : null;
     const choice = central || extra;
@@ -306,6 +313,8 @@ function guessGroups(c, rng, library) {
     // (Where no number has a default arrangement, one is still guessed, so
     // that the rules can say the arrangement cannot be drawn.)
     g.number = fixed || (choices.length ? weighted(rng, choices) : 1);
+    // (strewn over one part of a divided background, if that was asked for)
+    if (g.number === SEMY && Number.isInteger(items[i].part)) g.part = items[i].part;
   }
 
   // How each group's own charges are set out (catalog.js: ARRANGEMENTS): as

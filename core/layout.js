@@ -23,7 +23,7 @@
 import { getPicture, turnedPicture } from './art.js';
 import { SAMPLES, insideShield, pointInPolygon, samplesInBox, ordinarySamples, ordinaryShapes, suitsDivision, partMap,
          frameCentre, frameName, frameScale, CHIEF_BOTTOM, BASE_TOP, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, ARM_HALF,
-         DIVISION_VARIANTS } from './geometry.js';
+         DIVISION_VARIANTS, divisionShapes, isLayered } from './geometry.js';
 import { TINCTURES, ARRANGEMENTS, SEMY, familyOf, baseTincture, turnFor } from './catalog.js';
 import { roles } from './shield.js';
 import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, centroid, heights, sides, sidesAt, cuts,
@@ -818,6 +818,14 @@ function compose(groups, r, division) {
   const width = primary && primary.kind === 'ordinary' && secondary.length ? (primary.charged ? SLIM_CHARGED : SLIM) : 1;
   const drawnAs = g => [frameKey, signature({ ...g, charged: null }), g.kind === 'ordinary' && suitsDivision(g.ordinary, division),
     g === primary ? (g.kind === 'ordinary' ? width : [...wanted].sort().join()) : ''].join('|');
+  // Charges strewn over ONE part of a divided field keep to that part ("Per
+  // chevron sable and purpure semy of lions Or": shield.js, `part`).
+  const strewnOn = g => (g.number === SEMY && Number.isInteger(g.part) && !!division && !isLayered(division));
+  const partOf = (g, region) => {
+    const shapes = strewnOn(g) ? divisionShapes(division, fieldFrame)[g.part] : null;
+    return shapes ? and(region, maskFromPolygons(shapes)) : region;
+  };
+  const partKey = g => (strewnOn(g) ? `${division}:${g.part}` : '');
 
   if (primary && primary.kind === 'ordinary') {
     Object.assign(entries[pi], ordinaryParts(primary, division, innerFrame, width));
@@ -832,7 +840,7 @@ function compose(groups, r, division) {
     if (wanted.includes('chief')) region = where(region, (x, y) => y >= chiefLine);
     if (wanted.includes('base')) region = where(region, (x, y) => y <= baseLine);
     const whole = region === frame.mask && !frame.chief && !frame.base && !frame.lopsided;
-    const found = remembered(['primary', drawnAs(primary)].join('|'), () => placeIn(primary, region, whole ? centre : null));
+    const found = remembered(['primary', drawnAs(primary), partKey(primary)].join('|'), () => placeIn(primary, partOf(primary, region), whole ? centre : null));
     // (a copy: the remembered placing must not be changed by what follows)
     const placed = found && found.places.length ? { shape: found.shape, places: found.places.map(p => ({ ...p })) } : null;
     if (!placed) Object.assign(entries[pi], { ok: false, picture: BLOB_PICTURE, flipY: false, places: [], coverage: [] });
@@ -856,8 +864,8 @@ function compose(groups, r, division) {
       const others = secondary.filter(j => j !== i).map(j => JSON.stringify(signature(groups[j]))).join();
       // (Not around charges that are themselves strewn: two lots of semy cannot be told apart.)
       if (r[i].place === 'around' && primary.number !== SEMY) {
-        parts = remembered(['strewn', drawnAs(primary), others, pictureOf(g).key].join('|'), () => {
-          const placed = placeSemy(pictureOf(g), context.open);
+        parts = remembered(['strewn', drawnAs(primary), others, pictureOf(g).key, partKey(g)].join('|'), () => {
+          const placed = placeSemy(pictureOf(g), partOf(g, context.open));
           return placed.places.length ? chargeParts(placed.shape, placed.places) : null;
         });
       }
@@ -889,7 +897,7 @@ function compose(groups, r, division) {
 // How one charge group shows in the layout, for a signature of the shield.
 const signature = g => [g.kind, g.ordinary || (g.art && getPicture(g.art) ? g.art : 'blob'), g.number, !!g.mirror, !!g.inverted,
   !!g.artInverted, g.role || null, g.place || null, g.arranged || null, g.charged ? signature(g.charged) : null, g.turned || null,
-  lineOf(g)];
+  lineOf(g), Number.isInteger(g.part) ? g.part : null];
 const layoutCache = new Map();
 
 // Where everything on a shield goes. Returns { frame, entries } with one
@@ -1039,7 +1047,9 @@ function placeAll(field, groups) {
   }
   // (The field only matters where an ordinary is drawn to suit its division.)
   const suited = groups.some(g => g.kind === 'ordinary' && suitsDivision(g.ordinary, division));
-  const key = JSON.stringify([suited, groups.map(signature)]);
+  // (...and where charges are strewn over one part of it)
+  const parted = groups.some(g => g.number === SEMY && Number.isInteger(g.part)) ? division : null;
+  const key = JSON.stringify([suited, parted, groups.map(signature)]);
   if (!layoutCache.has(key)) {
     if (layoutCache.size > 3000) layoutCache.clear();
     layoutCache.set(key, compose(groups, r, division));

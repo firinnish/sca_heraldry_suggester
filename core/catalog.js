@@ -281,9 +281,17 @@ export const LINES = {
 // or a gore.)
 export const LINED_ORDINARIES = new Set(['pale', 'fess', 'bend', 'bendSinister', 'chevron', 'chevronInverted', 'cross',
                                          'saltire', 'pall', 'pile', 'chief', 'bordure', 'base']);
-// Can this division be drawn with a complex line? (Not orly, nor two
-// divisions together, nor the checks and lozenges.)
-export const canBeLined = division => !division.includes('+') && !['orly', 'checky', 'lozengy'].includes(division);
+// Can this division be drawn with a complex line? (Not two divisions
+// together, nor the checks and lozenges.)
+export const canBeLined = division => !division.includes('+') && !['checky', 'lozengy'].includes(division);
+
+// SIMPLE GEOMETRIC CHARGES: the plain shapes that go with almost anything.
+// In the build page's "default mode" a suggestion may add one of these, or
+// an ordinary, to the charges that were picked, but never some other beast
+// or object (the maintainer, 27 November 2026: "a cat and in chief 3 stars"
+// yes, "a bear, and in chief a cat" no). Ids from charges/charges.csv.
+export const SIMPLE_CHARGES = ['roundel', 'annulet', 'billet', 'delf', 'lozenge', 'mascle', 'rustre', 'mullet', 'estoile',
+                               'crescent', 'heart', 'triangle', 'goutte'];
 
 // ---- Arrangements ----------------------------------------------------------
 // How the charges of one group are set out, when it is not simply the usual

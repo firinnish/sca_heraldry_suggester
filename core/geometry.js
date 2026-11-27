@@ -329,11 +329,13 @@ const linedShapes = (polygons, line, options) => polygons.map(p => linedPolygon(
 // whole number of repeats goes round, begun at the middle of the top. The
 // line never comes further in than the plain one would: it is cut into the
 // bordure instead, so whatever is inside keeps its room.
-function linedLoop(loop, id) {
+function linedLoop(loop, id, fitted = false) {
   const shape = LINE_SHAPES[id], n = loop.length;
   const lengths = loop.map((p, i) => Math.hypot(loop[(i + 1) % n][0] - p[0], loop[(i + 1) % n][1] - p[1]));
   const total = lengths.reduce((s, x) => s + x, 0);
   const count = Math.max(4, Math.round(total / shape.period)), period = total / count;
+  // `fitted`: on a short outline the line is made shallower in proportion
+  const depth = shape.depth * (fitted ? Math.min(1, total / (10 * shape.period)) * 0.6 : 1);
   const middle = [loop.reduce((s, p) => s + p[0], 0) / n, loop.reduce((s, p) => s + p[1], 0) / n];
   const highest = Math.max(...shape.points.map(p => p[1]));
   // where the outline is `s` along from its first point, and the way inward there
@@ -365,7 +367,7 @@ function linedLoop(loop, id) {
   for (let k = 0; k < count; k++) {
     for (const [s, v] of shape.points) {
       const [x, y, nx, ny] = at(start + (k + shape.centre + s) * period);
-      const d = (highest - v) * shape.depth;
+      const d = (highest - v) * depth;
       out.push([x - nx * d, y - ny * d]);
     }
   }
@@ -487,12 +489,18 @@ const KEEPS_ITS_SHAPE = new Set(['checky', 'lozengy']);
 // Only drawing asks for it; the rules and the layout work from the plain
 // shapes, which differ by no more than the depth of the line.
 export function divisionShapes(division, frame = null, variant = null, line = null) {
-  if (line === 'plain' || !LINE_SHAPES[line] || isLayered(division) || KEEPS_ITS_SHAPE.has(division)) line = null;
+  if (line === 'plain' || !LINE_SHAPES[line] || division.includes('+') || KEEPS_ITS_SHAPE.has(division)) line = null;
   const key = `${division}|${frame}|${variant}` + (line ? `|${line}` : '');
   if (!divisionCache.has(key)) {
     if (!division.split('+').every(d => DIVISION_SHAPES[d])) throw new Error('No shape for division: ' + division);
     const plainParts = shapesOf(division, variant);
-    const parts = line ? plainParts.map(polygons => linedShapes(polygons, line)) : plainParts;
+    // (Orly's shapes are whole outlines one inside another, so each is
+    // redrawn along its own length, as a bordure's inner edge is; a small
+    // one near the middle gets a shallower line, or it would be all line.)
+    const redraw = division === 'orly'
+      ? polygons => polygons.map(p => (p === EVERYWHERE ? p : linedLoop(p, line, true)))
+      : polygons => linedShapes(polygons, line);
+    const parts = line ? plainParts.map(redraw) : plainParts;
     divisionCache.set(key, parts.map(polygons => intoFrame(polygons, frame, KEEPS_ITS_SHAPE.has(division))));
   }
   return divisionCache.get(key);
