@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" viewBox="58.5 67.5 301.5 227.43" width="301.5" height="227.43">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 58.5 67.5 L 360 67.5 L 360 294.93 L 58.5 294.93 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Matsukawabishi" stroke-opacity="1" stroke="none" stroke-dasharray="none" fill="none" fill-opacity="1">
+    <title>Matsukawabishi</title>
+    <g id="Matsukawabishi_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_25">
+        <path d="M 155.64 133.87 L 65.25 181.21 L 155.64 228.56 L 124.68 244.78 L 209.25 289.08 L 293.82 244.78 L 262.86 228.56 L 353.25 181.21 L 262.86 133.87 L 293.82 117.65 L 209.25 73.35 L 124.68 117.65 Z" fill="#ffffff"/>
+        <path d="M 155.64 133.87 L 65.25 181.21 L 155.64 228.56 L 124.68 244.78 L 209.25 289.08 L 293.82 244.78 L 262.86 228.56 L 353.25 181.21 L 262.86 133.87 L 293.82 117.65 L 209.25 73.35 L 124.68 117.65 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+      </g>
+    </g>
+  </g>
+</svg>

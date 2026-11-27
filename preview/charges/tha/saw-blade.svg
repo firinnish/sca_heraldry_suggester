@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="36 117 351 36" width="351" height="36">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 36 117 L 387 117 L 387 153 L 36 153 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Saw_Blade" stroke-opacity="1" stroke="none" fill="none" fill-opacity="1" stroke-dasharray="none">
+    <title>Saw Blade</title>
+    <g id="Saw_Blade_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_391">
+        <g id="Graphic_390">
+          <path d="M 343.5 149.44 L 370.31 149.44 C 378.29 149.44 384.75 142.97 384.75 135 C 384.75 127.03 378.29 120.56 370.31 120.56 L 52.69 120.56 C 44.71 120.56 38.25 127.03 38.25 135 L 38.25 135 C 38.25 142.97 44.71 149.44 52.69 149.44 L 82.37 149.44 L 79.5 137.06 L 102.46 149.44 L 102.46 149.44 L 99.59 137.06 L 122.54 149.44 L 122.54 149.44 L 119.67 137.06 L 142.63 149.44 L 139.76 137.06 L 162.72 149.44 L 162.72 149.44 L 159.85 137.06 L 182.8 149.44 L 182.8 149.44 L 179.93 137.06 L 202.89 149.44 L 200.02 137.06 L 222.98 149.44 L 220.11 137.06 L 243.07 149.44 L 243.07 149.44 L 240.2 137.06 L 263.15 149.44 L 263.15 149.44 L 260.28 137.06 L 283.24 149.44 L 280.37 137.06 L 303.33 149.44 L 300.46 137.06 L 323.41 149.44 L 323.41 149.44 L 320.54 137.06 Z" fill="#ffffff"/>
+          <path d="M 343.5 149.44 L 370.31 149.44 C 378.29 149.44 384.75 142.97 384.75 135 C 384.75 127.03 378.29 120.56 370.31 120.56 L 52.69 120.56 C 44.71 120.56 38.25 127.03 38.25 135 L 38.25 135 C 38.25 142.97 44.71 149.44 52.69 149.44 L 82.37 149.44 L 79.5 137.06 L 102.46 149.44 L 102.46 149.44 L 99.59 137.06 L 122.54 149.44 L 122.54 149.44 L 119.67 137.06 L 142.63 149.44 L 139.76 137.06 L 162.72 149.44 L 162.72 149.44 L 159.85 137.06 L 182.8 149.44 L 182.8 149.44 L 179.93 137.06 L 202.89 149.44 L 200.02 137.06 L 222.98 149.44 L 220.11 137.06 L 243.07 149.44 L 243.07 149.44 L 240.2 137.06 L 263.15 149.44 L 263.15 149.44 L 260.28 137.06 L 283.24 149.44 L 280.37 137.06 L 303.33 149.44 L 300.46 137.06 L 323.41 149.44 L 323.41 149.44 L 320.54 137.06 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_386">
+          <circle cx="54.75" cy="135" r="4.13" fill="#e1e1e1"/>
+          <circle cx="54.75" cy="135" r="4.13" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_385">
+          <circle cx="368.25" cy="135" r="4.13" fill="#e1e1e1"/>
+          <circle cx="368.25" cy="135" r="4.13" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

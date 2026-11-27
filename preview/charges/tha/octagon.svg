@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" viewBox="48 62 272 272" width="272" height="272">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 48 62 L 320 62 L 320 334 L 48 334 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Octagon" stroke-opacity="1" stroke="none" stroke-dasharray="none" fill="none" fill-opacity="1">
+    <title>Octagon</title>
+    <g id="Octagon_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Graphic_16">
+        <path d="M 130.3 63 L 238.03 63 L 318.82 143.8 L 318.82 251.53 L 238.03 332.32 L 130.3 332.32 L 49.5 251.53 L 49.5 143.8 Z" fill="#ffffff"/>
+        <path d="M 130.3 63 L 238.03 63 L 318.82 143.8 L 318.82 251.53 L 238.03 332.32 L 130.3 332.32 L 49.5 251.53 L 49.5 143.8 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>
