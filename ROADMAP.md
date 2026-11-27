@@ -188,6 +188,48 @@ here were made with the maintainer; add to it as things are decided.
 - **Smaller things:** the background's colours are chosen automatically
   when the shield's colours leave only one set (azure and Or ticked, then
   per pale); an "AI disclosure" link beside the herald tick.
+- **"Forannán's Shieldpainter 1.0"** (the end of November 2026): the page's
+  new name. It is the "build mode"; a second, compact page for heralds, the
+  "search mode", is at `apps/searchonly/`, each linked from under the
+  other's title.
+- **Arrangements that read clearly** (the maintainer's pictures): charges
+  side by side are set out evenly first (equal gaps between them and to the
+  edge of the shield at their height) and then made as large as that
+  allows, instead of as large as possible and wherever that left them;
+  charges in rows keep to their own end of the shield (the top row out of
+  the bottom third, the bottom row out of the top third); a line in bend is
+  centred. A charge that only just pokes over a line of the field (less
+  than about a seventh of it) makes its whole group a little smaller, each
+  charge about its own centre, until every one is clearly on one side or
+  clearly across.
+- **Checky and lozengy stay readable:** when less than half the shield
+  shows them (a pale and a bordure), they are drawn with pieces half the
+  size; when less than a quarter does (a cross, a bordure and charges in
+  the corners) the design is held back ("So little of the background
+  shows...").
+- **"make suggestion"** under every option's picture puts that whole design
+  among the suggestions, pinned.
+- **The background menu keeps everything reachable:** with two or three
+  colours chosen, "Show one-part backgrounds" and "Show two-part
+  backgrounds" bring out the backgrounds that use fewer of them, and with
+  three or four there are a few that use all of them by dividing one part
+  again. "more complex background" with two colours starts as two
+  divisions counterchanged ("bendy and per fess argent and sable"), and
+  taking a colour off no longer brings another back.
+- **A charge's colour is chosen for it** when the shield's colours and the
+  background leave only one (Or on per pale sable and purpure, with
+  purpure, sable and Or ticked), as the background's colours are.
+- **Search:** two, three or four of a charge are searched as "that many or
+  fewer" (Měryem: two of the charge with one of another would be indexed as
+  two, and still conflict). Five and six are searched exactly: the O&A has
+  no "5 or fewer".
+- **Rules:** strewn charges may not share a tincture with ANY tincture of
+  what they lie on (not argent on ermine, nor on "purpure masoned argent");
+  a charge on a canton is allowed with the maintainer's warning about
+  augmentations, and is never made up at random.
+- **Small ones:** "all semy of" in the blazon of a divided field; estencely
+  ("azure estencely Or") under "More complex options"; a fur or treatment
+  shows as one large spot, bell or scale in the colour menus.
 
 ## Next, in the maintainer's words
 
@@ -319,7 +361,13 @@ here were made with the maintainer; add to it as things are decided.
      marked by hand once (the rose proper is "gules barbed vert seeded
      Or"); the Glossary of Terms lists which charges have a defined proper.
      Suggested order: brown first, then the dozen commonest from the
-     Glossary's list.
+     Glossary's list. Iago's palette pictures give the browns as codes
+     (https://caerlaverockroll.com/armorial-palettes-ii/, read November
+     2026): Insignia Anglica brown 79412b (grey beast 6c7266, grey iron
+     959787, dark skin 4c3c2c, brown skin bb4e37, light skin d2ad8f);
+     Libro II della Natione Normanda brown 785642 (grey 8e8e7f, light skin
+     ca9e80); Nobiliario brown 928266. The other palettes need a brown
+     chosen for them.
    - **A "Custom" palette:** small. A palette is just ten or so colour
      codes (`core/palettes.js`), and the choice is already kept in the
      browser. It needs a row of boxes to type codes into (the browser's own
@@ -335,16 +383,35 @@ here were made with the maintainer; add to it as things are decided.
 
 ## Questions waiting for the maintainer
 
+From the Shieldpainter round (the end of November 2026):
+
+- **Semy on one part of a divided field** ("Per chevron sable and purpure
+  semy of lions": lions on the purpure only) cannot be described yet: the
+  tools strew over the whole field, and the blazon now says "all semy of"
+  so that picture and words agree. Charges that belong to one part of a
+  field are a piece of work of their own.
+- **Complex lines** will be offered beside "orientation" and "art" on an
+  ordinary's card (the maintainer); not started.
+- **"or fewer" for every group:** it is applied to secondary and tertiary
+  groups as well as the primary one. Say if Měryem meant the primary only.
+- **Checky under a lone cross** now also gets the smaller pieces (a cross
+  hides more than half the shield). Easy to limit to "an ordinary AND a
+  bordure" if that looks wrong.
+- **Search mode** is a first version built to the description; its wording
+  is all DRAFT except the two mode links and the title.
+- **Wording to check** (DRAFT in the page's `TEXT`): "Hide one-part
+  backgrounds", "Hide two-part backgrounds", "With all of these colours",
+  and "So little of the background shows that its pattern cannot be made
+  out".
+
 From the round of late November 2026 (postures, furs, combined backgrounds):
 
-- **Two rules relaxed on your say-so, to check with another herald:** a
-  chief, bordure or base sharing a tincture with a field of many pieces is
-  now offered; and so is ANY ordinary counterchanged over a field of many
-  pieces (pale, pile and pall included, and chief, bordure, orle, base).
-  SENA A3F4 says a single charge counterchanged over more than four pieces
-  "must be attested"; the O&A shows bends, a saltire and bordures
-  registered that way since 2013. Should it be narrower (say bend, fess,
-  pale, chevron, bordure)?
+- **Answered:** "a single charge" in SENA A3F4 means a charge that is not
+  an ordinary, so any ordinary may be counterchanged over a field of many
+  pieces. Sword orientations are right as they are; charges that should go
+  the other way will be listed if found (Traceable Heraldic Art's pages
+  often give a "default orientation"). Three charges and a canton: right
+  as it is.
 - **Orientation is a rule of thumb:** a picture drawn upright (a sword) goes
   point to dexter for "fesswise" and point to dexter chief for "bendwise";
   one drawn lying down (a fish, a lion passant) goes head upward for

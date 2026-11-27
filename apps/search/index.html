@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>What are you searching for?</title>
+<title>Forannán's Shieldpainter 1.0</title>
 <style>
   :root { --ink: #2b2620; --paper: #faf6ee; --line: #d8cfba; --accent: #5b4b8a; --muted: #6b6252; --warn: #8a3b2a; }
   * { box-sizing: border-box; }
@@ -31,6 +31,12 @@
   h2 { font-size: 1.05rem; margin: 0 0 12px; }
   .herald { font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
   .head-right { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; }
+  .mode-link { font-size: 0.8rem; color: var(--accent); }
+  /* An option's picture with "make suggestion" under it. */
+  .opt { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .opt .card { flex: 1; }
+  .opt .link-btn { font-size: 0.68rem; padding: 0; color: var(--muted); }
+  .show-row { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 0; }
   .ai-link { font-size: 0.75rem; color: var(--muted); }
   /* What "AI disclosure" opens: a box over the page, with an X to shut it. */
   .ai-box { max-width: min(520px, 92vw); border: 1.5px solid var(--ink); border-radius: 10px; padding: 18px 22px; background: #fff; color: var(--ink); font-size: 0.95rem; line-height: 1.45; }
@@ -174,7 +180,10 @@
 <body>
 <main class="app">
   <header>
-    <div class="head-left"><h1 id="title"></h1><button class="plain-btn" type="button" id="clearAll" data-clear></button></div>
+    <div class="head-left">
+      <div><h1 id="title"></h1><a class="mode-link" id="modeLink" href="../searchonly/"></a></div>
+      <button class="plain-btn" type="button" id="clearAll" data-clear></button>
+    </div>
     <div class="head-right">
       <label class="herald"><input type="checkbox" id="herald"> <span id="heraldLabel"></span></label>
       <button class="link-btn ai-link" type="button" id="aiOpen"></button>
@@ -220,7 +229,22 @@ import { arrangements, arrange, unarrange, sameArrangement } from '../../core/ar
 // Lines marked DRAFT were placeholders written while building: please rewrite.
 // ---------------------------------------------------------------------------
 const TEXT = {
-  title: 'What are you searching for?',
+  title: "Forannán's Shieldpainter 1.0",
+  // Under the title: the way to the other page (apps/searchonly/), which is
+  // for heralds who only want to search. The maintainer's words.
+  modeLink: 'Build mode - click for search mode',
+  // Under an option's picture: adds that whole design to the suggestions,
+  // pinned (the maintainer's words).
+  makeSuggestion: 'make suggestion',
+  // With three colours chosen for the background, the plain and two-colour
+  // backgrounds are kept behind these (the maintainer's words).
+  showOnePart: 'Show one-part backgrounds',
+  showTwoPart: 'Show two-part backgrounds',
+  hideOnePart: 'Hide one-part backgrounds',                             // DRAFT
+  hideTwoPart: 'Hide two-part backgrounds',                             // DRAFT
+  nestedLabel: 'With all of these colours',                             // DRAFT (backgrounds where one part is itself divided)
+  // Shown with the shield when a charge lies on a canton (the maintainer's words).
+  augmentation: 'This usually represents an augmentation of honour, and is not allowed in the SCA without an augmentation of arms',
   herald: "I'm a herald and I know what I'm doing. Enter options manually",
   shieldColours: 'What colours are used in the shield?',
   // The colour scheme chooser under question 1 (palette names are in core/palettes.js).
@@ -396,6 +420,7 @@ const TEXT = {
     'quaternary': 'A charge cannot go on a charge that is itself on another charge',
     'arrangement-unsupported': 'The tools cannot draw this arrangement yet',
     'no-room': 'There is not enough room to draw this clearly',
+    'pattern-hidden': 'So little of the background shows that its pattern cannot be made out',
     'arrangement-unity': 'With another charge above or below, charges in a line may be taken for one group with two arrangements',
     'not-possible': 'Not possible with the colours chosen',
   },
@@ -454,6 +479,7 @@ const state = {
   chargeFilter: '',
   view: 'default',       // which charges the list shows: 'default' | 'all' | 'type:...' | 'theme:...' | 'need:...'
   any: false,            // suggestions may use any of the charges chosen (true) or must use all of them (false)
+  showParts: { one: false, two: false },   // "Show one-part backgrounds" / "Show two-part backgrounds" pressed?
   extraTinctures: [],    // furs and field treatments made under "More complex options" (ids from tinctureFrom in core/catalog.js)
   moreOptions: false,    // is "More complex options" open?
   maker: { pattern: 'ermined', first: 'vert', second: 'or' },   // what it is set to make
@@ -642,6 +668,29 @@ function assumeFieldColours() {
   if (sets.size === 1) state.fieldColours = leafTinctures(ways[0]);
 }
 
+// The same for a charge's colour (the maintainer, November 2026): with
+// purpure, sable and Or ticked and the background per pale sable and
+// purpure, a charge on it can only be Or, so Or is chosen on its card there
+// and then. Only where the rules can judge it (a charge alone, or one whose
+// place among the others has been chosen), and only when something that
+// decides it has just changed, so the colour can still be taken off by hand.
+function assumeChargeColours() {
+  const p = palette();
+  let field = currentField();
+  if (p && field && !state.fieldUnspecified && !isComplete(field)) field = onlyWay(field, p) || field;
+  if (!p || !field || !isComplete(field)) return;
+  const picked = chosen();
+  let groups = picked.map(x => x.group);
+  const arrangement = chosenArrangement(groups.length);
+  const legal = gs => !checkShield({ field, groups: together(gs, arrangement) }).length;
+  picked.forEach(({ item }, i) => {
+    if (item.tincture !== null) return;                // chosen, or "don't specify"
+    const withTincture = t => groups.map((g, k) => (k === i ? { ...g, tincture: t } : g));
+    const ok = [...p, COUNTERCHANGED].filter(t => legal(withTincture(t)));
+    if (ok.length === 1) { item.tincture = ok[0]; groups = withTincture(ok[0]); }
+  });
+}
+
 // The charges chosen, in the form generate.js wants: 'none', null (nothing
 // chosen about them) or a list. `change` (optional) alters one entry: used to
 // ask "what if this charge were this colour?".
@@ -736,7 +785,7 @@ function lazyCard(panel, tag, c, args) {
     holder.innerHTML = card(args(option(tag, c)));
     const fresh = holder.firstElementChild, focused = document.activeElement === waiting;
     waiting.replaceWith(fresh);
-    if (focused) fresh.focus({ preventScroll: true });
+    if (focused) cardButton(fresh).focus({ preventScroll: true });
   } });
   return card({ ...args(undefined), waiting: id });
 }
@@ -850,10 +899,24 @@ function card({ attrs, shield, label, on, problems = [], why = null, waiting = n
   const reason = why || (problems.length ? ruleText(problems[0]) : '');
   const greyed = reason ? ` greyed" aria-disabled="${!state.herald}` : '';
   const title = shield ? blazon(shield.field, shield.groups, words) : '';
-  return `<button class="card${waiting ? ' waiting' : ''}${greyed}" type="button" ${attrs}${waiting ? ` data-waiting="${waiting}"` : ''} aria-pressed="${!!on}">` +
+  const button = `<button class="card${waiting ? ' waiting' : ''}${greyed}" type="button" ${attrs}${waiting ? ` data-waiting="${waiting}"` : ''} aria-pressed="${!!on}">` +
     (shield ? shieldSVG(shield.field, { charges: shield.groups, title }) : waiting ? blankShield() : '') +
     `<span>${esc(label)}</span>${reason ? `<span class="why">${esc(reason)}</span>` : ''}</button>`;
+  // "make suggestion" under the picture: somebody who likes the whole design
+  // shown (not only the one thing the option is about) can put it among the
+  // suggestions, pinned, and take it from there (the maintainer, November
+  // 2026). Not under a design the rules forbid.
+  if (!shield || reason) return button;
+  const pin = `p${pinCount++}`;
+  pins.set(pin, shield);
+  return `<div class="opt">${button}<button class="link-btn" type="button" data-make-suggestion="${pin}">${esc(TEXT.makeSuggestion)}</button></div>`;
 }
+// The designs "make suggestion" can add, by the name on their button (begun
+// afresh each time the whole page is drawn).
+const pins = new Map();
+let pinCount = 0;
+// The button of an option made by card(), whether or not it has "make suggestion" under it.
+const cardButton = made => (made.matches('button') ? made : made.querySelector('button'));
 
 function permutations(list) {
   if (list.length <= 1) return [list];
@@ -883,6 +946,9 @@ function renderDivisionPanel() {
                   label: DIVISIONS[id].name, on, problems });
   };
 
+  const plainCard = t => card({ attrs: `data-division="plain" data-order="${t}"`, shield: { field: plain(t), groups: [] },
+                                label: plainLabel(t), on: state.division === 'plain' && fc.join() === t });
+
   if (k <= 1) {
     cards.push(randomCard('plain'), ...TWO_TINCTURE.map(randomCard), ...THREE_TINCTURE.map(randomCard));
   } else if (k === 2) {
@@ -892,11 +958,42 @@ function renderDivisionPanel() {
   }
   cards.push(`<button class="card text-card" type="button" data-complex aria-pressed="${state.division === 'complex'}">${esc(TEXT.complexOption)}</button>`);
 
+  // With two or more colours chosen, the backgrounds that use fewer of them
+  // are not shown at first, but they are not hidden either (the maintainer,
+  // November 2026): "Show one-part backgrounds" and "Show two-part
+  // backgrounds" bring them out. And with three or four colours, a few
+  // backgrounds that use ALL of them by dividing one part again ("per pale
+  // argent and barry sable and Or"); picking one opens it in "more complex
+  // background".
+  let more = '';
+  shownNested = [];
+  if (k >= 3) {
+    const key = `${SEED}|nested|${fc.join()}`;
+    shownNested = remember(key, () => randomShields({ fieldTinctures: fc, charge: 'none', allowBare: true }, key, library, 14)
+      .filter(s => isNested(s.field)).slice(0, 6));
+    if (shownNested.length) {
+      more += `<div class="row-label">${esc(TEXT.nestedLabel)}</div><div class="row">` + shownNested.map((s, i) =>
+        card({ attrs: `data-nested="${i}"`, shield: s, label: blazon(s.field, [], words).toLowerCase(), on: false })).join('') + `</div>`;
+    }
+  }
+  if (k >= 2) {
+    const toggleBtn = (which, show, hide) => `<button class="link-btn" type="button" data-show="${which}" aria-expanded="${state.showParts[which]}">` +
+      `${esc(state.showParts[which] ? hide : show)}</button>`;
+    more += `<div class="show-row">${toggleBtn('one', TEXT.showOnePart, TEXT.hideOnePart)}${k >= 3 ? toggleBtn('two', TEXT.showTwoPart, TEXT.hideTwoPart) : ''}</div>`;
+    if (state.showParts.one) more += `<div class="row" style="margin-top:8px">${fc.map(plainCard).join('')}</div>`;
+    if (state.showParts.two && k >= 3) {
+      const pairs = fc.flatMap((a, i) => fc.slice(i + 1).map(b => [a, b]));
+      more += pairs.map(pair => `<div class="row-label">${esc(pair.map(t => TINCTURES[t].name).join(' ' + TEXT.builderAnd + ' '))}</div>` +
+        `<div class="row">${TWO_TINCTURE.map(id => exactCard(id, pair)).join('')}</div>`).join('');
+    }
+  }
+
   $('divisionPanel').innerHTML = `<h2>${esc(TEXT.dividedHeading)}</h2>` +
     (k === 2 ? `<p style="margin:0 0 12px"><button class="plain-btn" type="button" data-swap>⇄ ${esc(TEXT.swap)}</button></p>` : '') +
-    `<div class="row">${cards.join('')}</div>` +
+    `<div class="row">${cards.join('')}</div>` + more +
     (state.division === 'complex' ? renderBuilder() : '');
 }
+let shownNested = [];                          // the backgrounds with a part divided again, as shown, by position
 
 function plainLabel(tincture) {
   const t = TINCTURES[tincture];
@@ -933,6 +1030,17 @@ const builderTinctures = offered;
 // background colours already chosen (and adding others if more are needed).
 function defaultBuilder() {
   const chosen = [...state.fieldColours];
+  // Two colours: two divisions counterchanged over each other ("lozengy and
+  // barry argent and sable": the maintainer, November 2026), if the rules
+  // allow those two colours together.
+  if (chosen.length === 2) {
+    for (let i = 0; i < 40; i++) {
+      const [a, b] = shuffled(randomFrom(`${SEED}|builder two|${i}|${chosen.join()}`), TWO_TINCTURE);
+      const id = divisionsTogether(a, b);
+      const field = id ? divided(id, chosen.map(plain)) : null;
+      if (field && !checkShield({ field, groups: [] }).length) return builderFromField(field);
+    }
+  }
   const pool = offered().filter(t => !chosen.includes(t) && TINCTURES[t].kind !== 'fur');
   for (let i = 0; i < 40; i++) {
     const key = `${SEED}|builder|${i}|${chosen.join()}`;
@@ -1348,7 +1456,7 @@ function renderChargePanel() {
       holder.innerHTML = card(args(found));
       const fresh = holder.firstElementChild, focused = document.activeElement === waiting;
       waiting.replaceWith(fresh);
-      if (focused) fresh.focus({ preventScroll: true });
+      if (focused) cardButton(fresh).focus({ preventScroll: true });
     });
     return card({ ...args(undefined), waiting: id });
   };
@@ -1551,13 +1659,16 @@ function renderCurrent() {
   const noTinctures = f && f.type === 'divided' && DIVISIONS[f.division].tincturesIndexed === false;
   // The search is missing something about a charge: how many, or (for a
   // charge that has postures) which posture.
+  // A charge on a canton: allowed here, with a warning (the maintainer, November 2026).
+  const augmented = shield.groups.some(g => g.kind === 'ordinary' && g.ordinary === 'canton' && g.charged);
   const needs = allGroups(shield.groups).some(g => g.kind === 'charge' &&
     (g.number === null || (posable(g.charge) && !postureCode(g.posture))));
   $('currentPanel').innerHTML =
     shieldSVG(f, { charges: shield.groups, title: text }) +
     `<p class="blazon">${esc(text)}</p>` +
-    (problems.length ? `<ul class="problems">${problems.map(p =>
-      `<li>${esc(ruleText(p))}${p.sena ? ` (SENA ${esc(p.sena)})` : ''}</li>`).join('')}</ul>` : '') +
+    (problems.length || augmented ? `<ul class="problems">${problems.map(p =>
+      `<li>${esc(ruleText(p))}${p.sena ? ` (SENA ${esc(p.sena)})` : ''}</li>`).join('')}` +
+      `${augmented ? `<li>${esc(TEXT.augmentation)}</li>` : ''}</ul>` : '') +
     (patterns.length ? `<a class="search-link" href="${esc(complexSearchURL(patterns))}" target="_blank" rel="noopener">${esc(TEXT.searchLink)} →</a>` : '') +
     (needs && patterns.length ? `<p class="why-line" style="text-align:center">${esc(TEXT.searchNeeds)}</p>` : '') +
     `<div class="save-row"><button class="plain-btn" type="button" data-save="colour">${esc(TEXT.savePng)}</button>` +
@@ -1646,6 +1757,7 @@ function render() {
   // How long each part took, in milliseconds, is kept in window.renderTimes
   // (for whoever next needs to find out why the page feels slow).
   const times = {};
+  pins.clear();
   for (const part of [renderColourPanels, renderDivisionPanel, renderChargePanel, renderArrangePanel, renderCurrent, renderSuggestions]) {
     const start = performance.now();
     part();
@@ -1758,9 +1870,38 @@ document.addEventListener('click', e => {
   // Greyed options do nothing unless "I'm a herald" is ticked.
   if (btn.getAttribute('aria-disabled') === 'true') return;
   const d = btn.dataset;
-  let refocus = null, assume = false;
+  // (assume / assumeCharge: this click may leave only one possible set of
+  // background colours, or one possible colour for a charge: see
+  // assumeFieldColours and assumeChargeColours.)
+  let refocus = null, assume = false, assumeCharge = false;
   if (d.save) { savePicture(d.save === 'outlines'); return; }
-  if ('clear' in d) {
+  if (d.makeSuggestion) {
+    // "make suggestion": the whole design under that button joins the suggestions, pinned.
+    const design = pins.get(d.makeSuggestion);
+    if (!design) return;
+    const text = blazon(design.field, design.groups);
+    if (!state.pinned.some(s => blazon(s.field, s.groups) === text)) state.pinned.push(design);
+    renderSuggestions();
+    addCollapseButtons();
+    fillLater();
+    const row = document.querySelector('.suggestion-row');
+    if (row) row.scrollLeft = 0;
+    return;
+  }
+  if (d.show) {
+    // "Show one-part backgrounds" / "Show two-part backgrounds"
+    state.showParts = { ...state.showParts, [d.show]: !state.showParts[d.show] };
+    refocus = `[data-show="${d.show}"]`;
+  } else if (d.nested) {
+    // A background with one part divided again, from the pictures: it opens
+    // in "more complex background", where it can be changed.
+    const picked = shownNested[Number(d.nested)];
+    if (!picked) return;
+    state.division = 'complex';
+    state.builder = builderFromField(picked.field);
+    assumeCharge = true;
+    refocus = '[data-complex]';
+  } else if ('clear' in d) {
     clearAll();
     refocus = '[data-clear]';
   } else if (d.view) {
@@ -1800,6 +1941,11 @@ document.addEventListener('click', e => {
     state.fieldUnspecified = false;
     state.fieldColours = toggle(state.fieldColours, d.q2);
     state.builder = null;
+    // ("more complex background" needs two colours at least: with fewer it
+    // would add colours of its own, and the one just taken off would seem
+    // to come straight back.)
+    if (state.division === 'complex' && state.fieldColours.length < 2) state.division = null;
+    assumeCharge = true;
     refocus = `[data-q2="${d.q2}"]`;
   } else if (d.division) {
     // Clicking the chosen division again un-chooses it.
@@ -1811,9 +1957,11 @@ document.addEventListener('click', e => {
     refocus = `[data-division="${d.division}"]` + (d.order ? `[data-order="${d.order}"]` : '');
   } else if ('complex' in d) {
     state.division = state.division === 'complex' ? null : 'complex';
+    assumeCharge = true;
     refocus = '[data-complex]';
   } else if ('swap' in d) {
     state.fieldColours = [...state.fieldColours].reverse();
+    assumeCharge = true;
     refocus = '[data-swap]';
   } else if (d.charge) {
     if (d.charge === 'none') {
@@ -1829,6 +1977,7 @@ document.addEventListener('click', e => {
       if (at >= 0) removeItem(at);                                                  // picked again: taken off
       else if (!state.items[0].choice) state.items[0].choice = choice;
       else if (state.items.length < MAX_ITEMS) addItem(choice);
+      assumeCharge = true;
     }
     refocus = `[data-charge="${d.charge}"]`;
   } else if (d.remove) {
@@ -1871,6 +2020,7 @@ document.addEventListener('click', e => {
     const way = shownArrangements[Number(d.arrangement)];
     state.arrangement = sameArrangement(way, state.arrangement) ? null : way;
     state.arrangementUnspecified = false;
+    assumeCharge = true;
     refocus = `[data-arrangement="${d.arrangement}"]`;
   } else if ('arrangementUnspecified' in d) {
     state.arrangementUnspecified = !state.arrangementUnspecified;
@@ -1895,6 +2045,7 @@ document.addEventListener('click', e => {
   } else return;
   tidy();
   if (assume) { assumeFieldColours(); tidy(); }
+  if (assume || assumeCharge) { assumeChargeColours(); tidy(); }
   render();
   // preventScroll: keep the page where it is instead of jumping to the button.
   if (refocus) document.querySelector(refocus)?.focus({ preventScroll: true });
@@ -1970,6 +2121,8 @@ document.addEventListener('change', e => {
   } else b.parts[i][sel.dataset.b] = sel.value;
   const key = `select[data-b="${sel.dataset.b}"]` + (sel.dataset.i ? `[data-i="${sel.dataset.i}"]` : '');
   tidy();
+  assumeChargeColours();
+  tidy();
   render();
   document.querySelector(key)?.focus({ preventScroll: true });
 });
@@ -1997,6 +2150,7 @@ try { saved = localStorage.getItem('heraldryPalette'); } catch (e) { /* ignore *
 choosePalette(saved || DEFAULT_PALETTE);
 
 $('title').textContent = TEXT.title;
+$('modeLink').textContent = TEXT.modeLink;
 $('clearAll').textContent = TEXT.clearAll;
 $('heraldLabel').textContent = TEXT.herald;
 

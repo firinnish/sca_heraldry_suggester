@@ -208,7 +208,50 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   shapes cover it, which drawing does with "evenodd" and `partMap` does by
   counting. The rules treat them as fields of many pieces.
 
+## Clear arrangements, readable patterns, search numbers (the end of November 2026)
+- `placeArranged` (`layout.js`) no longer simply makes charges as large as
+  possible. Charges side by side are set out EVENLY first: the step between
+  them is such that the gap between two equals the gap from the outermost to
+  the shield's edge at that height (`sidesAt` in `space.js`), and only then
+  are they made as large as that allows. Charges in rows keep the top row
+  out of the bottom third and the bottom row out of the top third. A line
+  in bend is centred sideways. These were all the maintainer's, from
+  pictures of needles "in fess" huddled into "some sort of stripy pale".
+- `clearOfLines` (`layout.js`, run by `layoutShield`): on a field of a few
+  big parts, a charge with only a sliver of itself beyond a line (under
+  `SLIVER`) makes its whole group a little smaller, each about its own
+  centre, until every charge is clearly one side or clearly across. Drawing
+  and the rules both get this layout, as always.
+- Checky and lozengy: `fieldVariant` draws them twice as fine (`FINER`) when
+  less than half the shield shows the field (`fieldShowing`); `rules.js`
+  reports `pattern-hidden` (house) when less than a quarter does.
+- Strewn charges may share no tincture at all with what they lie on, spots
+  and masoning included (`tincturesWithin` in `catalog.js`; in `checkGroup`).
+- Search numbers: 2, 3 and 4 go as "N or fewer" (`numberWord` in
+  `oanda.js`, Měryem's advice; my.cat's number words make "3" a kind of "3
+  or fewer"). `tests/index.html` knows this.
+- A divided field with charges strewn over it is blazoned "all semy of".
+  Semy on one part only cannot be described yet.
+
+## The two pages
+- `apps/search/` is "Forannán's Shieldpainter 1.0", the BUILD MODE (the
+  maintainer's name for it, the end of November 2026). `apps/searchonly/` is
+  the SEARCH MODE: compact menus for heralds, no suggestions, pictures only
+  behind "show images", and then static ones ("Sable, N blobs Or"). Each
+  links to the other under its title ("Build mode - click for search mode"
+  / "Search mode - click for build mode": the maintainer's words). They
+  share `core/` and nothing else, so a change to how the build page behaves
+  does not reach the search page by itself.
+
 ## How the page behaves (decided with the maintainer)
+- (The end of November 2026.) "make suggestion" under an option's picture
+  (`card`, `pins`) puts that whole design among the suggestions, pinned.
+  With two or more background colours chosen, "Show one-part backgrounds" /
+  "Show two-part backgrounds" (`state.showParts`) bring out the backgrounds
+  that use fewer of them; nothing is hidden for good. A charge's colour is
+  chosen for it when only one is possible (`assumeChargeColours`), on the
+  same footing as the background's. A charge on a canton shows the
+  maintainer's augmentation warning and is otherwise allowed.
 - (Late November 2026.) The list of charges shows each charge ONCE, as its
   usual picture (`picturesOf`: the default in art.csv, else in tha.csv). Its
   card, once picked, has "posture:", "art:" and "orientation:" as well as

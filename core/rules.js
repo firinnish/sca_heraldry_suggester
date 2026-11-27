@@ -25,11 +25,11 @@
 //
 // GOOD CONTRAST (SENA A3B2) is metal against colour, or neutral against either.
 
-import { TINCTURES, SEMY, familyOf, sharesGround } from './catalog.js';
+import { TINCTURES, SEMY, familyOf, sharesGround, groundsOf, tincturesWithin } from './catalog.js';
 import { COUNTERCHANGED, isComplete, isNested, leafTinctures, tincturesIn, shieldTinctures,
          roles, allGroups, typeOf, isCentralOrdinary } from './shield.js';
 import { partMap } from './geometry.js';
-import { layoutShield, extentOf, SEMY_FEWEST } from './layout.js';
+import { layoutShield, extentOf, fieldShowing, SEMY_FEWEST } from './layout.js';
 
 const MAX_COMPLEXITY = 8;          // SENA A3E2
 // A charge drawn smaller than this (its greater measure, on a shield 100
@@ -48,6 +48,9 @@ const BARELY = 0.03;
 // The ordinaries that may share a tincture with a field of many pieces
 // (SENA A3B4b, case 2): see checkGroup.
 const READS_CLEARLY = new Set(['chief', 'bordure', 'base']);
+// Checky or lozengy needs at least this share of the shield left showing to
+// be made out (see checkShield).
+const PATTERN_SHOWS = 0.25;
 
 // (Vair and the furs like it are neutral: SENA A3B1, "As they are made up of
 // multiple pieces, divided evenly between a color and a metal, they are
@@ -239,9 +242,10 @@ function checkGroup(field, group, coverage, frame, crossed, problems, variant = 
     // SENA A3F4: "it was used mainly with two or four part divisions of the
     // field ... The counterchanging of a single charge over a field division
     // with more than four sections must be attested to be allowed."
-    // An ORDINARY is let through (the maintainer, November 2026): the
-    // College has gone on registering ordinaries counterchanged over such
-    // fields under SENA, so that pattern is attested. From the O&A: "Paly
+    // An ORDINARY is let through: the maintainer reads "a single charge"
+    // here as a charge that is not an ordinary (confirmed, November 2026),
+    // and the College has gone on registering ordinaries counterchanged
+    // over such fields under SENA. From the O&A: "Paly
     // azure and argent, a bend counterchanged" (September 2018), "Paly Or
     // and vert, a bend counterchanged" (September 2016), "Gyronny vert and
     // Or, a saltire counterchanged" (April 2019). Any other charge still
@@ -272,6 +276,13 @@ function checkGroup(field, group, coverage, frame, crossed, problems, variant = 
     const under = tincturesBehind(field, points, frame, {}, points.length, variant);
     for (const t of Object.keys(under)) {
       if (under[t] > BARELY && sharesGround(t, group.tincture)) shares = true;
+      // Strewn charges are small, and lost among anything else of their own
+      // tincture: the spots of a fur, the lines of a field treatment. So
+      // "semy of mullets argent" may not go on "purpure masoned argent", nor
+      // semy of anything sable on ermine (the maintainer, November 2026,
+      // reading A3B4b's "the field and charges on it may share a tincture
+      // only if ...").
+      if (under[t] > BARELY && group.number === SEMY && tincturesWithin(t).some(x => groundsOf(group.tincture).includes(x))) shares = true;
     }
   }
   if (shares) {
@@ -311,6 +322,15 @@ export function checkShield({ field, groups = [], noCharge = false }) {
   // (A fur is: SENA's examples are "neither Gules nor Pean".)
   if (field.type === 'plain' && field.tincture !== null && noCharge && !groups.length && TINCTURES[field.tincture].kind !== 'treatment') {
     problems.push({ id: 'single-tincture', sena: 'A3E3', level: 'sena' });
+  }
+
+  // What the tools cannot show clearly: checky or lozengy with so little of
+  // it left showing (under a cross and a bordure, with charges in the
+  // corners) that nobody could tell what it is (the maintainer, November
+  // 2026: "it should likely just not be shown as an option").
+  if (layout && field.type === 'divided' && (field.division === 'checky' || field.division === 'lozengy') &&
+      fieldShowing(layout) < PATTERN_SHOWS) {
+    problems.push({ id: 'pattern-hidden', sena: null, level: 'house' });
   }
 
   // A single charge in the middle of the shield lies over the lines of a

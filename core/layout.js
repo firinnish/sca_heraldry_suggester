@@ -26,7 +26,7 @@ import { SAMPLES, insideShield, pointInPolygon, samplesInBox, ordinarySamples, o
          DIVISION_VARIANTS } from './geometry.js';
 import { TINCTURES, ARRANGEMENTS, SEMY, familyOf, baseTincture, turnFor } from './catalog.js';
 import { roles } from './shield.js';
-import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, centroid, heights, sides, cuts,
+import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, centroid, heights, sides, sidesAt, cuts,
          probeOf, turned, largestFit, fitsAt, bestSpot, clearDistance } from './space.js';
 
 export const FILL = 0.95;
@@ -468,6 +468,14 @@ function placeArranged(group, shape, number, region) {
   // stretch across a fair share of the space.
   const [leftEdge, rightEdge] = sides(region);
   const reach = square ? SPREAD * (rightEdge - leftEdge) / span(0) : 0;
+  // Charges in ROWS (one and two, two and two...) must read as rows: the top
+  // row keeps out of the bottom third of the space and the bottom row out
+  // of the top third (the maintainer, November 2026, after three tall
+  // swords "one and two" grew until they looked like three in fess).
+  const rows = !square && span(0) > 0 && span(1) > 0;
+  const upper = Math.min(...pattern.map(p => p[1])), lower = Math.max(...pattern.map(p => p[1]));
+  const above = -Math.min(...shape.outline.map(p => p[1])), below = Math.max(...shape.outline.map(p => p[1]));   // how far a charge reaches up and down, for a size of 1
+  const third = (bottom - top) / 3;
 
   // How large the charges can be for one way of laying the pattern out; or 0
   // as soon as it is clear they cannot be larger than `toBeat`.
@@ -480,6 +488,13 @@ function placeArranged(group, shape, number, region) {
     }
     if (size <= toBeat) return 0;
     const at = pattern.map(([u, v]) => [cx + slideX + u * across, cy + slideY + v * down]);
+    if (rows) {
+      pattern.forEach(([, v], k) => {
+        if (v === upper) size = Math.min(size, (top + 2 * third - at[k][1]) / below);
+        if (v === lower) size = Math.min(size, (at[k][1] - top - third) / above);
+      });
+      if (size <= toBeat) return 0;
+    }
     if (toBeat > 0 && at.some(([x, y]) => !fitsAt(probe, region, x, y, toBeat))) return 0;
     for (const [x, y] of at) {
       // (Only if a charge does not fit at the size the others allow does its own largest size need finding.)
@@ -492,7 +507,6 @@ function placeArranged(group, shape, number, region) {
   // Start with the pattern small and in the middle, then keep making
   // whichever one change helps most, in smaller and smaller steps.
   const start = Math.max(reach + 0.5, Math.min(60 / (span(0) + 2), (bottom - top) / (span(1) + 2.5)));
-  let best = [start, start, 0, 0], bestSize = sizeFor(best);
   // (Growing both steps together is a change of its own: charges in rows
   // are held apart both ways at once, and neither step helps alone.)
   const moves = [[1, 1, 0, 0]];
@@ -502,19 +516,66 @@ function placeArranged(group, shape, number, region) {
   }
   moves.push([0, 0, 0, 1]);
   if (SIDEWAYS_TOO.has(id)) moves.push([0, 0, 1, 0]);
-  for (const step of [8, 4, 2, 1, 0.5]) {
-    for (let round = 0; round < 16; round++) {
-      let better = null, betterSize = bestSize;
-      for (const move of moves) for (const way of [1, -1]) {
-        const tried = best.map((value, k) => value + move[k] * way * step);
-        const size = sizeFor(tried, betterSize + 1e-6);
-        if (size > betterSize + 1e-6) { better = tried; betterSize = size; }
+  const climb = (from, allowed) => {
+    let at = from, atSize = sizeFor(from);
+    for (const step of [8, 4, 2, 1, 0.5]) {
+      for (let round = 0; round < 16; round++) {
+        let better = null, betterSize = atSize;
+        for (const move of allowed) for (const way of [1, -1]) {
+          const tried = at.map((value, k) => value + move[k] * way * step);
+          const size = sizeFor(tried, betterSize + 1e-6);
+          if (size > betterSize + 1e-6) { better = tried; betterSize = size; }
+        }
+        if (!better) break;
+        at = better; atSize = betterSize;
       }
-      if (!better) break;
-      best = better; bestSize = betterSize;
     }
-  }
+    return [at, atSize];
+  };
+  let [best, bestSize] = climb([start, start, 0, 0], moves);
   if (!(bestSize > 0)) return null;
+
+  // That is the layout with the LARGEST charges, which is not always the
+  // clearest (the maintainer, November 2026): three thin needles "in fess"
+  // came out as tall as the shield and huddled in the middle, "like some
+  // sort of stripy pale". So:
+  // 1. Charges side by side are set out EVENLY first, and made as large as
+  //    that allows: the gap between two of them is the gap from the
+  //    outermost to the edge of the shield at their height (three in fess
+  //    have four equal gaps, the two of "one and two" three). The row with
+  //    the most charges decides, the lowest if there are two such.
+  if (!square && span(0) > 0) {
+    const across = v => { const us = pattern.filter(p => p[1] === v).map(p => p[0]); return Math.max(...us) - Math.min(...us); };
+    const row = [...new Set(pattern.map(p => p[1]))].sort((a, b) => across(b) - across(a) || b - a)[0];
+    const upAndDown = [...(span(1) > 0 ? [[0, 1, 0, 0]] : []), [0, 0, 0, 1]];
+    let even = best, evenSize = bestSize;
+    for (let pass = 0; pass < 4; pass++) {
+      const ends = sidesAt(region, cy + even[3] + row * even[1]);
+      if (!ends) break;
+      const step = (ends[1] - ends[0] + clear(1, 0) * evenSize) / (span(0) + 2);
+      const [next, nextSize] = climb([step, even[1], even[2], even[3]], upAndDown);
+      if (!(nextSize > 0)) { evenSize = 0; break; }
+      const settled = Math.abs(nextSize - evenSize) < 0.005 * evenSize && Math.abs(next[0] - even[0]) < 0.1;
+      even = next; evenSize = nextSize;
+      if (settled) break;
+    }
+    // (unless that would more than halve them: then large and close it is)
+    if (evenSize >= bestSize * 0.5) { best = even; bestSize = evenSize; }
+  }
+  // 2. A slanting line is moved sideways to the middle of where it fits, so
+  //    that it is as far from one side of the shield as from the other.
+  if (SIDEWAYS_TOO.has(id)) {
+    const still = v => sizeFor(v) >= bestSize * 0.999;
+    const furthest = way => {                      // how far it can go that way and keep its size
+      let lo = 0, hi = 40;
+      const at = d => best.map((value, k) => (k === 2 ? value + way * d : value));
+      if (still(at(hi))) return hi;
+      while (hi - lo > 0.25) { const mid = (lo + hi) / 2; if (still(at(mid))) lo = mid; else hi = mid; }
+      return lo;
+    };
+    const centred = best.map((value, k) => (k === 2 ? value + (furthest(1) - furthest(-1)) / 2 : value));
+    if (still(centred)) best = centred;
+  }
   const size = FILL * bestSize;
   return { shape, places: pattern.map(([u, v]) => ({ cx: cx + best[2] + u * best[0], cy: cy + best[3] + v * best[1], size, turn: 0 })) };
 }
@@ -838,10 +899,69 @@ const layoutCache = new Map();
 // pattern is drawn to suit the charges (see fieldVariant below).
 // Coverage is, for each charge, the sample points of the shield it covers.
 export function layoutShield(field, groups) {
-  const base = placeAll(field, groups);
+  const base = clearOfLines(field, groups, placeAll(field, groups));
   const variant = fieldVariant(field, groups, base);
   return variant === null ? base : { ...base, variant };
 }
+
+// ---- Charges clear of the field's lines ---------------------------------------------
+// A charge lying across a line of the field is well and good, and so is one
+// wholly to one side of it. One that only just pokes over the line, with a
+// few hundredths of itself on the far side, looks like a mistake (the
+// maintainer, November 2026: three lozenges in pale on a per chevron field,
+// the top one all but clear of the line). Where that happens the whole group
+// is drawn a little smaller, each charge about its own centre, so that they
+// stay where they were, all one size, until every one of them is clearly one
+// thing or the other. If a little smaller is not enough, they are left alone.
+// (Fields of many small pieces are not treated this way: see nudge, above,
+// and fieldVariant, below.)
+const SLIVER = 0.15;                   // less than this share of a charge beyond a line is a sliver
+const CLEAR_SIZES = [0.96, 0.92, 0.88, 0.84, 0.8];
+const clearCache = new Map();
+function clearOfLines(field, groups, layout) {
+  if (!field || field.type !== 'divided' || familyOf(field.division) === 'many') return layout;
+  const map = partMap(field.division, layout.frame);
+  const slivered = coverage => coverage.some(points => {
+    const counts = [];
+    for (const i of points) counts[map[i]] = (counts[map[i]] || 0) + 1;
+    return counts.some(n => n > 0 && n < SLIVER * points.length);
+  });
+  const which = groups.map((g, i) => i).filter(i => {
+    const g = groups[i], e = layout.entries[i];
+    return g.kind === 'charge' && g.number !== SEMY && !g.charged && e.ok && e.places && e.places.length &&
+      e.places.every(p => !p.turn) && slivered(e.coverage);
+  });
+  if (!which.length) return layout;
+  const key = `${field.division}|${layout.frame}|${JSON.stringify(groups.map(signature))}`;
+  if (!clearCache.has(key)) {
+    if (clearCache.size > 3000) clearCache.clear();
+    const entries = [...layout.entries];
+    for (const i of which) {
+      const shape = pictureOf(groups[i]), e = layout.entries[i];
+      for (const smaller of CLEAR_SIZES) {
+        const places = e.places.map(p => ({ ...p, size: p.size * smaller }));
+        const coverage = places.map(p => covers(shape.outline, p.cx, p.cy, p.size));
+        if (!slivered(coverage)) { entries[i] = { ...e, places, coverage }; break; }
+      }
+    }
+    clearCache.set(key, { ...layout, entries });
+  }
+  return clearCache.get(key);
+}
+
+// How much of the shield shows the field: not covered by any ordinary or
+// charge on it (1 = all of it).
+export function fieldShowing(layout) {
+  const covered = new Set();
+  for (const e of layout.entries) for (const points of e.coverage || []) for (const i of points) covered.add(i);
+  return 1 - covered.size / SAMPLES.length;
+}
+// Checky or lozengy mostly hidden (under a pale and a bordure, say) is drawn
+// with pieces half the size, so that enough of them show to be made out (the
+// maintainer, November 2026). Twice as many pieces line up with every
+// ordinary just as the usual six do.
+const FINER = { checky: 12, lozengy: 12 };
+const MOSTLY_HIDDEN = 0.5;
 
 // ---- The field's pattern, chosen to suit the charges ---------------------------------
 // Charges are never moved sideways to find a part of a patterned field they
@@ -860,6 +980,7 @@ const FITTED_TO = new Set(['chief', 'bordure', 'orle']);
 function fieldVariant(field, groups, layout) {
   const options = field && field.type === 'divided' ? DIVISION_VARIANTS[field.division] : null;
   if (!options || field.parts.some(p => p.type !== 'plain' || p.tincture === null)) return null;
+  if (FINER[field.division] && groups.length && fieldShowing(layout) < MOSTLY_HIDDEN) return FINER[field.division];
   if (groups.some(g => g.kind === 'ordinary' && !FITTED_TO.has(g.ordinary))) return null;
   const tone = t => TINCTURES[t].tone;
   const charges = groups.map((g, i) => ({ g, e: layout.entries[i] }))

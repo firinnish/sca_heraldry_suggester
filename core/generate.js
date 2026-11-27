@@ -228,7 +228,12 @@ function waysFor(flat, chosen) {
   if (!waysCache.has(key)) {
     const fits = a => !chosen || chosen.every((x, i) => x.as === a[i].as && (x.on ?? null) === (a[i].on ?? null));
     const all = arrangements(flat).filter(fits);
-    const sound = all.filter(a => !checkArrangement(arrange(flat, a)).length);
+    let sound = all.filter(a => !checkArrangement(arrange(flat, a)).length);
+    // A charge on a canton "usually represents an augmentation of honour"
+    // (the maintainer, November 2026): never made up at random, only when
+    // that arrangement was asked for.
+    const onCanton = a => a.some(x => x.as === 'on' && flat[x.on].kind === 'ordinary' && flat[x.on].ordinary === 'canton');
+    if (!chosen && sound.some(a => !onCanton(a))) sound = sound.filter(a => !onCanton(a));
     if (waysCache.size > 2000) waysCache.clear();
     waysCache.set(key, (sound.length ? sound : all).map(a => [a, a.reduce((w, x) => w * PLACE_WEIGHT[x.as], 1)]));
   }

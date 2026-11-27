@@ -64,6 +64,9 @@ export const PATTERNS = {
   masoned:      { kind: 'treatment', neutral: false, name: (a, b) => `${a} masoned ${b}` },
   scaly:        { kind: 'treatment', neutral: false, name: (a, b) => `${a} scaly ${b}` },
   papellony:    { kind: 'treatment', neutral: false, name: (a, b) => `${a} papellony ${b}` },
+  // Strewn with sparks: little groups of three dots. (The O&A's blazons
+  // spell it "estencely" three times in four, "estencelly" the rest.)
+  estencely:    { kind: 'treatment', neutral: false, name: (a, b) => `${a} estencely ${b}` },
 };
 const SHORT_NAMES = { 'vairy:argent:azure': 'vair', 'potenty:argent:azure': 'potent' };
 const LONG_IDS = { vair: 'vairy:argent:azure', potent: 'potenty:argent:azure' };
@@ -201,6 +204,12 @@ export function groundsOf(tincture) {
   const t = TINCTURES[tincture];
   if (t.pair) return t.tone === 'neutral' ? t.pair : [t.pair[0]];
   return [t.fur ? t.fur.field : tincture];
+}
+// Every plain tincture a tincture is made of: ermine is argent and sable,
+// "purpure masoned argent" purpure and argent.
+export function tincturesWithin(tincture) {
+  const t = TINCTURES[tincture];
+  return t.pair ? t.pair : t.fur ? [t.fur.field, t.fur.spots] : [tincture];
 }
 // Do two tinctures share a background tincture? (Argent and ermine do; so
 // do azure and vair.)

@@ -86,6 +86,9 @@ const TILES = {
   masoned:      { w: 22, h: 28, thin: true, shapes: () => `<path d="M0 0 H22 M0 14 H22 M0 28 H22 M11 0 V14 M0 14 V28 M22 14 V28"/>` },
   scaly:        { w: 25, h: 25, shapes: () => [[0, 0], [-12.5, 12.5], [12.5, 12.5], [0, 25]].map(([x, y]) => scale(x, y, 'a12.5 8 0 0 1 -25 0')).join('') },
   papellony:    { w: 25, h: 25, shapes: () => [[0, 0], [-12.5, 12.5], [12.5, 12.5], [0, 25]].map(([x, y]) => scale(x, y, 'h-2.5 a10 10 0 0 1 -20 0')).join('') },
+  // (a spark is three dots, one and two; they are strewn like ermine spots)
+  estencely:    { w: 18, h: 22, shapes: () => [[4.5, 4.5], [13.5, 15.5]].map(([x, y]) =>
+    `<circle cx="${x}" cy="${y - 1.6}" r="1.2"/><circle cx="${x - 1.9}" cy="${y + 1.5}" r="1.2"/><circle cx="${x + 1.9}" cy="${y + 1.5}" r="1.2"/>`).join('') },
 };
 function patternOf(id, t, lines) {
   const tile = TILES[t.pattern], [ground, over] = t.pair.map(p => TINCTURES[p].hex);
@@ -309,12 +312,26 @@ export function shieldSVG(field, { title = '', charges = [], mode = 'colour', un
 }
 
 // A small square of one tincture, for colour pickers.
+// A fur or field treatment is shown by ONE of whatever it is made of, large
+// (one ermine spot, one vair bell, one scale), not the pattern in miniature,
+// which is too small to make out (the maintainer, November 2026).
 export function swatchSVG(tincture) {
-  const ctx = newContext();
-  const f = paintFor(tincture, ctx);
-  return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">` +
-    `<defs>${ctx.defs.join('')}</defs>` +
-    `<rect x="1" y="1" width="38" height="38" rx="5" fill="${f}" stroke="${OUTLINE}" stroke-width="1.5"/></svg>`;
+  const t = TINCTURES[tincture];
+  const frame = `<rect x="1" y="1" width="38" height="38" rx="5" fill="none" stroke="${OUTLINE}" stroke-width="1.5"/>`;
+  const open = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">`;
+  if (t.fur) {
+    return open + `<rect x="1" y="1" width="38" height="38" rx="5" fill="${TINCTURES[t.fur.field].hex}"/>` +
+      `<g transform="translate(20 6) scale(3.1)">${ermineSpot(0, 0, TINCTURES[t.fur.spots].hex)}</g>${frame}</svg>`;
+  }
+  if (t.pattern) {
+    const tile = TILES[t.pattern], [ground, over] = t.pair.map(p => TINCTURES[p].hex), id = `sw${nextId++}`;
+    const grow = 38 / tile.w;
+    const paint = tile.thin ? `fill="none" stroke="${over}" stroke-width="1.3"` : `fill="${over}"`;
+    return open + `<defs><clipPath id="${id}"><rect x="1" y="1" width="38" height="38" rx="5"/></clipPath></defs>` +
+      `<g clip-path="url(#${id})"><rect width="40" height="40" fill="${ground}"/>` +
+      `<g transform="translate(1 1) scale(${+grow.toFixed(3)})" ${paint}>${tile.shapes()}</g></g>${frame}</svg>`;
+  }
+  return open + `<rect x="1" y="1" width="38" height="38" rx="5" fill="${t.hex}"/>${frame}</svg>`;
 }
 
 // A swatch for "counterchanged": a square split in two, each half holding a
