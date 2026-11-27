@@ -30,7 +30,7 @@
 // NOT CHOSEN YET: anything the shield description leaves open (see shield.js)
 // is simply left out of the pattern, so the search matches any value for it.
 
-import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, SEMY, postureCode } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, LINES, SEMY, postureCode } from './catalog.js';
 import { COUNTERCHANGED, tincturesIn, isComplete, roles, isPeripheral } from './shield.js';
 
 const FORM_URL = 'https://oanda.sca.org/oanda_complex.cgi';
@@ -111,23 +111,30 @@ function multicolorClass(parts) {
 function divisionLine(field) {
   const def = DIVISIONS[field.division];
   const bits = [def.code];
-  const plainLine = def.plainLine && field.line === 'plain';
+  // The line: "pl" for a plain one (where the records reliably say so), or
+  // the complex line's own word in its place: "Per fess wavy vert and ..."
+  // has PFESS:vert:wavy, "Per chevron embattled gules and argent"
+  // PC:embattled:gules:~and argent (catalog.js: LINES).
+  const line = complexLine(field) || (def.plainLine ? 'pl' : null);
   if (def.tincturesIndexed === false) {
-    if (plainLine) bits.push('pl');
+    if (line) bits.push(line);
   } else if (field.parts.every(known)) {
     let names = field.parts.map(divisionLineName);
     if (!def.ordered) names = [...names].sort();
     bits.push(names[0]);
-    if (plainLine) bits.push('pl');
+    if (line) bits.push(line);
     bits.push('~and ' + names[1]);
   } else {
     // Some tinctures not chosen. Where the O&A records the first-named
     // tincture as the main one, a known first tincture can still be used.
     if (def.ordered && known(field.parts[0])) bits.push(divisionLineName(field.parts[0]));
-    if (plainLine) bits.push('pl');
+    if (line) bits.push(line);
   }
   return bits.join(':');
 }
+// The O&A's word for the complex line of a divided field or of an ordinary
+// group, or null if its line is plain.
+const complexLine = thing => (thing.line && thing.line !== 'plain' && LINES[thing.line] ? LINES[thing.line].code : null);
 
 // Division lines for any parts that are themselves divided (and their parts).
 function nestedDivisionLines(field) {
@@ -253,7 +260,7 @@ function groupLine(group, field, word, count = group.number) {
   if (strewnOnField) word = 'seme on field';
   else if ((!def || def.numbered) && count !== null) bits.push(numberWord(count));
   bits.push(...tinctureFeatures(group, field));
-  if (def) bits.push('pl');
+  if (def) bits.push(complexLine(group) || 'pl');       // "a fess wavy" has FESS:1:...:wavy where a plain one has pl
   bits.push(...stanceFeatures(group));
   if (word) bits.push(word);
   return bits.join(':');
@@ -267,7 +274,7 @@ function primaryLines(group, field) {
   const lines = [];
   if (number) lines.push([code, number, 'primary']);
   if (tincture.length) lines.push([code, ...tincture, 'primary']);
-  if (def) lines.push([code, 'pl', 'primary']);
+  if (def) lines.push([code, complexLine(group) || 'pl', 'primary']);
   for (const feature of stanceFeatures(group)) lines.push([code, feature, 'primary']);
   if (!lines.length) lines.push([code, 'primary']);
   // A named arrangement is one more thing about the group, with a category
@@ -285,8 +292,9 @@ function primaryLines(group, field) {
 // ("... and a canton Or" has CANTON:or). See ORDINARIES in catalog.js.
 function peripheralLine(group, field) {
   const def = ORDINARIES[group.ordinary];
-  return [def.code, ...(def.count ? [String(def.count)] : []), ...tinctureFeatures(group, field),
-          ...(def.plainLine === false ? [] : ['pl'])].join(':');
+  // ("a bordure wavy argent" has BORDURE:argent:wavy; "a chief indented Or" CHIEF:indented:or)
+  const line = complexLine(group) || (def.plainLine === false ? null : 'pl');
+  return [def.code, ...(def.count ? [String(def.count)] : []), ...tinctureFeatures(group, field), ...(line ? [line] : [])].join(':');
 }
 
 // All the search patterns for a whole shield: the field, then each charge

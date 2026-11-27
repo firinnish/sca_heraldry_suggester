@@ -230,6 +230,23 @@ here were made with the maintainer; add to it as things are decided.
 - **Small ones:** "all semy of" in the blazon of a divided field; estencely
   ("azure estencely Or") under "More complex options"; a fur or treatment
   shows as one large spot, bell or scale in the colour menus.
+- **Complex lines** (item 6, the end of November 2026): wavy, indented,
+  dancetty, embattled, engrailed, invected, nebuly, dovetailed, raguly and
+  rayonny, for the lines a background is divided with ("per pale wavy",
+  "quarterly wavy", "barry wavy", "paly dancetty") and for the edges of an
+  ordinary ("a fess embattled", "a chief indented", "a cross engrailed", "a
+  bordure embattled"). On the build page: "line:" on an ordinary's card
+  and in its "expand" box, and a menu of lines under "How is the background
+  divided?". In search mode: a "line:" menu for the background and for each
+  ordinary. The search sends the line's word in place of "pl" (dancetty as
+  "indented", which is how the O&A indexes it). SENA Appendix H: a complex
+  line between sable and azure, or sable and purpure, is refused; between
+  any other two colours or two metals it is held back for heralds.
+- **Search mode's background fills itself in:** it starts as "any"; with
+  "What colours are used in the shield?" ticked, it goes to the one plain
+  background the rules allow as soon as the charges leave only one (azure
+  and Or ticked, an Or charge: azure), unless "don't specify background" is
+  ticked or the herald sets the background by hand.
 
 ## Next, in the maintainer's words
 
@@ -261,7 +278,11 @@ here were made with the maintainer; add to it as things are decided.
 5. *(Built: masoned, scaly, papellony. Mailly, honeycombed and the rest of
    my.cat's list still to do.)* **Field treatments,** e.g. masoned. The O&A has `FIELD TREATMENT-...`
    categories in my.cat.
-6. **Complex lines,** e.g. per bend wavy. The shield description already has
+6. *(Built, see "Complex lines" above. Still to do: urdy, potenty, bevilled
+   and the rarer lines; a line on only one of two lines ("Quarterly per fess
+   indented"); lines for the orle, canton, flaunches and gore, and for two
+   divisions together; counter-embattled / bretessed.)*
+   **Complex lines,** e.g. per bend wavy. The shield description already has
    a `line` on every division; the O&A's line words are in my.cat. Needs the
    drawing, the picker, the search coding, and SENA Appendix H (low-contrast
    complex lines: sable/purpure and sable/azure are ruled out).
@@ -383,6 +404,32 @@ here were made with the maintainer; add to it as things are decided.
 
 ## Questions waiting for the maintainer
 
+From the complex lines round (the end of November 2026):
+
+- **How each line is drawn** is a first attempt, sized by eye (five waves
+  across a shield, ten points of indented, three of dancetty, six merlons).
+  Look especially at rayonny and nebuly, and at any zigzag on a slanting
+  line ("per bend indented" comes out like a flight of steps, as right-
+  angled teeth on a diagonal do).
+- **Embattled on one edge:** of a fess, bend or chevron only the upper edge
+  is embattled; of a pale, cross, saltire, pall, chief, base and bordure
+  every edge is. Say if any of those should be otherwise.
+- **Engrailed and invected:** engrailed has its points standing out from
+  the ordinary and its arcs biting in; invected the reverse. On a division
+  ("per fess engrailed") the points are toward the chief (toward sinister
+  on an upright line).
+- **Low-contrast complex lines** other than the two SENA names are offered
+  only to heralds. Should the commoner ones (gules and azure, say) be
+  offered to everybody?
+- **Search mode's background** is only ever filled in with a PLAIN colour,
+  and only when no two-colour division of the colours ticked would also be
+  allowed. The colours ticked do not narrow the colour menus.
+- **Wording to check** (DRAFT): "line:", "plain" / "plain line",
+  "divided with a line that is", the two sentences about complex lines and
+  contrast, and in search mode "Tick the ones you know. When they leave only
+  one possible background, it is filled in for you." and "Filled in for
+  you: the only background the colours ticked allow."
+
 From the Shieldpainter round (the end of November 2026):
 
 - **Semy on one part of a divided field** ("Per chevron sable and purpure
@@ -390,8 +437,6 @@ From the Shieldpainter round (the end of November 2026):
   tools strew over the whole field, and the blazon now says "all semy of"
   so that picture and words agree. Charges that belong to one part of a
   field are a piece of work of their own.
-- **Complex lines** will be offered beside "orientation" and "art" on an
-  ordinary's card (the maintainer); not started.
 - **"or fewer" for every group:** it is applied to secondary and tertiary
   groups as well as the primary one. Say if Měryem meant the primary only.
 - **Checky under a lone cross** now also gets the smaller pieces (a cross

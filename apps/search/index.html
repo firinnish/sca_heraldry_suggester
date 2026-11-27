@@ -37,6 +37,8 @@
   .opt .card { flex: 1; }
   .opt .link-btn { font-size: 0.68rem; padding: 0; color: var(--muted); }
   .show-row { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 0; }
+  .line-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 0; font-size: 0.9rem; }
+  .line-row select { padding: 4px 6px; }
   .ai-link { font-size: 0.75rem; color: var(--muted); }
   /* What "AI disclosure" opens: a box over the page, with an X to shut it. */
   .ai-box { max-width: min(520px, 92vw); border: 1.5px solid var(--ink); border-radius: 10px; padding: 18px 22px; background: #fff; color: var(--ink); font-size: 0.95rem; line-height: 1.45; }
@@ -210,7 +212,7 @@
 <script type="module">
 import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, familyOf,
          ARRANGEMENTS, USUAL_ARRANGEMENT, SEMY, arrangementsFor, ORIENTATIONS, isLying, postureCode, ordinaryLabel,
-         PATTERNS, tinctureFrom, divisionsTogether } from '../../core/catalog.js';
+         PATTERNS, tinctureFrom, divisionsTogether, LINES, LINED_ORDINARIES, canBeLined } from '../../core/catalog.js';
 import { plain, divided, isComplete, isNested, leafTinctures, shieldTinctures, blazon, ordinaryGroup,
          chargeGroupFromLibrary, allGroups, COUNTERCHANGED } from '../../core/shield.js';
 import { layoutShield } from '../../core/layout.js';
@@ -307,6 +309,14 @@ const TEXT = {
   postureLabel: 'posture:',
   orientationLabel: 'orientation:',
   artLabel: 'art:',
+  // Complex lines (the maintainer, November 2026: an option beside
+  // orientation and art when an ordinary is chosen; and for the lines the
+  // background is divided with). The names of the lines are heraldry's own,
+  // from core/catalog.js.
+  lineLabel: 'line:',                                                   // DRAFT
+  linePlain: 'plain',                                                   // DRAFT (a straight line)
+  exploreLine: 'line',                                                  // DRAFT
+  fieldLineLabel: 'divided with a line that is',                        // DRAFT (beside the menu of lines for the background)
   asDrawn: 'as drawn',                                                  // DRAFT (the orientation the picture was drawn in)
   inverted: 'inverted',
   contourny: 'facing sinister',                                         // DRAFT (the blazon says "contourny")
@@ -421,6 +431,8 @@ const TEXT = {
     'arrangement-unsupported': 'The tools cannot draw this arrangement yet',
     'no-room': 'There is not enough room to draw this clearly',
     'pattern-hidden': 'So little of the background shows that its pattern cannot be made out',
+    'complex-line-ruled-out': 'A complex line between these two colours has been ruled unregisterable',
+    'complex-line-contrast': 'A complex line between two colours, or two metals, is only registered if it can be clearly made out',
     'arrangement-unity': 'With another charge above or below, charges in a line may be taken for one group with two arrangements',
     'not-possible': 'Not possible with the colours chosen',
   },
@@ -457,6 +469,7 @@ const state = {
   shieldColours: [],     // question 1: tinctures that may be used anywhere
   fieldColours: [],      // question 2: the background's tinctures, in order
   division: null,        // null | 'plain' | a division id | 'complex'
+  fieldLine: null,       // the complex line the background is divided with (an id from LINES in core/catalog.js), or null for plain
   builder: null,         // the "more complex background" form
   // What is on the field: one entry per charge chosen (up to MAX_ITEMS).
   // The first entry is always there, so "how many" and "what colour" can be
@@ -525,7 +538,8 @@ function tidy() {
   }
   // The bigger box of postures and orientations is for a charge with a picture.
   const explored = state.explore === null ? null : state.items[state.explore];
-  if (state.noCharge || (state.explore !== null && !(explored && explored.choice && explored.choice.kind === 'charge' && explored.choice.file))) state.explore = null;
+  const explorable = c => !!c && ((c.kind === 'charge' && !!c.file) || (c.kind === 'ordinary' && LINED_ORDINARIES.has(c.id)));
+  if (state.noCharge || (state.explore !== null && !(explored && explorable(explored.choice)))) state.explore = null;
   // With a "more complex background", the background's colours are whatever
   // the form uses.
   if (state.division === 'complex') state.fieldColours = [...new Set(leafTinctures(builderField()))];
@@ -540,13 +554,13 @@ function currentField() {
   const fc = state.fieldColours, d = state.division;
   if (d === 'complex') return builderField();
   if (d === 'plain') return plain(fc[0] ?? null);
-  if (d) return divided(d, Array.from({ length: DIVISIONS[d].parts }, (_, i) => plain(fc[i] ?? null)));
+  if (d) return divided(d, Array.from({ length: DIVISIONS[d].parts }, (_, i) => plain(fc[i] ?? null)), state.fieldLine || 'plain');
   if (fc.length === 1) return plain(fc[0]);     // one background colour and no division: plain
   return null;
 }
 
 function groupFor(choice, tincture, number, arranged = null) {
-  if (choice.kind === 'ordinary') return ordinaryGroup(choice.id, tincture);
+  if (choice.kind === 'ordinary') return ordinaryGroup(choice.id, tincture, { line: choice.line || 'plain' });
   const charge = library.charges.find(c => c.id === choice.id);
   if (!charge) return null;
   return chargeGroupFromLibrary(charge, pictureRow(choice.file),
@@ -725,6 +739,7 @@ function constraints() {
     mustInclude: mustInclude(),
     fieldTinctures: state.fieldColours.length ? state.fieldColours : null,
     division: state.division === 'complex' ? null : state.division,
+    line: state.fieldLine || undefined,
     field: isComplete(field) ? field : undefined,
     items,
     arrangement: Array.isArray(items) ? chosenArrangement(items.filter(x => x.charge).length) : null,
@@ -928,7 +943,8 @@ function permutations(list) {
 // that the rules allow.
 function renderDivisionPanel() {
   const fc = state.fieldColours, k = fc.length;
-  const base = { palette: palette(), mustInclude: mustInclude(), charge: 'none', allowBare: true };
+  // (every picture is drawn with the complex line chosen for the background, if one has been)
+  const base = { palette: palette(), mustInclude: mustInclude(), charge: 'none', allowBare: true, line: state.fieldLine || undefined };
   const cards = [];
 
   const randomCard = id => {
@@ -939,7 +955,7 @@ function renderDivisionPanel() {
                   problems: found ? found.problems : [], why: found ? null : TEXT.rules['not-possible'] });
   };
   const exactCard = (id, order) => {
-    const field = divided(id, order.map(plain));
+    const field = divided(id, order.map(plain), state.fieldLine || 'plain');
     const problems = checkShield({ field, groups: [] });
     const on = state.division === id && fc.join() === order.join();
     return card({ attrs: `data-division="${id}" data-order="${order.join(',')}"`, shield: { field, groups: [] },
@@ -988,9 +1004,15 @@ function renderDivisionPanel() {
     }
   }
 
+  // The line the background is divided with: plain, or a complex line
+  // ("per pale wavy"). Every picture above is drawn with the one chosen.
+  const lineMenu = `<label class="line-row">${esc(TEXT.fieldLineLabel)} <select data-field-line>` +
+    [['', TEXT.linePlain], ...Object.keys(LINES).map(id => [id, LINES[id].name])].map(([id, name]) =>
+      `<option value="${id}"${(state.fieldLine || '') === id ? ' selected' : ''}>${esc(name)}</option>`).join('') + `</select></label>`;
+
   $('divisionPanel').innerHTML = `<h2>${esc(TEXT.dividedHeading)}</h2>` +
     (k === 2 ? `<p style="margin:0 0 12px"><button class="plain-btn" type="button" data-swap>⇄ ${esc(TEXT.swap)}</button></p>` : '') +
-    `<div class="row">${cards.join('')}</div>` + more +
+    `<div class="row">${cards.join('')}</div>` + lineMenu + more +
     (state.division === 'complex' ? renderBuilder() : '');
 }
 let shownNested = [];                          // the backgrounds with a part divided again, as shown, by position
@@ -1007,7 +1029,7 @@ function builderToField(b) {
   // Two divisions counterchanged over each other ("orly and chevronelly"):
   // both parts are plain, and the second division is laid over the first.
   const both = b.over && parts.every(p => p.type === 'plain') ? divisionsTogether(b.division, b.over) : null;
-  return divided(both || b.division, parts);
+  return divided(both || b.division, parts, state.fieldLine || 'plain');
 }
 
 function builderFromField(field) {
@@ -1122,7 +1144,10 @@ const usualPicture = id => picturesOf(id)[0] || null;
 const posable = id => picturesOf(id).some(p => postureCode(p.posture));
 // A charge's name in plain words, for labels: "lion rampant", "chevron".
 function choiceName(choice, plural = false) {
-  if (choice.kind === 'ordinary') return ORDINARIES[choice.id].count === 2 ? ordinaryLabel(choice.id) : ORDINARIES[choice.id].name + (plural ? 's' : '');
+  if (choice.kind === 'ordinary') {
+    const name = ORDINARIES[choice.id].count === 2 ? ordinaryLabel(choice.id) : ORDINARIES[choice.id].name + (plural ? 's' : '');
+    return choice.line && LINES[choice.line] ? `${name} ${LINES[choice.line].name}` : name;
+  }
   const charge = library.charges.find(c => c.id === choice.id);
   const picture = pictureRow(choice.file);
   const name = charge ? (plural ? (charge.plural || charge.name + 's') : charge.name).toLowerCase() : choice.id;
@@ -1285,11 +1310,24 @@ function slotBlock(slot, c) {
     option(COUNTERCHANGED, TEXT.counterchanged, colours.get(COUNTERCHANGED)) + option(UNSPECIFIED, TEXT.dontSpecify, null) + `</select></div>` +
     `<div class="strip">${[...inOrder, COUNTERCHANGED].map(square).join('')}</div>`;
   html += whyLine(offer.filter(id => colours.get(id)).map(id => [tinctureName(id), colours.get(id)]));
-  if (item.choice && item.choice.kind === 'charge' && item.choice.file) {
-    html += stanceRows(slot, item) + `<div class="pick-more"><button class="plain-btn" type="button" data-explore="${slot}" ` +
+  // A charge with a picture has its posture, drawing and orientation to
+  // choose; an ordinary, the line its edges are drawn with ("a fess wavy").
+  const lined = !!item.choice && item.choice.kind === 'ordinary' && LINED_ORDINARIES.has(item.choice.id);
+  if ((item.choice && item.choice.kind === 'charge' && item.choice.file) || lined) {
+    html += (lined ? lineRow(slot, item) : stanceRows(slot, item)) + `<div class="pick-more"><button class="plain-btn" type="button" data-explore="${slot}" ` +
       `aria-expanded="${state.explore === slot}">${esc(state.explore === slot ? TEXT.collapse : TEXT.expand)}</button></div>`;
   }
   return html;
+}
+
+// The lines an ordinary's edges, or a division of the background, can be
+// drawn with: plain, then the complex lines by their heraldic names.
+const lineChoices = () => [['', TEXT.linePlain], ...Object.keys(LINES).map(id => [id, LINES[id].name])];
+function lineRow(slot, item) {
+  const now = item.choice.line || '';
+  return `<div class="pick-row"><label class="pick-label" for="line${slot}">${esc(TEXT.lineLabel)}</label>` +
+    `<select id="line${slot}" data-line-select="${slot}">` +
+    lineChoices().map(([id, name]) => `<option value="${id}"${now === id ? ' selected' : ''}>${esc(name)}</option>`).join('') + `</select></div>`;
 }
 
 // ---- One chosen charge: its posture, which drawing, and which way it is turned ---------
@@ -1340,6 +1378,15 @@ function stanceRows(slot, item) {
 // been fetched yet is shown as an empty shield and filled in (fillExplorer).
 function explorerBox(slot) {
   const item = state.items[slot];
+  // For an ordinary: every line it can be drawn with.
+  if (item && item.choice && item.choice.kind === 'ordinary' && LINED_ORDINARIES.has(item.choice.id)) {
+    const line = id => `<button class="card" type="button" data-line="${id}" data-slot="${slot}" aria-pressed="${(item.choice.line || '') === id}">` +
+      shieldSVG(currentField(), { charges: [groupFor({ ...item.choice, line: id || null }, tinctureOf(item), 1)] }) +
+      `<span>${esc(id ? LINES[id].name : TEXT.linePlain)}</span></button>`;
+    return `<div class="explorer" id="explorer"><div class="slot-head"><span>${esc(TEXT.exploreHeading(choiceName(item.choice)))}</span>` +
+      `<button class="link-btn" type="button" data-explore="${slot}">${esc(TEXT.exploreClose)}</button></div>` +
+      `<div class="row-label">${esc(TEXT.exploreLine)}</div><div class="row">${lineChoices().map(([id]) => line(id)).join('')}</div></div>`;
+  }
   if (!item || !item.choice || item.choice.kind !== 'charge' || !item.choice.file) return '';
   const choice = item.choice, now = pictureRow(choice.file), field = currentField();
   if (!now) return '';
@@ -1786,13 +1833,14 @@ function addCollapseButtons() {
 function adopt(shield) {
   const { field, groups } = shield;
   state.fieldColours = [...new Set(leafTinctures(field))];
+  state.fieldLine = field.type === 'divided' && field.line && field.line !== 'plain' ? field.line : null;
   if (field.type === 'plain') { state.division = 'plain'; state.builder = null; }
   else if (isNested(field) || field.division.includes('+')) { state.division = 'complex'; state.builder = builderFromField(field); }
   else { state.division = field.division; state.builder = null; state.fieldColours = leafTinctures(field); }
   // The charges, one entry each, and how they go together.
   const made = unarrange(groups);
   state.items = made.groups.map(g => ({
-    choice: g.kind === 'ordinary' ? { kind: 'ordinary', id: g.ordinary, file: null }
+    choice: g.kind === 'ordinary' ? { kind: 'ordinary', id: g.ordinary, file: null, line: g.line && g.line !== 'plain' ? g.line : null }
       : { kind: 'charge', id: g.charge, file: g.art, turned: g.turned || null, inverted: !!g.inverted, mirror: !!g.mirror },
     number: g.kind === 'ordinary' ? null : g.number,
     arranged: g.arranged || (g.kind !== 'ordinary' && USUAL_ARRANGEMENT[g.number] ? 'usual' : null),
@@ -1834,7 +1882,7 @@ function addItem(choice) {
 // pinned, and which sections are collapsed.
 function clearAll() {
   Object.assign(state, {
-    shieldColours: [], fieldColours: [], fieldUnspecified: false, division: null, builder: null,
+    shieldColours: [], fieldColours: [], fieldUnspecified: false, division: null, builder: null, fieldLine: null,
     items: [{ choice: null, number: null, tincture: null }], noCharge: false,
     arrangement: null, arrangementUnspecified: false, chargeFilter: '', explore: null,
   });
@@ -1999,6 +2047,11 @@ document.addEventListener('click', e => {
   } else if (d.pickFile) {
     setPicture(Number(d.slot), d.pickFile).then(() => document.querySelector(`[data-pick-file="${CSS.escape(d.pickFile)}"]`)?.focus({ preventScroll: true }));
     return;
+  } else if ('line' in d) {
+    // An ordinary's line, from the pictures in its bigger box.
+    const item = state.items[Number(d.slot)];
+    item.choice = { ...item.choice, line: d.line || null };
+    refocus = `[data-line="${d.line}"][data-slot="${d.slot}"]`;
   } else if ('turn' in d) {
     const item = state.items[Number(d.slot)];
     item.choice = { ...item.choice, turned: d.turn || null };
@@ -2068,6 +2121,17 @@ document.addEventListener('change', e => {
     tidy();
     render();
     document.querySelector(`select[data-role="${i}"]`)?.focus({ preventScroll: true });
+    return;
+  }
+  // The line the background is divided with, or an ordinary's edges are drawn with.
+  const line = e.target.closest('select[data-field-line], select[data-line-select]');
+  if (line) {
+    const slot = line.dataset.lineSelect;
+    if (slot === undefined) state.fieldLine = line.value || null;
+    else state.items[Number(slot)].choice = { ...state.items[Number(slot)].choice, line: line.value || null };
+    tidy();
+    render();
+    document.querySelector(slot === undefined ? 'select[data-field-line]' : `select[data-line-select="${slot}"]`)?.focus({ preventScroll: true });
     return;
   }
   // "More complex options": the kind of fur or treatment, and its two colours.

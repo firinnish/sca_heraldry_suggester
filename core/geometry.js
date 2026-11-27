@@ -236,14 +236,153 @@ function shapesOf(division, variant = null) {
   return [[EVERYWHERE, ...second], second];
 }
 
+// ---- Complex lines ---------------------------------------------------------------
+// "Per pale wavy", "a chief indented", "a bordure embattled" (catalog.js:
+// LINES). Each line is ONE REPEAT of its shape, as points [along, out]:
+// `along` in repeats (0 to 1; a little outside that where the shape
+// overhangs, as dovetailed and nebuly do) and `out` in depths. `period` is
+// the length of a repeat and `depth` how far it stands out, on a shield 100
+// wide: five waves across a shield, ten points of indented, three of
+// dancetty, six merlons.
+//   mirrored: on an ordinary, the shape points away from the ordinary on
+//             every edge (indented, engrailed, embattled...); otherwise both
+//             edges run alike, so the ordinary keeps its width (wavy,
+//             dancetty, nebuly).
+//   centre:   on an ordinary, how far the repeat is shifted so that it sits
+//             evenly about the middle of the shield (a merlon, a point or an
+//             arc in the middle).
+//   upper:    on a fess, bend or chevron, only the upper edge is drawn this
+//             way ("a fess embattled").
+const TURN = 2 * Math.PI;
+const steps = n => Array.from({ length: n }, (_, i) => i / n);
+const zigzag = s => (s < 0.25 ? 4 * s : s < 0.75 ? 2 - 4 * s : 4 * s - 4);
+export const LINE_SHAPES = {
+  wavy:       { period: 19.6,  depth: 3.2, mirrored: false, centre: 0,     points: steps(12).map(s => [s, Math.sin(TURN * s)]) },
+  indented:   { period: 9.8,   depth: 2.6, mirrored: true,  centre: -0.25, points: [[0, 0], [0.25, 1], [0.75, -1]] },
+  dancetty:   { period: 32.67, depth: 7,   mirrored: false, centre: -0.25, points: [[0, 0], [0.25, 1], [0.75, -1]] },
+  embattled:  { period: 16.33, depth: 5,   mirrored: true,  centre: -0.25, points: [[0, 0], [0, 1], [0.5, 1], [0.5, 0]], upper: true },
+  // (engrailed: the points stand out and the arcs bite in; invected the other way)
+  engrailed:  { period: 12.25, depth: 3.4, mirrored: true,  centre: -0.5,  points: steps(8).map(s => [s, -Math.sin(Math.PI * s)]) },
+  invected:   { period: 12.25, depth: 3.4, mirrored: true,  centre: -0.5,  points: steps(8).map(s => [s, Math.sin(Math.PI * s)]) },
+  nebuly:     { period: 16.33, depth: 3.6, mirrored: false, centre: 0,     points: steps(16).map(s => [s - 0.11 * Math.sin(2 * TURN * s), Math.sin(TURN * s)]) },
+  dovetailed: { period: 16.33, depth: 5,   mirrored: true,  centre: -0.25, points: [[0, 0], [-0.1, 1], [0.6, 1], [0.5, 0]] },
+  raguly:     { period: 16.33, depth: 4.5, mirrored: true,  centre: -0.25, points: [[0, 0], [0.18, 1], [0.6, 1], [0.42, 0]] },
+  // (flames: a zigzag whose sides are bent into S-curves)
+  rayonny:    { period: 9.8,   depth: 4.5, mirrored: true,  centre: -0.25, points: steps(12).map(s => [s + 0.09 * Math.sin(2 * TURN * s), zigzag(s)]) },
+};
+const UPPER_ONLY = new Set(['fess', 'bend', 'bendSinister', 'chevron', 'chevronInverted']);
+const LINE_REACH = 95;        // how far from the middle of the shield a line is drawn complex (beyond the edge)
+
+// A polygon with each long straight edge redrawn as a complex line. The line
+// along an edge depends only on where the edge lies, never on the polygon it
+// belongs to: it is laid out from where the edge's line crosses the pale line
+// (the fess line, for an upright edge), always standing out to the same
+// side. So two parts of a field that share a line get exactly the same line,
+// and the pieces still fit together.
+// `outward` is for an ordinary: a mirrored shape then points away from the
+// ordinary on every edge, and the repeat is centred. `pick` (optional)
+// chooses which edges, from the way each faces.
+function linedPolygon(polygon, id, { outward = false, pick = null } = {}) {
+  const shape = LINE_SHAPES[id];
+  let area = 0;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) area += (polygon[j][0] - polygon[i][0]) * (polygon[j][1] + polygon[i][1]);
+  const turn = area < 0 ? -1 : 1;
+  const out = [];
+  polygon.forEach((a, i) => {
+    const b = polygon[(i + 1) % polygon.length];
+    out.push(a);
+    const dx = b[0] - a[0], dy = b[1] - a[1], length = Math.hypot(dx, dy);
+    if (length < 12) return;
+    // (an edge nowhere near the shield is left alone)
+    if (Math.abs((C - a[0]) * dy - (60 - a[1]) * dx) / length > 80) return;
+    // along the line: left to right, or downward if it is upright; out: to the upper side (sinister, if upright)
+    let ux = dx / length, uy = dy / length;
+    if (ux < -1e-9 || (Math.abs(ux) <= 1e-9 && uy < 0)) { ux = -ux; uy = -uy; }
+    const nx = uy, ny = -ux;
+    const awayX = dy / length * turn, awayY = -dx / length * turn;        // pointing out of the polygon
+    if (pick && !pick(awayX, awayY)) return;
+    const side = outward && shape.mirrored && nx * awayX + ny * awayY < 0 ? -1 : 1;
+    const origin = Math.abs(ux) > 1e-9 ? [C, a[1] + (C - a[0]) * uy / ux] : [a[0], C];
+    const along = p => (p[0] - origin[0]) * ux + (p[1] - origin[1]) * uy;
+    const ta = along(a), tb = along(b);
+    const from = Math.max(Math.min(ta, tb), -LINE_REACH), to = Math.min(Math.max(ta, tb), LINE_REACH);
+    const shift = outward ? shape.centre : 0;
+    const points = [];
+    for (let k = Math.floor(from / shape.period) - 1; k <= Math.ceil(to / shape.period) + 1; k++) {
+      for (const [s, v] of shape.points) {
+        // (a point belongs to the edge if its place in the repeat does, wherever an overhang puts it)
+        const place = (k + shift + Math.min(1, Math.max(0, s))) * shape.period;
+        if (place <= from + 1e-6 || place >= to - 1e-6) continue;
+        const t = (k + shift + s) * shape.period, d = v * shape.depth * side;
+        points.push([origin[0] + ux * t + nx * d, origin[1] + uy * t + ny * d]);
+      }
+    }
+    if (ta > tb) points.reverse();
+    out.push(...points);
+  });
+  return out;
+}
+const linedShapes = (polygons, line, options) => polygons.map(p => linedPolygon(p, line, options));
+
+// A closed outline (the inner edge of a bordure) redrawn as a complex line,
+// measured along the outline itself so that it runs round the curves. A
+// whole number of repeats goes round, begun at the middle of the top. The
+// line never comes further in than the plain one would: it is cut into the
+// bordure instead, so whatever is inside keeps its room.
+function linedLoop(loop, id) {
+  const shape = LINE_SHAPES[id], n = loop.length;
+  const lengths = loop.map((p, i) => Math.hypot(loop[(i + 1) % n][0] - p[0], loop[(i + 1) % n][1] - p[1]));
+  const total = lengths.reduce((s, x) => s + x, 0);
+  const count = Math.max(4, Math.round(total / shape.period)), period = total / count;
+  const middle = [loop.reduce((s, p) => s + p[0], 0) / n, loop.reduce((s, p) => s + p[1], 0) / n];
+  const highest = Math.max(...shape.points.map(p => p[1]));
+  // where the outline is `s` along from its first point, and the way inward there
+  const at = s => {
+    let left = ((s % total) + total) % total;
+    for (let i = 0; i < n; i++) {
+      if (left <= lengths[i] || i === n - 1) {
+        const a = loop[i], b = loop[(i + 1) % n], f = lengths[i] ? left / lengths[i] : 0;
+        const x = a[0] + (b[0] - a[0]) * f, y = a[1] + (b[1] - a[1]) * f;
+        let nx = -(b[1] - a[1]) / (lengths[i] || 1), ny = (b[0] - a[0]) / (lengths[i] || 1);
+        if ((middle[0] - x) * nx + (middle[1] - y) * ny < 0) { nx = -nx; ny = -ny; }
+        return [x, y, nx, ny];
+      }
+      left -= lengths[i];
+    }
+    return [loop[0][0], loop[0][1], 0, 0];
+  };
+  // begin where the outline crosses the pale line at the top
+  let start = 0, walked = 0, best = Infinity;
+  loop.forEach((p, i) => {
+    const q = loop[(i + 1) % n];
+    if ((p[0] - C) * (q[0] - C) <= 0 && Math.min(p[1], q[1]) < best && p[0] !== q[0]) {
+      best = Math.min(p[1], q[1]);
+      start = walked + lengths[i] * (C - p[0]) / (q[0] - p[0]);
+    }
+    walked += lengths[i];
+  });
+  const out = [];
+  for (let k = 0; k < count; k++) {
+    for (const [s, v] of shape.points) {
+      const [x, y, nx, ny] = at(start + (k + shape.centre + s) * period);
+      const d = (highest - v) * shape.depth;
+      out.push([x - nx * d, y - ny * d]);
+    }
+  }
+  return out;
+}
+
 // The shield's outline moved inward by `d` all the way round (the shield has
 // no dents, so this is simply what is left after cutting `d` off along
 // every edge).
 function insetShield(d) {
-  const centre = [C, C];
-  let shape = SHIELD_POLYGON;
-  for (let i = 0, j = SHIELD_POLYGON.length - 1; i < SHIELD_POLYGON.length; j = i++) {
-    const [ax, ay] = SHIELD_POLYGON[j], [bx, by] = SHIELD_POLYGON[i];
+  return insetOutline(SHIELD_POLYGON, d);
+}
+function insetOutline(outline, d) {
+  const centre = [C, 60];
+  let shape = outline;
+  for (let i = 0, j = outline.length - 1; i < outline.length; j = i++) {
+    const [ax, ay] = outline[j], [bx, by] = outline[i];
     const len = Math.hypot(bx - ax, by - ay);
     if (len < 1e-9) continue;
     let nx = -(by - ay) / len, ny = (bx - ax) / len;                   // the edge's normal, pointing inward
@@ -344,11 +483,16 @@ const KEEPS_ITS_SHAPE = new Set(['checky', 'lozengy']);
 // `frame`: the space the field is drawn in (see FRAMES above).
 // `variant`: for a division that can be drawn more than one way (paly: how
 // many pieces), which way; null for the usual.
-export function divisionShapes(division, frame = null, variant = null) {
-  const key = `${division}|${frame}|${variant}`;
+// `line` (optional): a complex line to draw the division with (LINE_SHAPES).
+// Only drawing asks for it; the rules and the layout work from the plain
+// shapes, which differ by no more than the depth of the line.
+export function divisionShapes(division, frame = null, variant = null, line = null) {
+  if (line === 'plain' || !LINE_SHAPES[line] || isLayered(division) || KEEPS_ITS_SHAPE.has(division)) line = null;
+  const key = `${division}|${frame}|${variant}` + (line ? `|${line}` : '');
   if (!divisionCache.has(key)) {
     if (!division.split('+').every(d => DIVISION_SHAPES[d])) throw new Error('No shape for division: ' + division);
-    const parts = shapesOf(division, variant);
+    const plainParts = shapesOf(division, variant);
+    const parts = line ? plainParts.map(polygons => linedShapes(polygons, line)) : plainParts;
     divisionCache.set(key, parts.map(polygons => intoFrame(polygons, frame, KEEPS_ITS_SHAPE.has(division))));
   }
   return divisionCache.get(key);
@@ -440,11 +584,36 @@ export const suitsDivision = (ordinary, division) =>
 // space were the whole shield (the chief and base themselves stay put).
 // `width` (optional): 1 for the ordinary's full width, less for a narrower
 // one (see ORDINARY_SHAPES).
-export function ordinaryShapes(ordinary, division = null, frame = null, width = 1) {
+// `line` (optional): a complex line for its edges (LINE_SHAPES): "a fess
+// wavy", "a chief indented". Of a fess, bend or chevron embattled only the
+// upper edge is.
+export function ordinaryShapes(ordinary, division = null, frame = null, width = 1, line = null) {
   if (ordinary === 'bordure' || ordinary === 'orle') return null;
   if (!ORDINARY_SHAPES[ordinary]) throw new Error('No shape for ordinary: ' + ordinary);
-  const shapes = ORDINARY_SHAPES[ordinary](division, width);
+  let shapes = ORDINARY_SHAPES[ordinary](division, width);
+  if (line && LINE_SHAPES[line] && !CURVED.has(ordinary)) {
+    const upper = LINE_SHAPES[line].upper && UPPER_ONLY.has(ordinary);
+    shapes = linedShapes(shapes, line, { outward: true, pick: upper ? (x, y) => y < -0.3 : null });
+  }
   return ordinary !== 'chief' && ordinary !== 'base' ? intoFrame(shapes, frame) : shapes;
+}
+const CURVED = new Set(['canton', 'flaunches', 'gore']);     // (no complex lines for these yet)
+
+// The inner edge of a bordure drawn with a complex line: the outline of the
+// space the bordure is in (the shield, or the part of it below a chief),
+// moved in by the bordure's width, then redrawn (linedLoop).
+const bordureCache = new Map();
+export function bordureInner(frame = null, line) {
+  const key = `${frameParts(frame).chief}|${line}`;
+  if (!bordureCache.has(key)) {
+    let outline = SHIELD_POLYGON;
+    if (frameParts(frame).chief) {
+      // the shield cut off along the chief's lower edge
+      outline = [[1, CHIEF_BOTTOM], [99, CHIEF_BOTTOM], ...SHIELD_POLYGON.filter(([, y]) => y > CHIEF_BOTTOM)];
+    }
+    bordureCache.set(key, linedLoop(insetOutline(outline, BORDURE_WIDTH), line));
+  }
+  return bordureCache.get(key);
 }
 
 // The outline of the space a frame leaves, as the text of an SVG path: the
@@ -510,10 +679,10 @@ export function distanceToEdge(x, y) {
 }
 
 const ordinarySampleCache = new Map();
-export function ordinarySamples(ordinary, division = null, frame = null, width = 1) {
-  const key = `${ordinary}|${division}|${frame}|${width}`;
+export function ordinarySamples(ordinary, division = null, frame = null, width = 1, line = null) {
+  const key = `${ordinary}|${division}|${frame}|${width}` + (line ? `|${line}` : '');
   if (!ordinarySampleCache.has(key)) {
-    const shapes = ordinaryShapes(ordinary, division, frame, width);
+    const shapes = ordinaryShapes(ordinary, division, frame, width, line);
     // A bordure or orle follows the frame's outline (see framePath).
     const inFrame = ([, y]) => !frameParts(frame).chief || y > CHIEF_BOTTOM;
     const covered = shapes ? samplesInside(shapes)

@@ -106,6 +106,24 @@ function checkField(field, problems, depth = 0) {
     }
   }
 
+  // SENA Appendix H, "Low-Contrast Complex Lines of Division": "The primary
+  // standard for low-contrast complex lines of division is that they be
+  // readily identifiable." Two pairings "have been ruled unregisterable,
+  // even when there is no overlying charge": "sable and purpure" and "sable
+  // and azure". "Other combinations are registerable on a case-by-case
+  // basis", which the tools cannot judge, so they are held back (house): a
+  // herald may choose them.
+  if (field.line && field.line !== 'plain') {
+    for (let i = 0; i < parts.length; i++) {
+      for (let j = i + 1; j < parts.length; j++) {
+        if (goodContrast(classes[i], classes[j])) continue;
+        const pair = [parts[i], parts[j]].map(p => (p.type === 'plain' ? groundsOf(p.tincture)[0] : null)).sort().join();
+        const ruledOut = pair === 'purpure,sable' || pair === 'azure,sable';
+        problems.push({ id: ruledOut ? 'complex-line-ruled-out' : 'complex-line-contrast', sena: 'Appendix H', level: ruledOut ? 'sena' : 'house' });
+      }
+    }
+  }
+
   if (family === 'many') {
     // SENA A3B3d: "Elements not already mentioned must have good contrast
     // between their parts." Checky azure and gules is out; checky argent and

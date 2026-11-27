@@ -369,11 +369,15 @@ function frameOf(groups) {
 const TAKES_SPACE = ['canton', 'flaunches', 'gore'];
 
 function ordinaryParts(group, division, frame, width = 1) {
+  // (with its complex line, if it has one: "a fess wavy". What goes beside
+  // it or on it is then fitted to the shape as drawn.)
+  const line = lineOf(group);
   return {
-    shapes: ordinaryShapes(group.ordinary, division, frame, width),
-    coverage: [ordinarySamples(group.ordinary, division, frame, width)],
+    shapes: ordinaryShapes(group.ordinary, division, frame, width, line),
+    coverage: [ordinarySamples(group.ordinary, division, frame, width, line)],
   };
 }
+const lineOf = group => (group.line && group.line !== 'plain' ? group.line : null);
 
 // ---- 2. Primary charges, inside a space ------------------------------------------------
 // As for a group alone: one in the middle, two side by side (one above the
@@ -884,7 +888,8 @@ function compose(groups, r, division) {
 
 // How one charge group shows in the layout, for a signature of the shield.
 const signature = g => [g.kind, g.ordinary || (g.art && getPicture(g.art) ? g.art : 'blob'), g.number, !!g.mirror, !!g.inverted,
-  !!g.artInverted, g.role || null, g.place || null, g.arranged || null, g.charged ? signature(g.charged) : null, g.turned || null];
+  !!g.artInverted, g.role || null, g.place || null, g.arranged || null, g.charged ? signature(g.charged) : null, g.turned || null,
+  lineOf(g)];
 const layoutCache = new Map();
 
 // Where everything on a shield goes. Returns { frame, entries } with one
@@ -1025,7 +1030,8 @@ function placeAll(field, groups) {
     const g = alone, frame = g.kind !== 'ordinary' ? null : g.ordinary === 'chief' ? 'chief' : g.ordinary === 'bordure' ? frameName(false, BORDURE_WIDTH) : null;
     if (g.kind === 'ordinary') {
       return { frame, entries: [{ ...r[0], kind: g.kind, ok: true, tertiary: null,
-                                  shapes: ordinaryShapes(g.ordinary, division), coverage: [ordinarySamples(g.ordinary, division)] }] };
+                                  shapes: ordinaryShapes(g.ordinary, division, null, 1, lineOf(g)),
+                                  coverage: [ordinarySamples(g.ordinary, division, null, 1, lineOf(g))] }] };
     }
     const placed = placeGroup(g, field);
     return { frame, entries: [{ ...r[0], kind: g.kind, ok: true, tertiary: null, picture: placed.picture, flipY: placed.flipY,
