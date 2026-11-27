@@ -21,7 +21,8 @@
 // Drawing shows these in grey, the blazon says so in words, the search leaves
 // them out, and the rules skip whatever they cannot judge yet.
 
-import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, AROUND_NAMED, SEMY } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, AROUND_NAMED, SEMY,
+         LINES, LINED_ORDINARIES, canBeLined } from './catalog.js';
 
 const checkTincture = t => {
   if (t !== null && !TINCTURES[t]) throw new Error('Unknown tincture: ' + t);
@@ -38,8 +39,12 @@ export function divided(division, parts, line = 'plain') {
   if (parts.length !== def.parts) {
     throw new Error(`${def.name} needs ${def.parts} parts, got ${parts.length}`);
   }
+  // `line`: 'plain', or a complex line (catalog.js: LINES): "per pale wavy".
+  checkLine(line);
+  if (!canBeLined(division)) line = 'plain';
   return { type: 'divided', division, line, parts };
 }
+const checkLine = line => { if (line !== 'plain' && !LINES[line]) throw new Error('Unknown line: ' + line); };
 
 // A CHARGE GROUP is a set of identical charges. Two kinds:
 //
@@ -108,11 +113,16 @@ export const COUNTERCHANGED = 'counterchanged';
 
 const checkChargeTincture = t => { if (t !== COUNTERCHANGED) checkTincture(t); };
 
-export function ordinaryGroup(ordinary, tincture, { role = null, place = null, charged = null } = {}) {
+// `line`: 'plain', or a complex line for its edges (catalog.js: LINES): "a
+// fess wavy", "a bordure embattled". An ordinary that cannot be drawn with
+// one yet (LINED_ORDINARIES) is drawn plain.
+export function ordinaryGroup(ordinary, tincture, { role = null, place = null, charged = null, line = 'plain' } = {}) {
   if (!ORDINARIES[ordinary]) throw new Error('Unknown ordinary: ' + ordinary);
   checkChargeTincture(tincture);
+  checkLine(line);
+  if (!LINED_ORDINARIES.has(ordinary)) line = 'plain';
   // (Flaunches come as a pair: catalog.js.)
-  return { kind: 'ordinary', ordinary, number: ORDINARIES[ordinary].count || 1, tincture, role, place, charged };
+  return { kind: 'ordinary', ordinary, number: ORDINARIES[ordinary].count || 1, tincture, role, place, charged, line };
 }
 
 export function chargeGroup({ charge, name = charge, plural = '', category = '', posture = '',
@@ -253,7 +263,9 @@ function fieldWords(field, words) {
   const list = parts.length === 2
     ? parts.join(' and ')
     : parts.slice(0, -1).join(', ') + ', and ' + parts[parts.length - 1];
-  return DIVISIONS[field.division].name + ' ' + list;
+  // "Per pale wavy azure and argent"
+  const line = field.line && field.line !== 'plain' ? ' ' + LINES[field.line].name : '';
+  return DIVISIONS[field.division].name + line + ' ' + list;
 }
 
 // "Per chevron vert and lozengy Or and purpure"
@@ -275,6 +287,8 @@ function groupWords(group, words) {
   else if (group.number === SEMY) text = 'semy of ' + many;
   else if (group.number === null) text = words.number + ' ' + many;
   else text = (NUMBER_WORDS[group.number] || group.number) + ' ' + many;
+  // "a fess wavy", "a bordure embattled"
+  if (group.kind === 'ordinary' && group.line && group.line !== 'plain') text += ' ' + LINES[group.line].name;
   if (group.posture) text += ' ' + group.posture;
   if (group.turned) text += ' ' + ORIENTATIONS[group.turned].name;
   if (group.inverted) text += ' inverted';

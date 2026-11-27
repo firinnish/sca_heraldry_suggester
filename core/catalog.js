@@ -251,6 +251,40 @@ export const ORDINARIES = {
 // What to call an ordinary on a button or in a list: "flaunches", "chevron".
 export const ordinaryLabel = id => (ORDINARIES[id].count === 2 ? ORDINARIES[id].plural : ORDINARIES[id].name);
 
+// ---- Complex lines ---------------------------------------------------------
+// The lines a division, or the edge of an ordinary, can be drawn with instead
+// of a straight one: "per pale wavy", "a chief indented", "a bordure
+// embattled" (the maintainer, November 2026). `line` on a divided field or
+// an ordinary group is one of these ids, or 'plain'.
+//   name: the blazon's word.
+//   code: the O&A's word, which stands where "pl" (plain line) would. From
+//         the records: every one of these carries its own name, except
+//         dancetty, which is indexed "indented" ("a fess dancetty" has
+//         FESS:1:argent:indented; "Barry dancetty azure and argent" has
+//         FIELD DIV.-BARRY:argent:indented:~and azure).
+// The shapes are in geometry.js (LINE_SHAPES). Not here yet: urdy, potenty,
+// bevilled, and the rarer ones.
+export const LINES = {
+  wavy:       { name: 'wavy',       code: 'wavy' },
+  indented:   { name: 'indented',   code: 'indented' },
+  dancetty:   { name: 'dancetty',   code: 'indented' },
+  embattled:  { name: 'embattled',  code: 'embattled' },
+  engrailed:  { name: 'engrailed',  code: 'engrailed' },
+  invected:   { name: 'invected',   code: 'invected' },
+  nebuly:     { name: 'nebuly',     code: 'nebuly' },
+  dovetailed: { name: 'dovetailed', code: 'dovetailed' },
+  raguly:     { name: 'raguly',     code: 'raguly' },
+  rayonny:    { name: 'rayonny',    code: 'rayonny' },
+};
+// The ordinaries whose edges can be drawn with a complex line so far: those
+// with straight edges, and the bordure. (Not the orle, the canton, flaunches
+// or a gore.)
+export const LINED_ORDINARIES = new Set(['pale', 'fess', 'bend', 'bendSinister', 'chevron', 'chevronInverted', 'cross',
+                                         'saltire', 'pall', 'pile', 'chief', 'bordure', 'base']);
+// Can this division be drawn with a complex line? (Not orly, nor two
+// divisions together, nor the checks and lozenges.)
+export const canBeLined = division => !division.includes('+') && !['orly', 'checky', 'lozengy'].includes(division);
+
 // ---- Arrangements ----------------------------------------------------------
 // How the charges of one group are set out, when it is not simply the usual
 // way for their number: "in pale three roundels", "in chevron five swords".

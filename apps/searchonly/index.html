@@ -53,6 +53,7 @@
   .field { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 0.88rem; max-width: 100%; }
   .field > label { font-weight: bold; }
   .tick { display: inline-flex; align-items: center; gap: 5px; font-size: 0.88rem; }
+  .set-label { font-size: 0.78rem; font-weight: bold; color: var(--muted); margin-right: 2px; }
   select, input[type="search"] { font-family: inherit; font-size: 0.9rem; padding: 5px 7px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); max-width: 100%; }
   .charge-row { border-top: 1px solid var(--line); padding: 10px 0 2px; }
   .charge-row:first-child { border-top: none; padding-top: 0; }
@@ -101,8 +102,15 @@
   </header>
   <div class="top">
     <div class="form">
+      <section class="panel" aria-labelledby="coloursHeading">
+        <h2 id="coloursHeading"></h2>
+        <div id="coloursBody"></div>
+      </section>
       <section class="panel" aria-labelledby="fieldHeading">
-        <h2 id="fieldHeading"></h2>
+        <div class="panel-head">
+          <h2 id="fieldHeading"></h2>
+          <label class="tick"><input type="checkbox" id="noBackground" autocomplete="off"> <span id="noBackgroundLabel"></span></label>
+        </div>
         <div id="fieldBody"></div>
       </section>
       <section class="panel" aria-labelledby="chargeHeading">
@@ -144,7 +152,8 @@
 //
 // Everything heraldic comes from core/: this page only holds the form.
 import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, ARRANGEMENTS, USUAL_ARRANGEMENT,
-         ORIENTATIONS, SEMY, arrangementsFor, divisionsTogether, ordinaryLabel, postureCode } from '../../core/catalog.js';
+         ORIENTATIONS, SEMY, arrangementsFor, divisionsTogether, ordinaryLabel, postureCode,
+         LINES, LINED_ORDINARIES, canBeLined } from '../../core/catalog.js';
 import { plain, divided, blazon, roles, ordinaryGroup, chargeGroupFromLibrary, COUNTERCHANGED } from '../../core/shield.js';
 import { shieldSVG } from '../../core/draw.js';
 import { shieldPatterns, complexSearchURL } from '../../core/oanda.js';
@@ -164,6 +173,18 @@ const TEXT = {
   modeLink: 'Search mode - click for build mode',
   showImages: 'show images',
   clearAll: 'clear all',
+
+  // The colours known to be in the shield. From them the page can work out
+  // the background (the maintainer, November 2026: "if user says blue and
+  // yellow are used in the shield and adds a yellow charge, background must
+  // be blue, unless they specifically pick 'don't specify background'").
+  shieldColours: 'What colours are used in the shield?',                // (the build mode page's words)
+  shieldColoursHelp: 'Tick the ones you know. When they leave only one possible background, it is filled in for you.', // DRAFT
+  noBackground: "don't specify background",
+  autoNote: 'Filled in for you: the only background the colours ticked allow.', // DRAFT
+  // Complex lines: of a divided background, and of an ordinary's edges.
+  lineLabel: 'line:',                                                   // DRAFT
+  linePlain: 'plain line',                                              // DRAFT (a straight one)
 
   // The background.
   fieldHeading: 'Background',                                           // DRAFT
@@ -243,6 +264,8 @@ const TEXT = {
     'arrangement-unsupported': 'The tools cannot draw this arrangement yet',
     'no-room': 'There is not enough room to draw this clearly',
     'pattern-hidden': 'So little of the background shows that its pattern cannot be made out',
+    'complex-line-ruled-out': 'A complex line between these two colours has been ruled unregisterable',
+    'complex-line-contrast': 'A complex line between two colours, or two metals, is only registered if it can be clearly made out',
     'arrangement-unity': 'With another charge above or below, charges in a line may be taken for one group with two arrangements',
   },
 
@@ -295,8 +318,13 @@ const freshRow = () => ({
   inverted: false,
   mirror: false,       // facing sinister
   arranged: null,      // null (the usual way) | an id from ARRANGEMENTS
+  line: null,          // for an ordinary: null (a plain line) | an id from LINES ("a fess wavy")
 });
 const fresh = () => ({
+  colours: [],         // the colours ticked under "What colours are used in the shield?"
+  noBackground: false, // "don't specify background" ticked: the background is never filled in for them
+  auto: false,         // the background as it stands was filled in by the page (see settleBackground)
+  line: '',            // the complex line the background is divided with (an id from LINES), or '' for a plain one
   division: ANY,       // ANY | PLAIN | a division id. (ANY: nothing is said about the background, so the
                        // search has no line for it. To start from a plain background instead, put PLAIN here.)
   over: '',            // a second division counterchanged over the first, or ''
@@ -323,7 +351,31 @@ function fieldOf() {
   if (state.division === ANY) return null;
   if (state.division === PLAIN) return plain(state.parts[0]);
   const id = overOf() || state.division;
-  return divided(id, Array.from({ length: DIVISIONS[id].parts }, (_, i) => plain(state.parts[i])));
+  return divided(id, Array.from({ length: DIVISIONS[id].parts }, (_, i) => plain(state.parts[i])), state.line || 'plain');
+}
+
+// THE BACKGROUND FILLS ITSELF IN (the maintainer, November 2026). It starts
+// as "any". When the colours ticked for the shield and the charges described
+// leave only ONE background the rules allow (azure and Or ticked, an Or
+// charge: the background must be azure), that background is put into the
+// menus. It is worked out afresh whenever something else changes, until the
+// herald touches the background's own menus (then it is theirs), and never
+// while "don't specify background" is ticked.
+function settleBackground(byHand) {
+  if (byHand) { state.auto = false; return; }
+  if (state.auto) Object.assign(state, { division: ANY, over: '', line: '', parts: [null, null, null], auto: false });
+  if (state.noBackground || state.division !== ANY || state.colours.length < 2) return;
+  const { groups } = describe();
+  if (!groups.length) return;
+  const allowed = field => { try { return !checkShield({ field, groups }).length; } catch (err) { return false; } };
+  const plains = state.colours.filter(t => allowed(plain(t)));
+  if (plains.length !== 1) return;
+  // (...and no divided background of those colours would do instead)
+  if (state.colours.length <= 3) {
+    const pairs = state.colours.flatMap(a => state.colours.filter(b => b !== a).map(b => [a, b]));
+    if (TWO_PART.some(d => pairs.some(([a, b]) => allowed(divided(d, [plain(a), plain(b)]))))) return;
+  }
+  Object.assign(state, { division: PLAIN, parts: [plains[0], null, null], auto: true });
 }
 
 // ---- The charges ------------------------------------------------------------------
@@ -350,7 +402,7 @@ const posable = id => picturesOf(id).some(p => postureCode(p.posture));
 function groupOf(row) {
   const choice = row.choice;
   if (!choice) return null;
-  if (choice.kind === 'ordinary') return ordinaryGroup(choice.id, row.tincture);
+  if (choice.kind === 'ordinary') return ordinaryGroup(choice.id, row.tincture, { line: row.line || 'plain' });
   const charge = chargeById.get(choice.id);
   if (!charge) return null;
   return chargeGroupFromLibrary(charge, pictureOf(row), {
@@ -469,6 +521,16 @@ function creditsLine(rows, nameOf = row => row.charge.name.toLowerCase()) {
 }
 
 // ---- Drawing the form ---------------------------------------------------------------
+// "What colours are used in the shield?": a tick-box for each.
+function renderColours() {
+  const set = (label, ids) => `<span class="field"><span class="set-label">${esc(label)}</span>` +
+    ids.map(id => tick('colour-' + id, `data-colour="${id}"`, TINCTURES[id].name, state.colours.includes(id))).join('') + `</span>`;
+  put('coloursBody', `<p class="note" style="margin:0 0 8px">${esc(TEXT.shieldColoursHelp)}</p><div class="fields">` +
+    set(TEXT.coloursLabel, COLOUR_ORDER) + set(TEXT.metalsLabel, METAL_ORDER) + set(TEXT.fursLabel, FUR_ORDER) + `</div>`);
+}
+// The menu of lines: a plain one, then the complex lines by their heraldic names.
+const lineOptions = now => opt('', TEXT.linePlain, !now) + Object.keys(LINES).map(id => opt(id, LINES[id].name, now === id)).join('');
+
 function renderField() {
   const d = state.division, def = DIVISIONS[d] || null;
   const count = d === ANY ? 0 : d === PLAIN ? 1 : def.parts;
@@ -479,9 +541,11 @@ function renderField() {
       Object.keys(DIVISIONS).map(id => opt(id, DIVISIONS[id].name, d === id)).join('') + `</select>`) +
     (others.length ? control('over', TEXT.overLabel, `<select id="over" data-field="over">` + opt('', TEXT.noOver, !overOf()) +
       others.map(id => opt(id, DIVISIONS[id].name, !!overOf() && state.over === id)).join('') + `</select>`) : '') +
+    // (the line it is divided with: "per pale wavy". Not with two divisions together.)
+    (def && !overOf() && canBeLined(d) ? control('line', TEXT.lineLabel, `<select id="line" data-field="line">${lineOptions(state.line)}</select>`) : '') +
     Array.from({ length: count }, (_, i) => control('part' + i, TEXT.partLabel(i + 1, count),
       `<select id="part${i}" data-field="part" data-part="${i}">${tinctureOptions(state.parts[i])}</select>`)).join('') +
-    `</div>`;
+    `</div>` + (state.auto ? `<p class="note">${esc(TEXT.autoNote)}</p>` : '');
   if (state.images) {
     html += `<div class="pics">` +
       pic('pic-division-any', 'division', ANY, keep('field|any', () => drawing(null)), TEXT.any, d === ANY) +
@@ -525,6 +589,10 @@ function renderRows() {
           NUMBERS.map(n => opt(n, n, row.number === n)).join('') + `</select>`);
       }
       html += control('tincture' + i, TEXT.colourLabel, `<select id="tincture${i}" ${set('tincture')}>${tinctureOptions(row.tincture, true)}</select>`);
+      // (an ordinary's edges: "a fess wavy", "a bordure embattled")
+      if (!charge && LINED_ORDINARIES.has(choice.id)) {
+        html += control('line' + i, TEXT.lineLabel, `<select id="line${i}" ${set('line')}>${lineOptions(row.line || '')}</select>`);
+      }
       if (charge) {
         const postures = posturesOf(choice.id), now = postureOf(row);
         if (postures.length) {
@@ -641,11 +709,13 @@ function renderResult(shield) {
 function render() {
   const focused = document.activeElement && document.activeElement.id;
   shown = describe();
+  renderColours();
   renderField();
   renderRows();
   renderArrange(shown);
   renderResult(shown);
   $('noCharge').checked = state.noCharge;
+  $('noBackground').checked = state.noBackground;
   $('showImages').setAttribute('aria-pressed', String(state.images));
   // Whatever was being used is still being used, though it was drawn again.
   if (focused && $(focused) && $(focused) !== document.activeElement) $(focused).focus({ preventScroll: true });
@@ -657,6 +727,7 @@ function setField(key, value, part = 0) {
     state.division = value;
     if (!overOf()) state.over = '';
   } else if (key === 'over') state.over = value;
+  else if (key === 'line') state.line = value;
   else if (key === 'part') state.parts[part] = value || null;
 }
 function setRow(i, key, value) {
@@ -666,6 +737,7 @@ function setRow(i, key, value) {
   else if (key === 'posture') row.posture = value;
   else if (key === 'turned') row.turned = value || null;
   else if (key === 'arranged') row.arranged = value || null;
+  else if (key === 'line') row.line = value || null;
   else if (key === 'inverted' || key === 'mirror') row[key] = !!value;
   // How a charge's own charges are set out only lasts while it suits how many there are.
   if (row.arranged && !(typeof row.number === 'number' && arrangementsFor(row.number).includes(row.arranged))) row.arranged = null;
@@ -695,6 +767,7 @@ function setName(i, text, done) {
   if (!sameChoice(choice, row.choice)) {
     row.choice = choice;
     row.posture = null;        // (a posture belongs to the charge it was chosen for)
+    row.line = null;           // (and a line to the ordinary)
   }
 }
 
@@ -730,9 +803,14 @@ document.addEventListener('change', e => {
   if (d.name !== undefined) setName(Number(d.name), el.value, true);
   else if (d.field) setField(d.field, el.value, Number(d.part || 0));
   else if (d.set) setRow(Number(d.row), d.set, el.type === 'checkbox' ? el.checked : el.value);
+  else if (d.colour) state.colours = el.checked ? [...state.colours, d.colour] : state.colours.filter(t => t !== d.colour);
   else if (el.id === 'way') setWay(el.value);
   else if (el.id === 'noCharge') state.noCharge = el.checked;
+  else if (el.id === 'noBackground') state.noBackground = el.checked;
   else return;
+  // (a change to the background's own menus makes it the herald's; anything
+  // else may fill the background in, or take back what was filled in)
+  settleBackground(!!d.field);
   render();
 });
 document.addEventListener('click', e => {
@@ -748,6 +826,7 @@ document.addEventListener('click', e => {
     if (what === 'way') setWay(value);
     else if (row !== undefined) setRow(Number(row), what, value);
     else setField(what, value);
+    settleBackground(what !== 'way' && row === undefined);
   } else return;
   render();
 });
@@ -765,6 +844,8 @@ $('modeLink').textContent = TEXT.modeLink;
 $('showImages').textContent = TEXT.showImages;
 $('clearAll').textContent = TEXT.clearAll;
 $('fieldHeading').textContent = TEXT.fieldHeading;
+$('coloursHeading').textContent = TEXT.shieldColours;
+$('noBackgroundLabel').textContent = TEXT.noBackground;
 $('chargeHeading').textContent = TEXT.chargeHeading;
 $('noChargeLabel').textContent = TEXT.noCharge;
 $('arrangeHeading').textContent = TEXT.arrangeHeading;

@@ -88,6 +88,13 @@ const CASES = [
   ['no', P('masoned:purpure:argent'), [thing('mullet', 'argent', 'semy')], {}, 'A3B4b, as the maintainer reads it: strewn charges may share no tincture with the field, its masoning included'],
   ['no', P('ermine'), [thing('mullet', 'sable', 'semy')], {}, 'the same, with the spots of a fur'],
   ['yes', P('ermine'), [thing('mullet', 'sable', 1)], {}, 'one charge sable on ermine is fine'],
+  // Complex lines (SENA Appendix H)
+  ['no', D('perPale', [P('sable'), P('azure')], 'wavy'), [], {}, 'Appendix H: "sable and azure" ruled unregisterable with a complex line'],
+  ['no', D('perFess', [P('purpure'), P('sable')], 'indented'), [], {}, 'Appendix H: "sable and purpure" ruled unregisterable'],
+  ['house', D('perPale', [P('gules'), P('azure')], 'embattled'), [], {}, 'Appendix H: "Other combinations are registerable on a case-by-case basis" (held back)'],
+  ['yes', D('perPale', [P('sable'), P('azure')]), [], {}, 'A3B3a: the same two colours with a plain line'],
+  ['yes', D('perChevron', [P('sable'), P('or')], 'rayonny'), [], {}, 'a complex line between a colour and a metal'],
+  ['yes', P('argent'), [ordinaryGroup('fess', 'gules', { line: 'wavy' })], {}, 'an ordinary with a complex line'],
   // Orly, and two divisions counterchanged over each other
   ['yes', two('orly', 'sable', 'or'), [], {}, 'registered August 2021: "Orly sable and Or"'],
   ['no', two('orly', 'sable', 'gules'), [], {}, 'A3B3d: many pieces need good contrast'],

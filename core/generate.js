@@ -11,6 +11,8 @@
 //   fieldOrdered:   true = use fieldTinctures in the order given.
 //   division:       null (any) | 'plain' | a division id.
 //   field:          a complete background, if one has been fully chosen.
+//   line:           the complex line the background is divided with
+//                   (catalog.js: LINES), if one has been chosen.
 //   items:          what is on the shield: null (anything, or nothing) |
 //                   'none' | a list of { charge, number, tincture }, where
 //                     charge:   null (any) | { kind: 'ordinary', id }
@@ -145,7 +147,8 @@ function guessField(c, rng) {
       tinctures[Math.floor(rng() * parts)] = c.mustInclude;
     }
   }
-  return division === 'plain' ? plain(tinctures[0]) : divided(division, tinctures.map(plain));
+  // (`line`: the complex line the background is to be divided with, if one has been chosen)
+  return division === 'plain' ? plain(tinctures[0]) : divided(division, tinctures.map(plain), c.line || 'plain');
 }
 
 // ---- Guessing what is on it --------------------------------------------------
@@ -196,7 +199,8 @@ function indexOf(library) {
 }
 
 function groupFromChoice(choice, library) {
-  if (choice.kind === 'ordinary') return ORDINARIES[choice.id] ? ordinaryGroup(choice.id, null) : null;
+  // (an ordinary's choice may say which complex line it is drawn with: "a fess wavy")
+  if (choice.kind === 'ordinary') return ORDINARIES[choice.id] ? ordinaryGroup(choice.id, null, { line: choice.line || 'plain' }) : null;
   const index = indexOf(library);
   const charge = index.charges.get(choice.id);
   if (!charge) return null;

@@ -9,7 +9,7 @@
 
 import { TINCTURES } from './catalog.js';
 import { COUNTERCHANGED, counterchangedField } from './shield.js';
-import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes, framePath, isLayered } from './geometry.js';
+import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes, framePath, isLayered, bordureInner } from './geometry.js';
 import { layoutShield } from './layout.js';
 import { scatter } from './scatter.js';
 
@@ -121,7 +121,8 @@ function drawField(field, ctx, regions = [], key = 'whole', frame = null) {
   }
   // (Only the whole field's own division has a variant, not a part's.)
   const variant = regions.length ? null : ctx.variant;
-  return divisionShapes(field.division, frame, variant).map((polygons, i) => {
+  // (with the field's complex line, if it has one: "per pale wavy")
+  return divisionShapes(field.division, frame, variant, field.line).map((polygons, i) => {
     const clipId = `${ctx.id}-c${ctx.clips++}`, d = pathOf(polygons);
     // (layered shapes, such as orly's, make their pieces by "evenodd": geometry.js)
     ctx.defs.push(`<clipPath id="${clipId}"><path d="${d}"${isLayered(field.division) ? ' clip-rule="evenodd"' : ''}/></clipPath>`);
@@ -169,6 +170,14 @@ function drawOrdinary(group, shapes, field, ctx, frame) {
       `<path d="${edge}" fill="none" stroke="#000" stroke-width="${2 * ORLE_GAP - grow}"/></mask>`;
     ctx.defs.push(band(id, 0), band(id + 'l', 1.6));
     return `<rect width="${W}" height="${H}" fill="${LINE}" mask="url(#${id}l)"/>` + paint(`mask="url(#${id})"`);
+  }
+  if (group.ordinary === 'bordure' && group.line && group.line !== 'plain') {
+    // "A bordure embattled": everything between the edge and the bordure's
+    // inner edge, which is drawn with the complex line (geometry.js:
+    // bordureInner), with a line along that inner edge.
+    const inner = pathOf([bordureInner(frame, group.line)]);
+    ctx.defs.push(`<mask id="${id}"><path d="${edge}" fill="#fff"/><path d="${inner}" fill="#000"/></mask>`);
+    return paint(`mask="url(#${id})"`) + `<path d="${inner}" fill="none" stroke="${LINE}" stroke-width="0.8"/>`;
   }
   if (group.ordinary === 'bordure') {
     // A wide line along the edge; the half outside the shield is trimmed off

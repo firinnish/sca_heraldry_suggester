@@ -84,8 +84,38 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   chief on a per pall field or two charges side by side on per pale.
 - Rule violations never block the search link: people search for old armory
   that breaks today's rules. They grey out options and show a warning.
-- Not covered yet: complex lines (SENA Appendix H), voiding/fimbriation,
-  "sword and dagger" (A3D1b).
+- Not covered yet: voiding/fimbriation, "sword and dagger" (A3D1b).
+
+## Complex lines (built the end of November 2026)
+- `line` on a divided field and on an ordinary group is 'plain' or an id
+  from `LINES` in `catalog.js` (wavy, indented, dancetty, embattled,
+  engrailed, invected, nebuly, dovetailed, raguly, rayonny): "per pale
+  wavy", "a fess embattled", "a bordure engrailed". `canBeLined(division)`
+  and `LINED_ORDINARIES` say what can have one so far (not orly, checky,
+  lozengy, two divisions together; not the orle, canton, flaunches, gore).
+- The shapes are `LINE_SHAPES` in `geometry.js`: ONE REPEAT of each line as
+  points. `linedPolygon` redraws each long straight edge of a polygon with
+  it. The line along an edge depends only on where the edge lies (it is laid
+  out from where the edge's line crosses the pale line), so the two parts of
+  a field that share a line get the same line and still fit together. For an
+  ordinary (`outward`), a `mirrored` shape points away from the ordinary on
+  every edge, and of a fess, bend or chevron embattled only the upper edge
+  is (`upper`). A bordure's inner edge is `bordureInner` (`linedLoop`: along
+  the outline, cut INTO the bordure so what is inside keeps its room).
+- Only DRAWING uses the complex shape of a division (`divisionShapes(...,
+  line)`); the rules and the layout work from the plain one (`partMap`),
+  which differs by no more than the line's depth. An ordinary's complex
+  shape IS what the layout fits things beside and on (`ordinaryParts`).
+- O&A: the line's own word stands where "pl" would (`complexLine` in
+  `oanda.js`); dancetty is indexed "indented". Checked against the records.
+- SENA Appendix H (`checkField`): a complex line between two colours or two
+  metals is `complex-line-ruled-out` (sena) for sable with azure or with
+  purpure, the two pairings it names, and `complex-line-contrast` (house)
+  otherwise ("registerable on a case-by-case basis").
+- Build page: "line:" on an ordinary's card (and in its "expand" box), and a
+  menu of lines under "How is the background divided?" (`state.fieldLine`),
+  which every background picture is then drawn with. The generator only
+  uses a complex line when asked (`line` in its constraints).
 
 ## Several charge groups (built November 2026)
 - The model is in `core/shield.js`: `groups` lists the groups ON THE FIELD;
@@ -242,6 +272,13 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   / "Search mode - click for build mode": the maintainer's words). They
   share `core/` and nothing else, so a change to how the build page behaves
   does not reach the search page by itself.
+- In search mode the background starts as "any" and FILLS ITSELF IN
+  (`settleBackground`): when the colours ticked under "What colours are used
+  in the shield?" and the charges described leave only one background the
+  rules allow, it is put into the menus (azure and Or ticked, an Or charge:
+  plain azure). It is worked out afresh on every other change until the
+  herald touches the background's own menus, and never while "don't specify
+  background" (the maintainer's words) is ticked.
 
 ## How the page behaves (decided with the maintainer)
 - (The end of November 2026.) "make suggestion" under an option's picture
