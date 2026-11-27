@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Alignment check: every ordinary on every division</title>
+<style>
+  body { font-family: Georgia, serif; margin: 20px; color: #2b2620; background: #faf6ee; }
+  table { border-collapse: collapse; }
+  th { font-size: 0.75rem; font-weight: normal; padding: 2px 4px; text-align: center; }
+  th.row { text-align: right; white-space: nowrap; }
+  td { padding: 2px; }
+  td svg { width: 64px; height: auto; display: block; }
+</style>
+</head>
+<body>
+<h1>Alignment check</h1>
+<p>Every ordinary drawn on every field division, to check that their lines meet
+cleanly: no slivers of the field showing along an ordinary's edge. The shapes
+are in <code>core/geometry.js</code>.</p>
+<div id="out">Drawing…</div>
+<script type="module">
+import { DIVISIONS, ORDINARIES } from '../core/catalog.js';
+import { plain, divided, ordinaryGroup, blazon } from '../core/shield.js';
+import { shieldSVG } from '../core/draw.js';
+
+const field = d => d === 'plain' ? plain('or')
+  : divided(d, Array.from({ length: DIVISIONS[d].parts }, (_, i) => plain(['sable', 'or', 'gules'][i])));
+const divisions = ['plain', ...Object.keys(DIVISIONS)];
+const ordinaries = Object.keys(ORDINARIES);
+
+let html = '<table><tr><th></th>' + ordinaries.map(o => `<th>${ORDINARIES[o].name}</th>`).join('') + '</tr>';
+for (const d of divisions) {
+  const f = field(d);
+  html += `<tr><th class="row">${d === 'plain' ? 'plain' : DIVISIONS[d].name}</th>`;
+  for (const o of ordinaries) {
+    const g = ordinaryGroup(o, 'azure');
+    html += `<td>${shieldSVG(f, { charges: [g], title: blazon(f, [g]) })}</td>`;
+  }
+  html += '</tr>';
+}
+html += '</table>';
+
+// Furs: every spot should sit wholly inside its own piece of the field.
+html += '<h2>Furs on every division</h2><p>Each ermine spot should be whole, never cut by a line of the field.</p><table><tr>';
+const furPairs = [['ermine', 'azure'], ['vert', 'ermine'], ['counterermine', 'or'], ['erminois', 'gules']];
+for (const d of Object.keys(DIVISIONS).filter(d => DIVISIONS[d].parts === 2)) {
+  for (const [a, b] of furPairs) {
+    const f = divided(d, [plain(a), plain(b)]);
+    html += `<td>${shieldSVG(f, { title: blazon(f, []) })}</td>`;
+  }
+  if (d === 'perChevronInverted' || d === 'gyronny' || d === 'lozengy' || d === 'barry' || d === 'bendySinister') html += '</tr><tr>';
+}
+html += `<td>${shieldSVG(plain('ermine'))}</td><td>${shieldSVG(plain('pean'))}</td>`;
+document.getElementById('out').innerHTML = html + '</tr></table>';
+window.done = true;
+</script>
+</body>
+</html>

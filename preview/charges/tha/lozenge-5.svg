@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" viewBox="67.5 63 157.5 351" width="157.5" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 67.5 63 L 225 63 L 225 360 L 203.19 414 L 67.5 414 Z"/>
+    </clipPath>
+    <clipPath id="outer_stroke_clip_path">
+      <path d="M 67.5 63 L 225 63 L 225 414 L 67.5 414 Z M 146.25 65.25 L 72.28 238.5 L 146.25 411.75 L 220.22 238.5 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Lozenge_(5)" stroke-opacity="1" stroke="none" stroke-dasharray="none" fill="none" fill-opacity="1">
+    <title>Lozenge (5)</title>
+    <g id="Lozenge_(5)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_70">
+        <g id="Graphic_76">
+          <path d="M 146.25 65.25 L 220.22 238.5 L 146.25 411.75 L 72.28 238.5 Z" fill="#ffffff"/>
+          <path d="M 146.25 65.25 L 220.22 238.5 L 146.25 411.75 L 72.28 238.5 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" clip-path="url(#outer_stroke_clip_path)"/>
+        </g>
+        <g id="Graphic_75">
+          <path d="M 146.68 368.85 C 146.68 368.85 156.09 314.24 171.57 279.69 C 187.04 245.13 198.41 238.5 198.41 238.5 L 146.68 238.5 Z" fill="#e1e1e1"/>
+        </g>
+        <g id="Graphic_74">
+          <path d="M 186.44 159.64 L 146.68 66.28 L 146.68 238.5 L 155.66 238.91 C 155.66 238.91 155.97 209.92 166.35 187.83 C 171.96 175.88 186.44 159.64 186.44 159.64 Z" fill="#e1e1e1"/>
+        </g>
+        <g id="Graphic_73">
+          <path d="M 72.45 239.02 L 108.45 323.33 C 106.74 302.79 110.02 276.79 112.05 270.37 C 116.11 257.48 142.15 238.5 142.15 238.5 L 72.28 238.5 Z" fill="#e1e1e1"/>
+        </g>
+        <g id="Line_72">
+          <line x1="146.25" y1="72.2" x2="146.25" y2="404.8" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+        </g>
+        <g id="Line_71">
+          <line x1="79.38" y1="238.5" x2="213.12" y2="238.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

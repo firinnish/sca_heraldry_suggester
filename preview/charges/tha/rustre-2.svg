@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" viewBox="36 63 220.5 351" width="220.5" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 36 63 L 256.5 63 L 256.5 360 L 225.97 414 L 36 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Rustre_(2)" stroke-opacity="1" stroke="none" stroke-dasharray="none" fill="none" fill-opacity="1">
+    <title>Rustre (2)</title>
+    <g id="Rustre_(2)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_76">
+        <path d="M 146.25 67.5 L 37.68 238.5 L 146.25 409.5 L 254.82 238.5 Z M 191.59 193.16 C 216.63 218.2 216.63 258.8 191.59 283.84 C 166.55 308.88 125.95 308.88 100.91 283.84 C 75.87 258.8 75.87 218.2 100.91 193.16 C 125.95 168.12 166.55 168.12 191.59 193.16" fill="#ffffff"/>
+        <path d="M 146.25 67.5 L 37.68 238.5 L 146.25 409.5 L 254.82 238.5 Z M 191.59 193.16 C 216.63 218.2 216.63 258.8 191.59 283.84 C 166.55 308.88 125.95 308.88 100.91 283.84 C 75.87 258.8 75.87 218.2 100.91 193.16 C 125.95 168.12 166.55 168.12 191.59 193.16" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

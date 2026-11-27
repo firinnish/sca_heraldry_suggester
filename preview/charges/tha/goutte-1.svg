@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="58.5 61.5 134 333" width="134" height="333">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 58.5 61.5 L 192.5 61.5 L 192.5 394.5 L 58.5 394.5 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Goutte_(1)" stroke-opacity="1" stroke="none" fill="none" fill-opacity="1" stroke-dasharray="none">
+    <title>Goutte (1)</title>
+    <g id="Goutte_(1)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Graphic_4">
+        <path d="M 64.87 300.75 C 54.51 324.78 59.14 353.73 78.77 373.35 C 104.47 399.05 146.12 399.05 171.82 373.35 C 192.46 352.71 196.53 321.98 183.99 297.06 C 169.48 266.62 146.78 260.25 154.9 234.07 C 163.03 207.89 134.01 194.59 134.01 168.27 C 134.01 141.95 148.03 141.95 148.03 115.64 C 148.03 89.32 119.99 63 119.99 63 C 119.99 63 134.01 89.32 119.99 115.64 C 105.96 141.95 84.72 140.86 84.72 167.18 C 84.72 193.49 107.75 203.99 100.07 232.97 C 92.4 261.95 75.26 271.82 64.86 300.51 C 64.81 300.64 64.87 300.75 64.87 300.75 Z" fill="#ffffff"/>
+        <path d="M 64.87 300.75 C 54.51 324.78 59.14 353.73 78.77 373.35 C 104.47 399.05 146.12 399.05 171.82 373.35 C 192.46 352.71 196.53 321.98 183.99 297.06 C 169.48 266.62 146.78 260.25 154.9 234.07 C 163.03 207.89 134.01 194.59 134.01 168.27 C 134.01 141.95 148.03 141.95 148.03 115.64 C 148.03 89.32 119.99 63 119.99 63 C 119.99 63 134.01 89.32 119.99 115.64 C 105.96 141.95 84.72 140.86 84.72 167.18 C 84.72 193.49 107.75 203.99 100.07 232.97 C 92.4 261.95 75.26 271.82 64.86 300.51 C 64.81 300.64 64.87 300.75 64.87 300.75 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

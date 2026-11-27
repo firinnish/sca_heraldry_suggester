@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="40.5 63 144 351" width="144" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 40.5 63 L 184.5 63 L 184.5 414 L 40.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Compass,_Drawing_(2)" stroke-opacity="1" stroke="none" fill="none" fill-opacity="1" stroke-dasharray="none">
+    <title>Compass, Drawing (2)</title>
+    <g id="Compass,_Drawing_(2)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_766">
+        <g id="Graphic_774">
+          <path d="M 126.41 74.12 C 129.42 80.06 128.37 87.5 123.33 92.37 C 123.26 92.43 123.2 92.5 123.13 92.56 C 130.32 96.01 134.56 99.11 136.83 102.33 C 139.08 105.5 139.9 109.54 139.3 116.05 C 138.77 121.86 135.42 127.33 129.78 131.01 C 123.03 135.41 113.49 137.04 101.82 134.97 L 92.91 133.39 L 89.74 151.22 L 89.78 151.22 L 66.26 411.75 L 106.38 153.78 C 119.24 154.72 130.66 152.06 139.68 146.17 C 149.91 139.5 156.3 129.07 157.34 117.7 C 159.22 97.04 150.91 85.31 128.72 75.18 L 126.41 74.12 Z" fill="#ffffff"/>
+          <path d="M 126.41 74.12 C 129.42 80.06 128.37 87.5 123.33 92.37 C 123.26 92.43 123.2 92.5 123.13 92.56 C 130.32 96.01 134.56 99.11 136.83 102.33 C 139.08 105.5 139.9 109.54 139.3 116.05 C 138.77 121.86 135.42 127.33 129.78 131.01 C 123.03 135.41 113.49 137.04 101.82 134.97 L 92.91 133.39 L 89.74 151.22 L 89.78 151.22 L 66.26 411.75 L 106.38 153.78 C 119.24 154.72 130.66 152.06 139.68 146.17 C 149.91 139.5 156.3 129.07 157.34 117.7 C 159.22 97.04 150.91 85.31 128.72 75.18 L 126.41 74.12 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_773">
+          <circle cx="112.5" cy="81.1" r="15.58" fill="#ffffff"/>
+          <circle cx="112.5" cy="81.1" r="15.58" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_772">
+          <circle cx="112.5" cy="81.1" r="6.48" fill="#ffffff"/>
+          <circle cx="112.5" cy="81.1" r="6.48" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_771">
+          <path d="M 118.62 153.71 L 158.74 411.68 L 135.22 151.15 L 135.26 151.14 L 132.09 133.32 L 123.18 134.9 C 111.51 136.97 101.97 135.34 95.22 130.93 C 89.58 127.26 86.23 121.79 85.7 115.98 C 85.1 109.47 85.92 105.43 88.17 102.26 C 90.44 99.04 94.68 95.93 101.87 92.48 C 101.8 92.42 101.74 92.36 101.67 92.3 C 96.63 87.43 95.58 79.99 98.59 74.05 L 96.28 75.1 C 74.09 85.23 65.78 96.97 67.66 117.62 C 68.7 129 75.09 139.42 85.32 146.1 C 94.34 151.99 105.76 154.65 118.62 153.71 L 118.62 153.71 Z" fill="#ffffff"/>
+          <path d="M 118.62 153.71 L 158.74 411.68 L 135.22 151.15 L 135.26 151.14 L 132.09 133.32 L 123.18 134.9 C 111.51 136.97 101.97 135.34 95.22 130.93 C 89.58 127.26 86.23 121.79 85.7 115.98 C 85.1 109.47 85.92 105.43 88.17 102.26 C 90.44 99.04 94.68 95.93 101.87 92.48 C 101.8 92.42 101.74 92.36 101.67 92.3 C 96.63 87.43 95.58 79.99 98.59 74.05 L 96.28 75.1 C 74.09 85.23 65.78 96.97 67.66 117.62 C 68.7 129 75.09 139.42 85.32 146.1 C 94.34 151.99 105.76 154.65 118.62 153.71 L 118.62 153.71 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_770">
+          <path d="M 118.87 153.61 C 118.87 153.61 122.16 152.66 124.3 152.16" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+        <g id="Line_769">
+          <path d="M 129.68 151.1 C 132.35 150.6 135.07 150.67 135.07 150.67" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+        <g id="Line_768">
+          <path d="M 137.29 271.84 C 137.29 271.84 142.45 271.88 146 270.71" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+        <g id="Line_767">
+          <path d="M 87.51 272.88 C 87.51 272.88 82.36 273.01 78.77 271.96" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

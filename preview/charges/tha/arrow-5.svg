@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="63 63 99 351" width="99" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 63 63 L 162 63 L 162 414 L 63 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Arrow_(5)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Arrow (5)</title>
+    <g id="Arrow_(5)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_3">
+        <g id="Graphic_7">
+          <path d="M 110.81 101.78 L 103.82 101.78 L 103.82 323.97 L 121.38 323.97 L 121.38 101.78 L 114.39 101.78 L 112.6 112.5 Z" fill="#ffffff"/>
+          <path d="M 110.81 101.78 L 103.82 101.78 L 103.82 323.97 L 121.38 323.97 L 121.38 101.78 L 114.39 101.78 L 112.6 112.5 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_6">
+          <path d="M 121.18 164.55 C 142.1 148.68 156.76 115.43 155.85 69.94 C 155.85 69.94 157.26 66.31 154.94 65.4 C 152.61 64.49 150.39 68.13 150.39 68.13 L 121.18 101.08 Z" fill="#ffffff"/>
+          <path d="M 121.18 164.55 C 142.1 148.68 156.76 115.43 155.85 69.94 C 155.85 69.94 157.26 66.31 154.94 65.4 C 152.61 64.49 150.39 68.13 150.39 68.13 L 121.18 101.08 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_5">
+          <path d="M 103.82 164.7 C 82.9 148.83 68.24 115.57 69.15 70.09 C 69.15 70.09 67.74 66.45 70.06 65.54 C 72.39 64.63 74.61 68.27 74.61 68.27 L 103.82 101.22 Z" fill="#ffffff"/>
+          <path d="M 103.82 164.7 C 82.9 148.83 68.24 115.57 69.15 70.09 C 69.15 70.09 67.74 66.45 70.06 65.54 C 72.39 64.63 74.61 68.27 74.61 68.27 L 103.82 101.22 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_4">
+          <path d="M 119.45 294.4 L 100.44 294.4 C 99.89 294.4 99.44 294.85 99.44 295.4 L 99.44 312.5 C 99.44 313.06 98.99 313.5 98.44 313.5 L 81.25 313.5 C 81.25 313.5 104.72 378.74 112.18 411.75 C 119.26 377.9 143.11 313.5 143.11 313.5 L 125.92 313.5 C 125.36 313.5 124.92 313.06 124.92 312.5 L 124.92 295.4 C 124.92 294.85 124.47 294.4 123.92 294.4 Z" fill="#ffffff"/>
+          <path d="M 119.45 294.4 L 100.44 294.4 C 99.89 294.4 99.44 294.85 99.44 295.4 L 99.44 312.5 C 99.44 313.06 98.99 313.5 98.44 313.5 L 81.25 313.5 C 81.25 313.5 104.72 378.74 112.18 411.75 C 119.26 377.9 143.11 313.5 143.11 313.5 L 125.92 313.5 C 125.36 313.5 124.92 313.06 124.92 312.5 L 124.92 295.4 C 124.92 294.85 124.47 294.4 123.92 294.4 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

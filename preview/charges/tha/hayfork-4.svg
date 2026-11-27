@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="67.5 63 90 351" width="90" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 67.5 63 L 157.5 63 L 157.5 414 L 67.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Hayfork_(4)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Hayfork (4)</title>
+    <g id="Hayfork_(4)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_766">
+        <path d="M 76.63 144.96 C 76.63 93.72 68.66 73.22 68.66 73.22 C 68.66 73.22 87.26 86.03 87.26 144.96 L 111.17 144.96 C 111.17 88.02 100.54 65.25 100.54 65.25 L 100.54 65.25 C 100.54 65.25 121.8 79.48 121.8 144.96 L 145.71 144.96 C 145.71 93.72 132.43 73.22 132.43 73.22 C 132.43 73.22 156.34 86.03 156.34 144.96 L 156.34 155.59 L 121.8 155.59 C 121.8 199.32 121.8 408.27 121.8 410.65 C 121.8 413.31 111.17 410.65 111.17 407.99 C 111.17 405.62 111.17 199.05 111.17 155.59 L 76.63 155.59 Z" fill="#ffffff"/>
+        <path d="M 76.63 144.96 C 76.63 93.72 68.66 73.22 68.66 73.22 C 68.66 73.22 87.26 86.03 87.26 144.96 L 111.17 144.96 C 111.17 88.02 100.54 65.25 100.54 65.25 L 100.54 65.25 C 100.54 65.25 121.8 79.48 121.8 144.96 L 145.71 144.96 C 145.71 93.72 132.43 73.22 132.43 73.22 C 132.43 73.22 156.34 86.03 156.34 144.96 L 156.34 155.59 L 121.8 155.59 C 121.8 199.32 121.8 408.27 121.8 410.65 C 121.8 413.31 111.17 410.65 111.17 407.99 C 111.17 405.62 111.17 199.05 111.17 155.59 L 76.63 155.59 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+      </g>
+    </g>
+  </g>
+</svg>

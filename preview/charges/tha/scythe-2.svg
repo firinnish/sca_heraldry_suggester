@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="72 63 220.5 351" width="220.5" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 72 63 L 292.5 63 L 292.5 386.33 L 292.5 414 L 72 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Scythe_(2)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Scythe (2)</title>
+    <g id="Scythe_(2)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_320">
+        <g id="Graphic_325">
+          <path d="M 197.57 286.76 L 197.57 286.76 C 197.57 286.76 228.56 308.91 231.44 309.64 C 234.31 310.37 260.72 273.24 260.72 273.24 C 258.98 265.15 250.85 265.52 250.85 265.52 L 229.28 292.05 L 203.36 275.4 L 285.83 113.53 C 281.92 106.7 274.66 107.84 274.66 107.84 L 123.88 403.78 C 128.12 410.3 135.04 409.47 135.04 409.47 L 153.46 373.33 L 182.9 396.34 C 188.1 394.69 190.62 386.46 190.62 386.46 L 159.25 361.96 Z" fill="#ffffff"/>
+          <path d="M 197.57 286.76 L 197.57 286.76 C 197.57 286.76 228.56 308.91 231.44 309.64 C 234.31 310.37 260.72 273.24 260.72 273.24 C 258.98 265.15 250.85 265.52 250.85 265.52 L 229.28 292.05 L 203.36 275.4 L 285.83 113.53 C 281.92 106.7 274.66 107.84 274.66 107.84 L 123.88 403.78 C 128.12 410.3 135.04 409.47 135.04 409.47 L 153.46 373.33 L 182.9 396.34 C 188.1 394.69 190.62 386.46 190.62 386.46 L 159.25 361.96 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_324">
+          <path d="M 89.47 222.85 L 89.47 222.85 C 89.47 222.85 81.35 142.16 137.61 114.56 C 193.87 86.96 230.33 125.82 230.33 125.82 C 230.33 125.82 241.61 117.5 252.78 123.19 C 263.94 128.88 277.85 143 277.85 143 L 283.54 131.83 C 283.54 131.83 244.98 41.86 143.84 74.72 C 42.7 107.58 89.47 222.85 89.47 222.85 Z" fill="#ffffff"/>
+          <path d="M 89.47 222.85 L 89.47 222.85 C 89.47 222.85 81.35 142.16 137.61 114.56 C 193.87 86.96 230.33 125.82 230.33 125.82 C 230.33 125.82 241.61 117.5 252.78 123.19 C 263.94 128.88 277.85 143 277.85 143 L 283.54 131.83 C 283.54 131.83 244.98 41.86 143.84 74.72 C 42.7 107.58 89.47 222.85 89.47 222.85 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_323">
+          <path d="M 236.13 100.64 C 236.13 100.64 199.63 68.76 143.73 88.73 C 87.84 108.71 85.86 164.74 85.86 164.74" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+        <g id="Line_322">
+          <path d="M 202.97 276.15 C 202.97 276.15 200.69 277.67 199.11 280.66 C 197.52 283.64 197.37 286.7 197.37 286.7" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+        <g id="Line_321">
+          <path d="M 159.02 362.41 C 159.02 362.41 156.74 363.93 155.16 366.91 C 153.57 369.9 153.42 372.95 153.42 372.95" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

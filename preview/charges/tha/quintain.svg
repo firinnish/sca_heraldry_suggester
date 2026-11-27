@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="33.75 81 297 256.5" width="297" height="256.5">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 33.75 81 L 330.75 81 L 330.75 244.23 L 253.07 337.5 L 33.75 337.5 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Quintain" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Quintain</title>
+    <g id="Quintain_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_111">
+        <g id="Graphic_121">
+          <rect x="123.47" y="120.48" width="191.09" height="8.56" fill="#ffffff"/>
+          <rect x="123.47" y="120.48" width="191.09" height="8.56" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_120">
+          <rect x="183.37" y="129.03" width="11.41" height="159.72" fill="#ffffff"/>
+          <rect x="183.37" y="129.03" width="11.41" height="159.72" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_119">
+          <rect x="308.86" y="129.03" width="2.85" height="79.86" fill="#ffffff"/>
+          <rect x="308.86" y="129.03" width="2.85" height="79.86" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_118">
+          <path d="M 43.61 89.1 C 20.8 151.85 82.12 188.93 82.12 188.93 C 82.12 188.93 146.29 151.85 120.62 89.1 C 100.66 86.25 60.73 86.25 43.61 89.1 Z" fill="#ffffff"/>
+          <path d="M 43.61 89.1 C 20.8 151.85 82.12 188.93 82.12 188.93 C 82.12 188.93 146.29 151.85 120.62 89.1 C 100.66 86.25 60.73 86.25 43.61 89.1 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_117">
+          <path d="M 183.37 120.48 C 183.37 118.9 185.92 117.63 189.07 117.63 C 192.22 117.63 194.78 118.9 194.78 120.48 L 183.37 120.48" fill="#ffffff"/>
+          <path d="M 183.37 120.48 C 183.37 118.9 185.92 117.63 189.07 117.63 C 192.22 117.63 194.78 118.9 194.78 120.48 L 183.37 120.48" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_116">
+          <rect x="187.65" y="111.92" width="2.85" height="5.7" fill="#ffffff"/>
+          <rect x="187.65" y="111.92" width="2.85" height="5.7" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_115">
+          <path d="M 325.97 235.2 L 325.97 235.2 C 325.97 226.53 317.42 208.1 310.29 208.1 C 303.16 208.1 294.6 226.53 294.6 235.2 C 294.6 243.86 301.62 248.03 310.29 248.03 C 318.95 248.03 325.97 243.86 325.97 235.2 Z" fill="#ffffff"/>
+          <path d="M 325.97 235.2 L 325.97 235.2 C 325.97 226.53 317.42 208.1 310.29 208.1 C 303.16 208.1 294.6 226.53 294.6 235.2 C 294.6 243.86 301.62 248.03 310.29 248.03 C 318.95 248.03 325.97 243.86 325.97 235.2 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_114">
+          <path d="M 314.13 209.66 C 319.02 215.66 323.12 226.34 323.12 232.34 C 323.12 241.01 316.1 245.18 307.44 245.18 C 303.25 245.18 299.45 244.2 296.64 242.22 C 299.33 246.13 304.44 248.03 310.29 248.03 C 318.95 248.03 325.97 243.86 325.97 235.2 C 325.97 228.06 320.16 214.28 314.13 209.66 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_113">
+          <path d="M 308.86 120.48 C 308.86 118.9 309.5 117.63 310.29 117.63 C 311.08 117.63 311.71 118.9 311.71 120.48 L 308.86 120.48" fill="#ffffff"/>
+          <path d="M 308.86 120.48 C 308.86 118.9 309.5 117.63 310.29 117.63 C 311.08 117.63 311.71 118.9 311.71 120.48 L 308.86 120.48" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_112">
+          <path d="M 200.48 288.75 L 177.66 288.75 L 169.11 331.54 L 209.04 331.54 Z" fill="#ffffff"/>
+          <path d="M 200.48 288.75 L 177.66 288.75 L 169.11 331.54 L 209.04 331.54 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

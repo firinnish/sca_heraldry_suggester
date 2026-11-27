@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" viewBox="85.5 85.5 193.5 306" width="193.5" height="306">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 85.5 85.5 L 279 85.5 L 279 344.42 L 204.58 391.5 L 85.5 391.5 Z"/>
+    </clipPath>
+  </defs>
+  <metadata> Produced by OmniGraffle 7.11.5 
+    <dc:date>2020-08-28 16:51:08 +0000</dc:date>
+  </metadata>
+  <g id="Chair" fill-opacity="1" stroke-opacity="1" stroke-dasharray="none" stroke="none" fill="none">
+    <title>Chair</title>
+    <g id="Chair: Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_53">
+        <g id="Graphic_70">
+          <path d="M 156.39 342.11 C 156.22 342.78 156.9 343.47 158.43 343.98 C 161.19 344.9 165.67 344.9 168.43 343.98 C 169.96 343.47 170.65 342.78 170.48 342.11 L 170.5 342.11 L 170.5 233.69 L 156.36 233.69 L 156.36 342.11 Z" fill="#ffffff"/>
+          <path d="M 156.39 342.11 C 156.22 342.78 156.9 343.47 158.43 343.98 C 161.19 344.9 165.67 344.9 168.43 343.98 C 169.96 343.47 170.65 342.78 170.48 342.11 L 170.5 342.11 L 170.5 233.69 L 156.36 233.69 L 156.36 342.11 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_69">
+          <path d="M 170.51 276.11 C 174.07 276.11 254.18 276.11 254.18 276.11 L 254.18 285.54 C 254.18 285.54 173.91 285.54 170.51 285.54 C 167.11 285.54 166.95 276.11 170.51 276.11 Z" fill="#ffffff"/>
+          <path d="M 170.51 276.11 C 174.07 276.11 254.18 276.11 254.18 276.11 L 254.18 285.54 C 254.18 285.54 173.91 285.54 170.51 285.54 C 167.11 285.54 166.95 276.11 170.51 276.11 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_68">
+          <path d="M 254.33 342.11 C 254.16 342.78 254.84 343.47 256.38 343.98 C 259.14 344.9 263.62 344.9 266.38 343.98 C 267.91 343.47 268.59 342.78 268.42 342.11 L 268.45 342.11 L 268.45 233.69 L 254.31 233.69 L 254.31 342.11 Z" fill="#ffffff"/>
+          <path d="M 254.33 342.11 C 254.16 342.78 254.84 343.47 256.38 343.98 C 259.14 344.9 263.62 344.9 266.38 343.98 C 267.91 343.47 268.59 342.78 268.42 342.11 L 268.45 342.11 L 268.45 233.69 L 254.31 233.69 L 254.31 342.11 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_67">
+          <rect x="170.51" y="101.69" width="83.74" height="23.57" fill="#ffffff"/>
+          <rect x="170.51" y="101.69" width="83.74" height="23.57" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_66">
+          <rect x="170.51" y="172.4" width="83.68" height="23.57" fill="#ffffff"/>
+          <rect x="170.51" y="172.4" width="83.68" height="23.57" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_65">
+          <path d="M 258.12 285.87 C 261.97 282.55 266.86 290.35 263.79 293.4 C 260.72 296.44 202.34 338.04 202.34 338.04 L 196.67 330.51 C 196.67 330.51 254.26 289.19 258.12 285.87 Z" fill="#ffffff"/>
+          <path d="M 258.12 285.87 C 261.97 282.55 266.86 290.35 263.79 293.4 C 260.72 296.44 202.34 338.04 202.34 338.04 L 196.67 330.51 C 196.67 330.51 254.26 289.19 258.12 285.87 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_64">
+          <path d="M 156.05 225.57 C 156.05 225.57 270.16 225.57 273.19 225.57 C 276.23 225.57 277.63 226.88 275.55 228.38 C 273.47 229.89 208.34 276.11 208.34 276.11 C 208.34 276.11 93.79 276.11 89.77 276.11 C 85.76 276.11 89.29 273.55 89.29 273.55 Z" fill="#ffffff"/>
+          <path d="M 156.05 225.57 C 156.05 225.57 270.16 225.57 273.19 225.57 C 276.23 225.57 277.63 226.88 275.55 228.38 C 273.47 229.89 208.34 276.11 208.34 276.11 C 208.34 276.11 93.79 276.11 89.77 276.11 C 85.76 276.11 89.29 273.55 89.29 273.55 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_63">
+          <path d="M 87.89 276.11 L 208.34 276.11 L 208.34 280.83 C 208.34 280.83 87.6 281.11 87.89 280.83 C 88.17 280.55 87.89 276.11 87.89 276.11 Z" fill="#ffffff"/>
+          <path d="M 87.89 276.11 L 208.34 276.11 L 208.34 280.83 C 208.34 280.83 87.6 281.11 87.89 280.83 C 88.17 280.55 87.89 276.11 87.89 276.11 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_62">
+          <path d="M 156.39 228.97 C 156.22 229.64 156.9 230.33 158.43 230.84 C 161.19 231.76 165.67 231.76 168.43 230.84 C 169.96 230.33 170.65 229.64 170.48 228.97 L 170.5 228.97 L 170.5 92.26 L 156.36 92.26 L 156.36 228.97 Z" fill="#ffffff"/>
+          <path d="M 156.39 228.97 C 156.22 229.64 156.9 230.33 158.43 230.84 C 161.19 231.76 165.67 231.76 168.43 230.84 C 169.96 230.33 170.65 229.64 170.48 228.97 L 170.5 228.97 L 170.5 92.26 L 156.36 92.26 L 156.36 228.97 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_61">
+          <ellipse cx="163.43" cy="92.26" rx="7.07" ry="2.36" fill="#ffffff"/>
+          <ellipse cx="163.43" cy="92.26" rx="7.07" ry="2.36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_60">
+          <path d="M 254.33 228.97 C 254.16 229.64 254.84 230.33 256.38 230.84 C 259.14 231.76 263.62 231.76 266.38 230.84 C 267.91 230.33 268.59 229.64 268.42 228.97 L 268.45 228.97 L 268.45 92.26 L 254.31 92.26 L 254.31 228.97 Z" fill="#ffffff"/>
+          <path d="M 254.33 228.97 C 254.16 229.64 254.84 230.33 256.38 230.84 C 259.14 231.76 263.62 231.76 266.38 230.84 C 267.91 230.33 268.59 229.64 268.42 228.97 L 268.45 228.97 L 268.45 92.26 L 254.31 92.26 L 254.31 228.97 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_59">
+          <ellipse cx="261.38" cy="92.26" rx="7.07" ry="2.36" fill="#ffffff"/>
+          <ellipse cx="261.38" cy="92.26" rx="7.07" ry="2.36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_58">
+          <path d="M 193.05 384.54 C 192.88 385.21 193.56 385.89 195.09 386.4 C 197.85 387.32 202.33 387.32 205.09 386.4 C 206.62 385.89 207.31 385.21 207.14 384.54 L 207.16 384.54 L 207.16 280.83 L 193.02 280.83 L 193.02 384.54 Z" fill="#ffffff"/>
+          <path d="M 193.05 384.54 C 192.88 385.21 193.56 385.89 195.09 386.4 C 197.85 387.32 202.33 387.32 205.09 386.4 C 206.62 385.89 207.31 385.21 207.14 384.54 L 207.16 384.54 L 207.16 280.83 L 193.02 280.83 L 193.02 384.54 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_57">
+          <path d="M 160.31 285.87 C 164.16 282.55 169.05 290.35 165.98 293.4 C 162.91 296.44 104.54 338.04 104.54 338.04 L 98.86 330.51 C 98.86 330.51 156.45 289.19 160.31 285.87 Z" fill="#ffffff"/>
+          <path d="M 160.31 285.87 C 164.16 282.55 169.05 290.35 165.98 293.4 C 162.91 296.44 104.54 338.04 104.54 338.04 L 98.86 330.51 C 98.86 330.51 156.45 289.19 160.31 285.87 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_56">
+          <path d="M 95.1 384.54 C 94.93 385.21 95.62 385.89 97.15 386.4 C 99.91 387.32 104.39 387.32 107.15 386.4 C 108.68 385.89 109.36 385.21 109.2 384.54 L 109.22 384.54 L 109.22 280.83 L 95.08 280.83 L 95.08 384.54 Z" fill="#ffffff"/>
+          <path d="M 95.1 384.54 C 94.93 385.21 95.62 385.89 97.15 386.4 C 99.91 387.32 104.39 387.32 107.15 386.4 C 108.68 385.89 109.36 385.21 109.2 384.54 L 109.22 384.54 L 109.22 280.83 L 95.08 280.83 L 95.08 384.54 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_55">
+          <path d="M 109.28 337.4 C 112.84 337.4 192.96 337.4 192.96 337.4 L 192.96 346.83 C 192.96 346.83 112.68 346.83 109.28 346.83 C 105.88 346.83 105.72 337.4 109.28 337.4 Z" fill="#ffffff"/>
+          <path d="M 109.28 337.4 C 112.84 337.4 192.96 337.4 192.96 337.4 L 192.96 346.83 C 192.96 346.83 112.68 346.83 109.28 346.83 C 105.88 346.83 105.72 337.4 109.28 337.4 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_54">
+          <path d="M 276.64 232.25 L 276.64 227.54 L 208.34 276.11 L 208.34 280.83 Z" fill="#ffffff"/>
+          <path d="M 276.64 232.25 L 276.64 227.54 L 208.34 276.11 L 208.34 280.83 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

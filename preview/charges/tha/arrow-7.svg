@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="49.5 63 126 351" width="126" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 49.5 63 L 175.5 63 L 175.5 414 L 49.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Arrow_(7)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Arrow (7)</title>
+    <g id="Arrow_(7)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_766">
+        <g id="Graphic_768">
+          <path d="M 112.62 237.4 L 163.56 133.76 L 114.37 72.28 L 61.67 133.76 Z" fill="#ffffff"/>
+          <path d="M 112.62 237.4 L 163.56 133.76 L 114.37 72.28 L 61.67 133.76 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_767">
+          <path d="M 103.83 371.96 L 103.83 65.25 L 121.4 65.25 L 121.4 371.71 C 129.34 363.1 141.51 352.12 159.97 339.44 C 160.15 339.64 172.4 351.86 172.4 351.86 C 128.19 381.44 112.51 411.75 112.51 411.75 L 112.5 411.72 L 112.49 411.75 L 112.49 411.75 C 112.49 411.75 96.81 381.44 52.6 351.86 C 52.6 351.86 64.85 339.64 65.03 339.44 C 83.67 352.24 95.89 363.32 103.83 371.96 Z M 65.03 339.44 C 65.03 339.44 65.03 339.44 65.03 339.44 C 65.03 339.44 65.03 339.44 65.03 339.44 Z M 159.97 339.44 C 159.97 339.44 159.97 339.44 159.97 339.44 C 159.97 339.44 159.97 339.44 159.97 339.44 Z" fill="#ffffff"/>
+          <path d="M 103.83 371.96 L 103.83 65.25 L 121.4 65.25 L 121.4 371.71 C 129.34 363.1 141.51 352.12 159.97 339.44 C 160.15 339.64 172.4 351.86 172.4 351.86 C 128.19 381.44 112.51 411.75 112.51 411.75 L 112.5 411.72 L 112.49 411.75 L 112.49 411.75 C 112.49 411.75 96.81 381.44 52.6 351.86 C 52.6 351.86 64.85 339.64 65.03 339.44 C 83.67 352.24 95.89 363.32 103.83 371.96 Z M 65.03 339.44 C 65.03 339.44 65.03 339.44 65.03 339.44 C 65.03 339.44 65.03 339.44 65.03 339.44 Z M 159.97 339.44 C 159.97 339.44 159.97 339.44 159.97 339.44 C 159.97 339.44 159.97 339.44 159.97 339.44 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

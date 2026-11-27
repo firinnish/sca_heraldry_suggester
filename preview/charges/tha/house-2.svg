@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="54 85.5 310.5 189" width="310.5" height="189">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 54 85.5 L 364.5 85.5 L 364.5 274.5 L 54 274.5 Z"/>
+    </clipPath>
+  </defs>
+  <g id="House_(2)" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>House (2)</title>
+    <g id="House_(2)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_25">
+        <g id="Graphic_34">
+          <path d="M 167.24 199.77 L 360 199.77 L 310.57 125.63 L 107.93 125.63 Z" fill="#ffffff"/>
+          <path d="M 167.24 199.77 L 360 199.77 L 310.57 125.63 L 107.93 125.63 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_33">
+          <path d="M 157.35 199.77 L 167.24 199.77 L 107.93 125.63 L 58.5 199.77 L 68.39 199.77 L 68.39 264.02 L 157.35 268.97 Z" fill="#ffffff"/>
+          <path d="M 157.35 199.77 L 167.24 199.77 L 107.93 125.63 L 58.5 199.77 L 68.39 199.77 L 68.39 264.02 L 157.35 268.97 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_32">
+          <rect x="157.35" y="199.77" width="187.82" height="69.2" fill="#ffffff"/>
+          <rect x="157.35" y="199.77" width="187.82" height="69.2" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_31">
+          <path d="M 251.26 91.03 L 241.38 91.03 L 241.38 125.63 L 246.32 125.63 L 251.26 130.57 Z" fill="#ffffff"/>
+          <path d="M 251.26 91.03 L 241.38 91.03 L 241.38 125.63 L 246.32 125.63 L 251.26 130.57 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_30">
+          <path d="M 102.98 265.88 L 112.87 266.5 L 112.87 219.54 L 102.98 219.54 Z" fill="#e1e1e1"/>
+          <path d="M 102.98 265.88 L 112.87 266.5 L 112.87 219.54 L 102.98 219.54 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_29">
+          <rect x="236.43" y="224.48" width="14.83" height="14.83" fill="#e1e1e1"/>
+          <rect x="236.43" y="224.48" width="14.83" height="14.83" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_28">
+          <rect x="251.26" y="91.03" width="34.6" height="39.54" fill="#ffffff"/>
+          <rect x="251.26" y="91.03" width="34.6" height="39.54" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_27">
+          <rect x="127.7" y="199.77" width="9.89" height="14.83" fill="#e1e1e1"/>
+          <rect x="127.7" y="199.77" width="9.89" height="14.83" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_26">
+          <rect x="83.21" y="199.77" width="9.89" height="14.83" fill="#e1e1e1"/>
+          <rect x="83.21" y="199.77" width="9.89" height="14.83" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

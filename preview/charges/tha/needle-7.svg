@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="94.5 63 36 351" width="36" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 94.5 63 L 130.5 63 L 130.5 414 L 94.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Needle_(7)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Needle (7)</title>
+    <g id="Needle_(7)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_772">
+        <path d="M 115.26 84.81 C 116.78 89.08 116.78 96 115.26 100.26 C 113.74 104.53 111.26 104.53 109.74 100.26 C 108.22 96 108.22 89.08 109.74 84.81 C 111.26 80.55 113.74 80.55 115.26 84.81 Z M 105.41 295.71 C 107.42 358.85 109.9 411.75 112.5 411.75 C 115.1 411.75 117.58 358.85 119.59 295.71 L 119.59 295.71 C 119.59 295.71 124.47 89.83 124.47 86.58 C 124.47 77.1 122.27 65.25 112.5 65.25 C 102.73 65.25 100.53 77.1 100.53 86.58 C 100.53 89.83 105.41 295.71 105.41 295.71 Z" fill="#ffffff"/>
+        <path d="M 115.26 84.81 C 116.78 89.08 116.78 96 115.26 100.26 C 113.74 104.53 111.26 104.53 109.74 100.26 C 108.22 96 108.22 89.08 109.74 84.81 C 111.26 80.55 113.74 80.55 115.26 84.81 Z M 105.41 295.71 C 107.42 358.85 109.9 411.75 112.5 411.75 C 115.1 411.75 117.58 358.85 119.59 295.71 L 119.59 295.71 C 119.59 295.71 124.47 89.83 124.47 86.58 C 124.47 77.1 122.27 65.25 112.5 65.25 C 102.73 65.25 100.53 77.1 100.53 86.58 C 100.53 89.83 105.41 295.71 105.41 295.71 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+      </g>
+    </g>
+  </g>
+</svg>

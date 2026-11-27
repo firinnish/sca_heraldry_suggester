@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="58.5 81 247.5 256.5" width="247.5" height="256.5">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 58.5 81 L 306 81 L 306 327.78 L 291.94 337.5 L 58.5 337.5 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Millrind_(4)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Millrind (4)</title>
+    <g id="Millrind_(4)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_113">
+        <path d="M 65.25 276.11 L 65.25 331.82 C 115.59 331.82 159.44 306.32 182.25 268.64 C 205.06 306.32 248.91 331.82 299.25 331.82 L 299.25 281.68 C 256.17 281.68 221.25 251.75 221.25 214.82 C 221.25 177.9 256.17 147.96 299.25 147.96 L 299.25 86.68 C 248.91 86.68 205.06 112.18 182.25 149.86 L 182.25 149.86 C 159.44 112.18 115.59 86.68 65.25 86.68 L 65.25 142.39 C 108.33 142.39 143.25 172.33 143.25 209.25 C 143.25 246.17 108.33 276.11 65.25 276.11 Z" fill="#ffffff"/>
+        <path d="M 65.25 276.11 L 65.25 331.82 C 115.59 331.82 159.44 306.32 182.25 268.64 C 205.06 306.32 248.91 331.82 299.25 331.82 L 299.25 281.68 C 256.17 281.68 221.25 251.75 221.25 214.82 C 221.25 177.9 256.17 147.96 299.25 147.96 L 299.25 86.68 C 248.91 86.68 205.06 112.18 182.25 149.86 L 182.25 149.86 C 159.44 112.18 115.59 86.68 65.25 86.68 L 65.25 142.39 C 108.33 142.39 143.25 172.33 143.25 209.25 C 143.25 246.17 108.33 276.11 65.25 276.11 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

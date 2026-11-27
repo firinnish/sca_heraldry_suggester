@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forannán's Shieldpainter 1.0</title>
+<style>
+  /* The look is copied from the "build mode" page (apps/search/index.html). */
+  :root { --ink: #2b2620; --paper: #faf6ee; --line: #d8cfba; --accent: #5b4b8a; --muted: #6b6252; --warn: #8a3b2a; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; font-family: Georgia, 'Iowan Old Style', serif; background: var(--paper); color: var(--ink); }
+
+  /* Two areas: the form (left) and what it comes to (right). On a narrow
+     screen they simply stack. */
+  .app { max-width: 1200px; margin: 0 auto; padding: 12px 16px 24px; }
+  .top { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+  .top > * { min-width: 0; }
+  .result { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; }
+  @media (max-width: 760px) {
+    .top { display: block; }
+    .result { position: static; max-height: none; overflow: visible; }
+  }
+
+  header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 20px; margin-bottom: 12px; }
+  h1 { font-size: 1.45rem; margin: 0; }
+  h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .mode-link { display: inline-block; margin-top: 2px; font-size: 0.9rem; color: var(--accent); }
+  .head-right { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+  .ai-link { font-size: 0.75rem; color: var(--muted); }
+  /* What "AI disclosure" opens: a box over the page, with an X to shut it. */
+  .ai-box { max-width: min(520px, 92vw); border: 1.5px solid var(--ink); border-radius: 10px; padding: 18px 22px; background: #fff; color: var(--ink); font-size: 0.95rem; line-height: 1.45; }
+  .ai-box::backdrop { background: rgba(43, 38, 32, 0.45); }
+  .ai-box h2 { margin: 0 30px 10px 0; }
+  .ai-box p { margin: 0 0 10px; }
+  .ai-box p:last-child { margin-bottom: 0; }
+  .ai-box a { color: var(--accent); }
+  .ai-close { position: absolute; top: 8px; right: 10px; background: none; border: none; font-size: 1.5rem; line-height: 1; padding: 2px 8px; }
+
+  .panel { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+  .result.panel { margin-bottom: 0; }
+  .panel-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+
+  button { font-family: inherit; color: var(--ink); cursor: pointer; }
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .plain-btn { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 5px 11px; font-size: 0.82rem; }
+  .plain-btn[aria-pressed="true"] { border-color: var(--accent); background: #f3f0fa; font-weight: bold; }
+  .link-btn { background: none; border: none; padding: 2px 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-size: 0.92rem; text-align: left; }
+  .ai-link.link-btn { font-size: 0.75rem; color: var(--muted); }
+
+  /* The form: every question is a word and a menu, side by side, wrapping. */
+  .fields { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+  .field { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 0.88rem; max-width: 100%; }
+  .field > label { font-weight: bold; }
+  .tick { display: inline-flex; align-items: center; gap: 5px; font-size: 0.88rem; }
+  .set-label { font-size: 0.78rem; font-weight: bold; color: var(--muted); margin-right: 2px; }
+  select, input[type="search"] { font-family: inherit; font-size: 0.9rem; padding: 5px 7px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); max-width: 100%; }
+  .charge-row { border-top: 1px solid var(--line); padding: 10px 0 2px; }
+  .charge-row:first-child { border-top: none; padding-top: 0; }
+  .charge-row input[type="search"] { width: 13em; }
+  .charge-row .rest { display: contents; }
+  .off { opacity: 0.45; }
+  .note { font-size: 0.82rem; color: var(--muted); margin: 8px 0 0; }
+  .why-line { color: var(--warn); font-size: 0.8rem; margin: 6px 0 0; }
+  .sub { margin-top: 12px; }
+
+  /* "show images": small pictures to click instead of using the menu above them. */
+  .pics { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .pic { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 72px; background: #fff; border: 2px solid var(--line); border-radius: 8px; padding: 5px 3px; font-size: 0.68rem; line-height: 1.15; text-align: center; }
+  .pic svg { width: 40px; height: auto; flex: none; }
+  .pic img { width: 44px; height: 44px; object-fit: contain; flex: none; }
+  .pic.wide { width: 104px; }
+  .pic.words { justify-content: center; font-style: italic; min-height: 50px; }
+  .pic[aria-pressed="true"] { border-color: var(--accent); background: #f3f0fa; font-weight: bold; }
+  .credits { font-size: 0.75rem; margin: 6px 0 0; color: var(--muted); }
+  .credits a { color: var(--accent); }
+
+  /* The result. */
+  .result svg { display: block; width: 100%; max-width: 220px; height: auto; margin: 0 auto 12px; }
+  .result .waiting { opacity: 0.4; }
+  .blazon { font-size: 1.05rem; font-style: italic; margin: 0 0 12px; text-align: center; overflow-wrap: anywhere; }
+  .search-link { display: block; text-align: center; background: var(--accent); color: #fff; text-decoration: none; padding: 10px 14px; border-radius: 6px; font-size: 0.95rem; }
+  .search-link:hover { background: #453a6b; }
+  .problems-head { font-size: 0.82rem; color: var(--muted); margin: 12px 0 4px; }
+  .problems { margin: 0; padding: 8px 10px 8px 26px; border: 1px solid #e3c4b8; background: #fbf1ec; border-radius: 6px; color: var(--warn); font-size: 0.82rem; }
+  .patterns-head { font-size: 0.8rem; color: var(--muted); margin: 12px 0 0; }
+  code { display: block; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 6px; font-size: 0.8rem; color: var(--ink); }
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div class="head-left">
+      <h1 id="title"></h1>
+      <a class="mode-link" id="modeLink" href="../search/"></a>
+    </div>
+    <div class="head-right">
+      <button class="plain-btn" type="button" id="showImages" aria-pressed="false"></button>
+      <button class="plain-btn" type="button" id="clearAll"></button>
+      <button class="link-btn ai-link" type="button" id="aiOpen"></button>
+    </div>
+  </header>
+  <div class="top">
+    <div class="form">
+      <section class="panel" aria-labelledby="coloursHeading">
+        <h2 id="coloursHeading"></h2>
+        <div id="coloursBody"></div>
+      </section>
+      <section class="panel" aria-labelledby="fieldHeading">
+        <div class="panel-head">
+          <h2 id="fieldHeading"></h2>
+          <label class="tick"><input type="checkbox" id="noBackground" autocomplete="off"> <span id="noBackgroundLabel"></span></label>
+        </div>
+        <div id="fieldBody"></div>
+      </section>
+      <section class="panel" aria-labelledby="chargeHeading">
+        <div class="panel-head">
+          <h2 id="chargeHeading"></h2>
+          <label class="tick"><input type="checkbox" id="noCharge" autocomplete="off"> <span id="noChargeLabel"></span></label>
+        </div>
+        <div id="rows"></div>
+      </section>
+      <section class="panel" id="arrangePanel" aria-labelledby="arrangeHeading" hidden>
+        <h2 id="arrangeHeading"></h2>
+        <div id="arrangeBody"></div>
+      </section>
+    </div>
+    <aside class="panel result" id="resultPanel">
+      <div id="picture"></div>
+      <p class="blazon" id="blazon" aria-live="polite"></p>
+      <div id="search"></div>
+      <div id="notes"></div>
+      <div id="patterns"></div>
+      <div id="shieldCredits"></div>
+    </aside>
+  </div>
+</main>
+<datalist id="chargeNames"></datalist>
+<dialog id="aiBox" class="ai-box" aria-labelledby="aiTitle">
+  <button class="ai-close" type="button" id="aiClose">×</button>
+  <h2 id="aiTitle"></h2>
+  <div id="aiBody"></div>
+</dialog>
+
+<script type="module">
+// SEARCH MODE: a compact form for heralds to describe armory and search the
+// Ordinary & Armorial for it. The other page, "build mode" (../search/), is
+// for making a shield with pictures and suggestions; this one has neither.
+// Nothing here is chosen at random: a picture is only ever the shield as
+// described, or (with "show images" on) a fixed picture of what a menu
+// option means, drawn in sable and Or.
+//
+// Everything heraldic comes from core/: this page only holds the form.
+import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, ARRANGEMENTS, USUAL_ARRANGEMENT,
+         ORIENTATIONS, SEMY, arrangementsFor, divisionsTogether, ordinaryLabel, postureCode,
+         LINES, LINED_ORDINARIES, canBeLined } from '../../core/catalog.js';
+import { plain, divided, blazon, roles, ordinaryGroup, chargeGroupFromLibrary, COUNTERCHANGED } from '../../core/shield.js';
+import { shieldSVG } from '../../core/draw.js';
+import { shieldPatterns, complexSearchURL } from '../../core/oanda.js';
+import { loadLibrary, loadPicture, getPicture } from '../../core/art.js';
+import { checkShield } from '../../core/rules.js';
+import { arrangements, arrange, unarrange, sameArrangement } from '../../core/arrange.js';
+import { DEFAULT_PALETTE, usePalette } from '../../core/palettes.js';
+
+// ---------------------------------------------------------------------------
+// ALL THE WORDS ON THE PAGE live here, so they can be rewritten in one place.
+// Lines marked DRAFT were written while building: please rewrite. The rest
+// are the maintainer's own words (from their request for this page, or from
+// the build mode page, where the same words do the same job).
+// ---------------------------------------------------------------------------
+const TEXT = {
+  title: "Forannán's Shieldpainter 1.0",
+  modeLink: 'Search mode - click for build mode',
+  showImages: 'show images',
+  clearAll: 'clear all',
+
+  // The colours known to be in the shield. From them the page can work out
+  // the background (the maintainer, November 2026: "if user says blue and
+  // yellow are used in the shield and adds a yellow charge, background must
+  // be blue, unless they specifically pick 'don't specify background'").
+  shieldColours: 'What colours are used in the shield?',                // (the build mode page's words)
+  shieldColoursHelp: 'Tick the ones you know. When they leave only one possible background, it is filled in for you.', // DRAFT
+  noBackground: "don't specify background",
+  autoNote: 'Filled in for you: the only background the colours ticked allow.', // DRAFT
+  // Complex lines: of a divided background, and of an ordinary's edges.
+  lineLabel: 'line:',                                                   // DRAFT
+  linePlain: 'plain line',                                              // DRAFT (a straight one)
+
+  // The background.
+  fieldHeading: 'Background',                                           // DRAFT
+  divisionLabel: 'divided:',                                            // DRAFT
+  any: 'any',                                                           // DRAFT (in every menu: leave this out of the search. Build mode says "don't specify")
+  plain: 'plain',                                                       // DRAFT (a background that is not divided)
+  overLabel: 'and counterchanged with',                                 // DRAFT (a second division over the first: "orly and chevronelly")
+  noOver: 'nothing else',                                               // DRAFT
+  partLabel: (n, of) => (of === 1 ? 'colour:' : `colour ${n}:`),        // DRAFT
+  coloursLabel: 'colours',      // (these three head the groups inside every colour menu)
+  metalsLabel: 'metals',
+  fursLabel: 'furs',
+
+  // The charges.
+  chargeHeading: 'What charges are on the field?',
+  noCharge: 'no charge',                                                // DRAFT (a tick-box: the armory has nothing on the field)
+  chargeLabel: n => `charge ${n}:`,                                     // DRAFT
+  chargeSearch: 'Type to find a charge',                                // DRAFT
+  chargeNoMatch: 'No charge matches that.',                             // DRAFT
+  numberLabel: 'number:',
+  colourLabel: 'colour:',
+  postureLabel: 'posture:',
+  orientationLabel: 'orientation:',
+  asDrawn: 'as drawn',                                                  // DRAFT (not turned to lie any particular way)
+  inverted: 'inverted',
+  contourny: 'facing sinister',                                         // DRAFT (the blazon says "contourny")
+
+  // How the charges are arranged.
+  arrangeHeading: 'How are they arranged?',                             // DRAFT (marked so in build mode too)
+  togetherLabel: 'How the different charges go together',               // DRAFT
+  notSpecified: 'not specified',                                        // DRAFT
+  arrangeNone: 'The tools cannot yet put these together on one shield.', // DRAFT
+  arrangedLabel: names => `${names}:`,                                  // DRAFT (before the menu of "in pale", "in bend"...: the charges' name)
+  usualWay: words => (words ? `the usual way (${words})` : 'the usual way'), // DRAFT
+  // Each way the charges can go together, in words: (a, b) are two charges' names.
+  arrAround: (a, b) => `${a} around the ${b}`,                          // DRAFT
+  arrOn: (a, b) => `${a} on the ${b}`,                                  // DRAFT
+  arrChief: (a, b) => `${a} above the ${b}`,                            // DRAFT
+  arrBase: (a, b) => `${a} below the ${b}`,                             // DRAFT
+  arrWith: (a, b) => `${a} with a ${b}`,                                // DRAFT
+
+  // The result.
+  searchLink: 'Search the Ordinary & Armorial for this',               // DRAFT
+  nothingYet: 'Nothing to search for yet.',                             // DRAFT (nothing at all has been described)
+  // Under the search button, when the search will be missing something
+  // about a charge (the maintainer's words, November 2026).
+  searchNeeds: 'you must choose posture and number for the complex search to code correctly',
+  patternsHeading: 'What gets filled in on the Complex Search Form',    // DRAFT
+  tincturesNotIndexed: 'The Ordinary & Armorial does not record which colours a three-part background uses, so this search finds every background divided this way.', // DRAFT
+  problemsHeading: "Notes on today's rules (they never stop the search):", // DRAFT
+  // Words used in the blazon for things not chosen.                     // DRAFT (all four)
+  placeholders: { tincture: '(any colour)', field: '(any background)', number: '(any number of)', arrangement: '(arranged any way)' },
+  // Who drew the pictures shown (required by their licence).
+  credits: 'Artist credits:',
+  creditBy: (charge, artist) => `${charge} by ${artist}`,
+  creditPage: charge => `${charge} (see its page)`,                     // DRAFT (a picture whose artist is not recorded)
+  licence: 'Creative Commons licence',
+
+  // What is wrong with the shield described, under today's rules.
+  lowContrastMetal: 'Low contrast - please choose a metal',
+  lowContrastColour: 'Low contrast - please choose a colour',           // DRAFT
+  rules: {                                                              // DRAFT (all of these; the same words as build mode)
+    'same-base': 'Two parts next to each other are too alike to tell apart',
+    'four-part-nested': 'A quarter can only be divided into a pattern like checky',
+    'charge-shares-tincture': 'The charge is the same colour as the background behind it',
+    'counterchange-field': 'Counterchanged needs a background divided into two colours',
+    'counterchange-many': 'Counterchanging over this many pieces needs period evidence',
+    'parallel-peripheral': 'A chief or base cannot go with a per fess background',
+    'single-tincture': 'One plain colour with nothing on it cannot be registered',
+    'complexity': 'Too many colours and charges',
+    'house-too-deep': 'Too complex: a part of a part cannot be divided again',
+    'house-same-division': 'A part cannot be divided the same way as the whole',
+    'same-charge-twice': 'The same charge cannot be in two different groups on the field',
+    'ordinary-is-primary': 'With an ordinary across the middle, the ordinary is the primary charge',
+    'too-many-groups': 'Three or more groups of charges on the field need period evidence, apart from a few patterns',
+    'quaternary': 'A charge cannot go on a charge that is itself on another charge',
+    'arrangement-unsupported': 'The tools cannot draw this arrangement yet',
+    'no-room': 'There is not enough room to draw this clearly',
+    'pattern-hidden': 'So little of the background shows that its pattern cannot be made out',
+    'complex-line-ruled-out': 'A complex line between these two colours has been ruled unregisterable',
+    'complex-line-contrast': 'A complex line between two colours, or two metals, is only registered if it can be clearly made out',
+    'arrangement-unity': 'With another charge above or below, charges in a line may be taken for one group with two arrangements',
+  },
+
+  // The small "AI disclosure" link in the corner and what it opens: the
+  // maintainer's words, the same as on the build mode page. [words](address)
+  // is a link and *word* is in italics; each entry is a paragraph.
+  aiDisclosure: 'AI disclosure',
+  aiClose: 'close',                                                     // DRAFT (what a screen reader says for the X)
+  aiText: [
+    'Artificial intelligence can be unreliable or dangerous. Consider signing the [Statement on Superintelligence](https://superintelligence-statement.org/).',
+    'Images produced by this page are *not* products of generative AI. The page uses human-created artwork from the Traceable Heraldic Art library, plus ordinary deterministic code that places them on the page and colours them.',
+    "The code that makes this page work was written with extensive assistance from Anthropic's AI, Claude. You can read the code [here](https://github.com/firinnish/sca_heraldry_suggester/).",
+  ],
+};
+
+const ROWS = 3;                                // how many different charges can be described
+const NUMBERS = [1, 2, 3, 4, 5, 6, SEMY];      // the "number:" menu, after "any"
+const MAX_PICTURES = 18;                       // most pictures shown for one menu (the menu itself lists everything)
+const ANY = '', PLAIN = 'plain';               // the two answers to "divided:" that are not a division
+// The fixed pictures ("show images") are all drawn in the same three tinctures.
+const STATIC = { field: 'sable', charge: 'or', third: 'argent' };
+// Problems that are only about what the tools can draw: said only when the
+// shield is being drawn ("show images"), since they say nothing about a search.
+const DRAWING_ONLY = new Set(['arrangement-unsupported', 'no-room', 'pattern-hidden']);
+const LICENCE_URL = 'https://heraldicart.org/credits';
+
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+const $ = id => document.getElementById(id);
+// Fill a part of the page, unless it already holds exactly this: a menu or a
+// picture that has not changed is left alone (and keeps the keyboard's place).
+const filledWith = new Map();
+function put(id, html) {
+  if (filledWith.get(id) === html) return;
+  filledWith.set(id, html);
+  $(id).innerHTML = html;
+}
+const TWO_PART = Object.keys(DIVISIONS).filter(d => DIVISIONS[d].parts === 2);
+
+// ---- What the herald has filled in -----------------------------------------------
+// Anything left as "any" is null: the blazon says so, the search leaves it
+// out and the rules do not judge it (core/shield.js).
+const freshRow = () => ({
+  text: '',            // what is typed in the charge's box
+  typing: false,       // still being typed (so it is too early to say "no charge matches that")
+  choice: null,        // null | { kind: 'ordinary', id } | { kind: 'charge', id }
+  number: null,        // null (any) | 1, 2, 3... | SEMY
+  tincture: null,      // null (any) | a tincture id | COUNTERCHANGED
+  posture: null,       // null (the posture of the charge's usual picture) | '' (any) | a posture
+  turned: null,        // null (as drawn) | an id from ORIENTATIONS
+  inverted: false,
+  mirror: false,       // facing sinister
+  arranged: null,      // null (the usual way) | an id from ARRANGEMENTS
+  line: null,          // for an ordinary: null (a plain line) | an id from LINES ("a fess wavy")
+});
+const fresh = () => ({
+  colours: [],         // the colours ticked under "What colours are used in the shield?"
+  noBackground: false, // "don't specify background" ticked: the background is never filled in for them
+  auto: false,         // the background as it stands was filled in by the page (see settleBackground)
+  line: '',            // the complex line the background is divided with (an id from LINES), or '' for a plain one
+  division: ANY,       // ANY | PLAIN | a division id. (ANY: nothing is said about the background, so the
+                       // search has no line for it. To start from a plain background instead, put PLAIN here.)
+  over: '',            // a second division counterchanged over the first, or ''
+  parts: [null, null, null],     // the colour of each part of the background (null = any)
+  rows: Array.from({ length: ROWS }, freshRow),
+  noCharge: false,     // "no charge" ticked
+  way: null,           // how the charges go together (core/arrange.js), or null: not specified
+});
+const state = { ...fresh(), images: false };   // images: is "show images" on?
+
+let library = { charges: [], pictures: [], all: [] };   // filled in once charges/ has loaded (core/art.js)
+let chargeById = new Map();                    // a charge's row of charges.csv, by id
+let picturesById = new Map();                  // every picture of a charge, its usual one first
+const names = new Map();                       // what can be typed in a charge's box -> the choice it means
+let listed = [];                               // the names offered in the box's list, in order
+let shown = null;                              // the shield as last worked out (see describe)
+
+// ---- The background ---------------------------------------------------------------
+// The second division, if it can go over the first ("orly and chevronelly").
+const overOf = () => (DIVISIONS[state.division] && DIVISIONS[state.division].parts === 2 && state.over
+  ? divisionsTogether(state.division, state.over) : null);
+
+function fieldOf() {
+  if (state.division === ANY) return null;
+  if (state.division === PLAIN) return plain(state.parts[0]);
+  const id = overOf() || state.division;
+  return divided(id, Array.from({ length: DIVISIONS[id].parts }, (_, i) => plain(state.parts[i])), state.line || 'plain');
+}
+
+// THE BACKGROUND FILLS ITSELF IN (the maintainer, November 2026). It starts
+// as "any". When the colours ticked for the shield and the charges described
+// leave only ONE background the rules allow (azure and Or ticked, an Or
+// charge: the background must be azure), that background is put into the
+// menus. It is worked out afresh whenever something else changes, until the
+// herald touches the background's own menus (then it is theirs), and never
+// while "don't specify background" is ticked.
+function settleBackground(byHand) {
+  if (byHand) { state.auto = false; return; }
+  if (state.auto) Object.assign(state, { division: ANY, over: '', line: '', parts: [null, null, null], auto: false });
+  if (state.noBackground || state.division !== ANY || state.colours.length < 2) return;
+  const { groups } = describe();
+  if (!groups.length) return;
+  const allowed = field => { try { return !checkShield({ field, groups }).length; } catch (err) { return false; } };
+  const plains = state.colours.filter(t => allowed(plain(t)));
+  if (plains.length !== 1) return;
+  // (...and no divided background of those colours would do instead)
+  if (state.colours.length <= 3) {
+    const pairs = state.colours.flatMap(a => state.colours.filter(b => b !== a).map(b => [a, b]));
+    if (TWO_PART.some(d => pairs.some(([a, b]) => allowed(divided(d, [plain(a), plain(b)]))))) return;
+  }
+  Object.assign(state, { division: PLAIN, parts: [plains[0], null, null], auto: true });
+}
+
+// ---- The charges ------------------------------------------------------------------
+// Every picture of one charge, its usual one first: the one marked as the
+// default, then our own, then the rest from Traceable Heraldic Art.
+const picturesOf = id => picturesById.get(id) || [];
+// The postures a charge has pictures of, for its "posture:" menu.
+const posturesOf = id => [...new Set(picturesOf(id).map(p => p.posture).filter(Boolean))].sort();
+// The posture a row's charge is in: as chosen, or that of its usual picture.
+function postureOf(row) {
+  const pictures = picturesOf(row.choice.id);
+  if (row.posture !== null && (row.posture === '' || pictures.some(p => p.posture === row.posture))) return row.posture;
+  return pictures.length ? pictures[0].posture || '' : '';
+}
+// The picture a row's charge is drawn with: the first one in its posture.
+function pictureOf(row) {
+  const pictures = picturesOf(row.choice.id), posture = postureOf(row);
+  return (posture ? pictures.find(p => p.posture === posture) : null) || pictures[0] || null;
+}
+// Has this charge a posture at all (one the Ordinary & Armorial records)?
+const posable = id => picturesOf(id).some(p => postureCode(p.posture));
+
+// One row of the form as a charge group (core/shield.js), or null if it is empty.
+function groupOf(row) {
+  const choice = row.choice;
+  if (!choice) return null;
+  if (choice.kind === 'ordinary') return ordinaryGroup(choice.id, row.tincture, { line: row.line || 'plain' });
+  const charge = chargeById.get(choice.id);
+  if (!charge) return null;
+  return chargeGroupFromLibrary(charge, pictureOf(row), {
+    tincture: row.tincture, number: row.number, turned: row.turned,
+    inverted: row.inverted, mirror: row.mirror, posture: postureOf(row),
+  });
+}
+
+// A row's charge in plain words, for labels: "lion", "lions", "chevron".
+function rowName(row, plural = false) {
+  const choice = row.choice;
+  if (choice.kind === 'ordinary') return ORDINARIES[choice.id].count === 2 ? ordinaryLabel(choice.id) : ORDINARIES[choice.id].name + (plural ? 's' : '');
+  const charge = chargeById.get(choice.id);
+  return (plural ? charge.plural || charge.name + 's' : charge.name).toLowerCase();
+}
+
+// ---- The whole shield described ---------------------------------------------------
+// Works out everything the rest of the page needs:
+//   field, groups, noCharge   the shield (core/shield.js)
+//   filled   the rows that hold a charge: [{ row, i, group }]
+//   ways     every way those charges can go together (core/arrange.js)
+//   way      the one in use, or null: not specified
+//   settled  true if there was never a choice to make (a lion and a bordure:
+//            SENA leaves no doubt which is which, unless one is ON the other)
+//   lead     the row whose own charges can be set out "in pale", "in bend"...
+//            (only the primary group can, so far): { row, i, number, options }
+function describe() {
+  const field = fieldOf();
+  const filled = state.noCharge ? [] : state.rows.map((row, i) => ({ row, i, group: groupOf(row) })).filter(x => x.group);
+  const flat = filled.map(x => x.group);
+  const ways = flat.length >= 2 ? arrangements(flat) : [];
+  const among = a => (a && ways.find(w => sameArrangement(w, a))) || null;
+  const settled = ways.length ? among(unarrange(flat).arrangement) : null;
+  const way = among(state.way) || settled;
+  let groups = way ? arrange(flat, way) : flat;
+  // (which of `flat` each of `groups` is: the ones lying on another are left out)
+  const onField = flat.map((g, i) => i).filter(i => !way || way[i].as !== 'on');
+  const r = roles(groups);
+  const p = groups.findIndex((g, i) => r[i].role === 'primary' && r[i].chosen);
+  let lead = null;
+  if (p >= 0 && groups[p].kind === 'charge' && typeof groups[p].number === 'number' && groups[p].number >= 2) {
+    const source = filled[onField[p]], options = arrangementsFor(groups[p].number);
+    if (options.length) {
+      lead = { row: source.row, i: source.i, number: groups[p].number, options };
+      if (options.includes(source.row.arranged)) groups = groups.map((g, k) => (k === p ? { ...g, arranged: source.row.arranged } : g));
+    }
+  }
+  return { field, groups, noCharge: state.noCharge, filled, flat, ways, way, settled: !!settled, lead };
+}
+
+// One way of putting the charges together, in words: "roundels around the
+// chevron; mullet on the chief".
+function wayLabel(way, filled) {
+  const name = (i, as) => {
+    const n = filled[i].row.number;
+    return rowName(filled[i].row, filled[i].group.kind === 'charge' && (n === null ? as === 'around' : n !== 1));
+  };
+  const main = way.findIndex(x => x.as === 'primary');
+  const bits = way.map((x, i) =>
+    x.as === 'around' ? TEXT.arrAround(name(i, x.as), name(main)) : x.as === 'chief' ? TEXT.arrChief(name(i), name(main))
+    : x.as === 'base' ? TEXT.arrBase(name(i), name(main)) : x.as === 'on' ? TEXT.arrOn(name(i), name(x.on))
+    : x.as === 'edge' && main >= 0 && way.length === 2 ? TEXT.arrWith(name(main), name(i)) : null).filter(Boolean);
+  return bits.join('; ') || filled.map((x, i) => name(i)).join(', ');
+}
+
+// ---- Small pieces of the form -------------------------------------------------------
+const opt = (value, label, selected) => `<option value="${esc(value)}"${selected ? ' selected' : ''}>${esc(label)}</option>`;
+const control = (id, label, inner) => `<span class="field"><label for="${id}">${esc(label)}</label>${inner}</span>`;
+const tick = (id, attrs, label, on) => `<label class="tick"><input type="checkbox" id="${id}" ${attrs}${on ? ' checked' : ''}> ${esc(label)}</label>`;
+// A colour menu: "any", then the colours, the metals and the furs.
+function tinctureOptions(now, counterchanged = false) {
+  const set = (label, ids) => `<optgroup label="${esc(label)}">${ids.map(t => opt(t, TINCTURES[t].name, t === now)).join('')}</optgroup>`;
+  return opt('', TEXT.any, now === null) + set(TEXT.coloursLabel, COLOUR_ORDER) + set(TEXT.metalsLabel, METAL_ORDER) +
+    set(TEXT.fursLabel, FUR_ORDER) + (counterchanged ? opt(COUNTERCHANGED, COUNTERCHANGED, now === COUNTERCHANGED) : '');
+}
+
+// ---- "show images": fixed pictures to click instead of using a menu ---------------
+// Each is worked out once and kept (they never change: always sable and Or).
+const kept = new Map();
+function keep(key, make) {
+  if (!kept.has(key)) {
+    if (kept.size > 600) kept.clear();
+    kept.set(key, make());
+  }
+  return kept.get(key);
+}
+// A shield as a picture; if it cannot be drawn, an empty shield (never an error).
+function drawing(field, groups = [], title = '') {
+  try { return shieldSVG(field, { charges: groups, title }); }
+  catch (err) { console.error(err); return shieldSVG(null); }
+}
+// A button holding a picture (or just words) that sets what a menu sets:
+// `what` and `value` are read by the click handler at the end of the page.
+const pic = (id, what, value, inner, label, on, extra = '') =>
+  `<button class="pic${inner ? '' : ' words'}${extra}" type="button" id="${id}" data-pick="${what}" data-value="${esc(value)}" aria-pressed="${!!on}">` +
+  `${inner}<span>${esc(label)}</span></button>`;
+// A field of this division in the fixed tinctures.
+const staticField = id => divided(id, [STATIC.field, STATIC.charge, STATIC.third].slice(0, DIVISIONS[id].parts).map(plain));
+// A charge group as "blobs Or": no picture, not turned, the usual way.
+const blob = g => (g.kind === 'ordinary' ? { ...g, tincture: STATIC.charge }
+  : { ...g, art: null, artInverted: false, tincture: STATIC.charge, inverted: false, mirror: false, turned: null, arranged: null });
+
+// Who drew these pictures (rows of the library): asked for by the licence of
+// Traceable Heraldic Art, whose pictures these are (charges/tha/README.md).
+function creditsLine(rows, nameOf = row => row.charge.name.toLowerCase()) {
+  const credits = new Map();
+  for (const row of rows) {
+    if (!row || row.from !== 'tha' || !(row.artist || row.link)) continue;
+    const name = esc(nameOf(row));
+    const text = (row.artist ? TEXT.creditBy('\u0000', row.artist) : TEXT.creditPage('\u0000')).split('\u0000');
+    credits.set(row.file, esc(text[0]) + (row.link ? `<a href="${esc(row.link)}" target="_blank" rel="noopener">${name}</a>` : name) + esc(text[1] || ''));
+  }
+  if (!credits.size) return '';
+  return `<p class="credits"><strong>${esc(TEXT.credits)}</strong> ${[...credits.values()].join(', ')}<br>` +
+    `<a href="${LICENCE_URL}" target="_blank" rel="noopener">${esc(TEXT.licence)}</a></p>`;
+}
+
+// ---- Drawing the form ---------------------------------------------------------------
+// "What colours are used in the shield?": a tick-box for each.
+function renderColours() {
+  const set = (label, ids) => `<span class="field"><span class="set-label">${esc(label)}</span>` +
+    ids.map(id => tick('colour-' + id, `data-colour="${id}"`, TINCTURES[id].name, state.colours.includes(id))).join('') + `</span>`;
+  put('coloursBody', `<p class="note" style="margin:0 0 8px">${esc(TEXT.shieldColoursHelp)}</p><div class="fields">` +
+    set(TEXT.coloursLabel, COLOUR_ORDER) + set(TEXT.metalsLabel, METAL_ORDER) + set(TEXT.fursLabel, FUR_ORDER) + `</div>`);
+}
+// The menu of lines: a plain one, then the complex lines by their heraldic names.
+const lineOptions = now => opt('', TEXT.linePlain, !now) + Object.keys(LINES).map(id => opt(id, LINES[id].name, now === id)).join('');
+
+function renderField() {
+  const d = state.division, def = DIVISIONS[d] || null;
+  const count = d === ANY ? 0 : d === PLAIN ? 1 : def.parts;
+  const canGoOver = !!def && def.parts === 2;
+  const others = canGoOver ? TWO_PART.filter(b => divisionsTogether(d, b)) : [];
+  let html = `<div class="fields">` +
+    control('division', TEXT.divisionLabel, `<select id="division" data-field="division">` + opt(ANY, TEXT.any, d === ANY) + opt(PLAIN, TEXT.plain, d === PLAIN) +
+      Object.keys(DIVISIONS).map(id => opt(id, DIVISIONS[id].name, d === id)).join('') + `</select>`) +
+    (others.length ? control('over', TEXT.overLabel, `<select id="over" data-field="over">` + opt('', TEXT.noOver, !overOf()) +
+      others.map(id => opt(id, DIVISIONS[id].name, !!overOf() && state.over === id)).join('') + `</select>`) : '') +
+    // (the line it is divided with: "per pale wavy". Not with two divisions together.)
+    (def && !overOf() && canBeLined(d) ? control('line', TEXT.lineLabel, `<select id="line" data-field="line">${lineOptions(state.line)}</select>`) : '') +
+    Array.from({ length: count }, (_, i) => control('part' + i, TEXT.partLabel(i + 1, count),
+      `<select id="part${i}" data-field="part" data-part="${i}">${tinctureOptions(state.parts[i])}</select>`)).join('') +
+    `</div>` + (state.auto ? `<p class="note">${esc(TEXT.autoNote)}</p>` : '');
+  if (state.images) {
+    html += `<div class="pics">` +
+      pic('pic-division-any', 'division', ANY, keep('field|any', () => drawing(null)), TEXT.any, d === ANY) +
+      pic('pic-division-plain', 'division', PLAIN, keep('field|plain', () => drawing(plain(STATIC.field))), TEXT.plain, d === PLAIN) +
+      Object.keys(DIVISIONS).map(id => pic('pic-division-' + id, 'division', id, keep('field|' + id, () => drawing(staticField(id))), DIVISIONS[id].name, d === id)).join('') +
+      `</div>`;
+    if (others.length) {
+      html += `<div class="note">${esc(TEXT.overLabel)}</div><div class="pics">` +
+        pic('pic-over-none', 'over', '', '', TEXT.noOver, !overOf()) +
+        others.map(id => {
+          const both = divisionsTogether(d, id);
+          return pic('pic-over-' + id, 'over', id, keep('field|' + both, () => drawing(staticField(both))), DIVISIONS[id].name, !!overOf() && state.over === id);
+        }).join('') + `</div>`;
+    }
+  }
+  put('fieldBody', html);
+}
+
+// The three rows are made once: the box a charge's name is typed in must stay
+// where it is while the rest of its row is drawn again around it.
+function buildRows() {
+  $('rows').innerHTML = state.rows.map((row, i) =>
+    `<div class="charge-row" id="row${i}"><div class="fields">` +
+    control('name' + i, TEXT.chargeLabel(i + 1), `<input type="search" id="name${i}" data-name="${i}" list="chargeNames" autocomplete="off" spellcheck="false" placeholder="${esc(TEXT.chargeSearch)}">`) +
+    `<span class="rest" id="rest${i}"></span></div><div id="more${i}"></div></div>`).join('');
+}
+
+function renderRows() {
+  $('rows').classList.toggle('off', state.noCharge);
+  state.rows.forEach((row, i) => {
+    $('name' + i).disabled = state.noCharge;
+    const choice = row.choice;
+    let html = '', more = '';
+    if (!choice) {
+      if (row.text.trim() && !row.typing && !state.noCharge) more = `<p class="why-line">${esc(TEXT.chargeNoMatch)}</p>`;
+    } else if (!state.noCharge) {
+      const set = key => `data-row="${i}" data-set="${key}"`;
+      const charge = choice.kind === 'charge';
+      if (charge) {
+        html += control('number' + i, TEXT.numberLabel, `<select id="number${i}" ${set('number')}>` + opt('', TEXT.any, row.number === null) +
+          NUMBERS.map(n => opt(n, n, row.number === n)).join('') + `</select>`);
+      }
+      html += control('tincture' + i, TEXT.colourLabel, `<select id="tincture${i}" ${set('tincture')}>${tinctureOptions(row.tincture, true)}</select>`);
+      // (an ordinary's edges: "a fess wavy", "a bordure embattled")
+      if (!charge && LINED_ORDINARIES.has(choice.id)) {
+        html += control('line' + i, TEXT.lineLabel, `<select id="line${i}" ${set('line')}>${lineOptions(row.line || '')}</select>`);
+      }
+      if (charge) {
+        const postures = posturesOf(choice.id), now = postureOf(row);
+        if (postures.length) {
+          html += control('posture' + i, TEXT.postureLabel, `<select id="posture${i}" ${set('posture')}>` + opt('', TEXT.any, now === '') +
+            postures.map(p => opt(p, p, now === p)).join('') + `</select>`);
+        }
+        html += control('turned' + i, TEXT.orientationLabel, `<select id="turned${i}" ${set('turned')}>` + opt('', TEXT.asDrawn, !row.turned) +
+          Object.keys(ORIENTATIONS).map(id => opt(id, ORIENTATIONS[id].name, row.turned === id)).join('') + `</select>`);
+        html += tick('inverted' + i, set('inverted'), TEXT.inverted, row.inverted) + tick('mirror' + i, set('mirror'), TEXT.contourny, row.mirror);
+        // "show images": each posture as its picture (fetched only now).
+        if (state.images && postures.length) {
+          const first = postures.map(p => picturesOf(choice.id).find(x => x.posture === p));
+          more = `<div class="pics">` + pic(`pic-posture${i}-any`, 'posture:' + i, '', '', TEXT.any, now === '') +
+            first.map(p => {
+              const ready = getPicture(p.file);
+              return pic(`pic-posture${i}-${esc(p.file)}`, 'posture:' + i, p.posture,
+                `<img alt="" data-file="${esc(p.file)}"${ready ? ` src="${esc(ready.href)}"` : ''}>`, p.posture, now === p.posture);
+            }).join('') + `</div>` + creditsLine(first, p => `${p.charge.name.toLowerCase()} ${p.posture}`);
+        }
+      }
+    }
+    put('rest' + i, html);
+    put('more' + i, more);
+  });
+  // Fetch the posture pictures that are not here yet.
+  for (const img of document.querySelectorAll('img[data-file]:not([src])')) {
+    loadPicture(img.dataset.file).then(info => { if (img.isConnected) img.src = info.href; }).catch(() => {});
+  }
+}
+
+function renderArrange(shield) {
+  const { filled, flat, ways, way, settled, lead } = shield;
+  let html = '';
+  if (flat.length >= 2 && !ways.length) html += `<p class="note" style="margin:0">${esc(TEXT.arrangeNone)}</p>`;
+  else if (ways.length && !(ways.length === 1 && settled)) {
+    const labels = ways.map(w => wayLabel(w, filled));
+    const at = way ? ways.indexOf(way) : -1;
+    html += `<div class="fields">` + control('way', TEXT.togetherLabel, `<select id="way">` + (settled ? '' : opt('', TEXT.notSpecified, at < 0)) +
+      ways.map((w, k) => opt(k, labels[k], k === at)).join('') + `</select>`) + `</div>`;
+    if (state.images) {
+      // The same charges as blobs Or on sable, put together each way.
+      const blobs = flat.map(blob), signature = JSON.stringify(blobs.map(g => [g.kind, g.ordinary || '', g.number]));
+      html += `<div class="pics">` + (settled ? '' : pic('pic-way-none', 'way', '', '', TEXT.notSpecified, at < 0, ' wide')) +
+        ways.slice(0, MAX_PICTURES).map((w, k) => pic('pic-way-' + k, 'way', k,
+          keep(`way|${signature}|${JSON.stringify(w)}`, () => drawing(plain(STATIC.field), arrange(blobs, w))), labels[k], k === at, ' wide')).join('') + `</div>`;
+    }
+  }
+  if (lead) {
+    const now = lead.options.includes(lead.row.arranged) ? lead.row.arranged : '';
+    const usual = TEXT.usualWay(USUAL_ARRANGEMENT[lead.number]);
+    html += `<div class="fields${html ? ' sub' : ''}">` + control('arranged', TEXT.arrangedLabel(rowName(lead.row, true)),
+      `<select id="arranged" data-row="${lead.i}" data-set="arranged">` + opt('', usual, !now) +
+      lead.options.map(id => opt(id, ARRANGEMENTS[id].name, now === id)).join('') + `</select>`) + `</div>`;
+    if (state.images) {
+      // "Sable, three blobs Or", set out each way.
+      const one = { ...blob(filled.find(x => x.i === lead.i).group), role: null, place: null, charged: null };
+      const set = id => keep(`arranged|${lead.number}|${id}`, () => drawing(plain(STATIC.field), [{ ...one, arranged: id || null }]));
+      html += `<div class="pics">` + pic('pic-arranged-usual', 'arranged:' + lead.i, '', set(''), usual, !now) +
+        lead.options.map(id => pic('pic-arranged-' + id, 'arranged:' + lead.i, id, set(id), ARRANGEMENTS[id].name, now === id)).join('') + `</div>`;
+    }
+  }
+  $('arrangePanel').hidden = !html;
+  put('arrangeBody', html);
+}
+
+// ---- The result ---------------------------------------------------------------------
+const everyGroup = groups => groups.flatMap(g => (g.charged ? [g, g.charged] : [g]));
+const pictureRow = file => (file ? library.all.find(p => p.file === file) || null : null);
+function ruleText(problem) {
+  if (problem.hint) return problem.hint === 'metal' ? TEXT.lowContrastMetal : TEXT.lowContrastColour;
+  return TEXT.rules[problem.id] || problem.id;
+}
+
+let turn = 0;      // goes up with every result, so a picture that arrives late is not shown over a newer one
+function renderResult(shield) {
+  const { field, groups, noCharge } = shield;
+  // The words, the link and the patterns need no pictures: they are right at once.
+  const text = blazon(field, groups, TEXT.placeholders);
+  const patterns = shieldPatterns(field, groups, { noCharge });
+  // The search is missing something about a charge: how many, or (for a
+  // charge that has postures) which posture.
+  const needs = everyGroup(groups).some(g => g.kind === 'charge' && (g.number === null || (posable(g.charge) && !postureCode(g.posture))));
+  const noTinctures = !!field && field.type === 'divided' && DIVISIONS[field.division].tincturesIndexed === false;
+  $('blazon').textContent = text;
+  $('search').innerHTML = !patterns.length ? `<p class="note" style="text-align:center;margin:0">${esc(TEXT.nothingYet)}</p>`
+    : `<a class="search-link" href="${esc(complexSearchURL(patterns))}" target="_blank" rel="noopener">${esc(TEXT.searchLink)} →</a>` +
+      (needs ? `<p class="why-line" style="text-align:center">${esc(TEXT.searchNeeds)}</p>` : '');
+  $('patterns').innerHTML = (noTinctures ? `<p class="note">${esc(TEXT.tincturesNotIndexed)}</p>` : '') +
+    (patterns.length ? `<p class="patterns-head">${esc(TEXT.patternsHeading)}</p><code>${esc(patterns.join('\n'))}</code>` : '');
+
+  // The rules judge the shield as it would be drawn, so they (and the
+  // picture) wait for any charge's picture that has not been fetched yet.
+  const mine = ++turn;
+  const finish = () => {
+    if (mine !== turn) return;
+    let problems = [];
+    try { problems = checkShield({ field, groups, noCharge }); } catch (err) { console.error(err); }
+    if (!state.images) problems = problems.filter(p => !DRAWING_ONLY.has(p.id));
+    $('notes').classList.remove('waiting');
+    $('notes').innerHTML = problems.length ? `<p class="problems-head">${esc(TEXT.problemsHeading)}</p><ul class="problems">` +
+      problems.map(p => `<li>${esc(ruleText(p))}${p.sena ? ` (SENA ${esc(p.sena)})` : ''}</li>`).join('') + `</ul>` : '';
+    $('picture').classList.remove('waiting');
+    $('picture').innerHTML = state.images ? drawing(field, groups, text) : '';
+    $('shieldCredits').innerHTML = state.images ? creditsLine(everyGroup(groups).map(g => (g.kind === 'charge' ? pictureRow(g.art) : null))) : '';
+  };
+  const missing = [...new Set(everyGroup(groups).map(g => g.art).filter(file => file && !getPicture(file)))];
+  if (!missing.length) return finish();
+  $('notes').classList.add('waiting');
+  $('picture').classList.add('waiting');
+  Promise.all(missing.map(file => loadPicture(file).catch(() => null))).then(finish);
+}
+
+// ---- Putting it together --------------------------------------------------------------
+function render() {
+  const focused = document.activeElement && document.activeElement.id;
+  shown = describe();
+  renderColours();
+  renderField();
+  renderRows();
+  renderArrange(shown);
+  renderResult(shown);
+  $('noCharge').checked = state.noCharge;
+  $('noBackground').checked = state.noBackground;
+  $('showImages').setAttribute('aria-pressed', String(state.images));
+  // Whatever was being used is still being used, though it was drawn again.
+  if (focused && $(focused) && $(focused) !== document.activeElement) $(focused).focus({ preventScroll: true });
+}
+
+// ---- Changing an answer ---------------------------------------------------------------
+function setField(key, value, part = 0) {
+  if (key === 'division') {
+    state.division = value;
+    if (!overOf()) state.over = '';
+  } else if (key === 'over') state.over = value;
+  else if (key === 'line') state.line = value;
+  else if (key === 'part') state.parts[part] = value || null;
+}
+function setRow(i, key, value) {
+  const row = state.rows[i];
+  if (key === 'number') row.number = value === '' ? null : value === SEMY ? SEMY : Number(value);
+  else if (key === 'tincture') row.tincture = value || null;
+  else if (key === 'posture') row.posture = value;
+  else if (key === 'turned') row.turned = value || null;
+  else if (key === 'arranged') row.arranged = value || null;
+  else if (key === 'line') row.line = value || null;
+  else if (key === 'inverted' || key === 'mirror') row[key] = !!value;
+  // How a charge's own charges are set out only lasts while it suits how many there are.
+  if (row.arranged && !(typeof row.number === 'number' && arrangementsFor(row.number).includes(row.arranged))) row.arranged = null;
+}
+function setWay(value) {
+  state.way = value === '' ? null : shown.ways[Number(value)] || null;
+  // (When SENA leaves no doubt, the first way listed is the one in use anyway.)
+}
+
+// What is typed in a charge's box, as a choice (or null if it names nothing).
+const tidyName = text => text.trim().toLowerCase().replace(/\s+/g, ' ');
+const sameChoice = (a, b) => (!a && !b) || (!!a && !!b && a.kind === b.kind && a.id === b.id);
+function setName(i, text, done) {
+  const row = state.rows[i];
+  row.text = text;
+  row.typing = !done;
+  let choice = names.get(tidyName(text)) || null;
+  // Finished typing something that is the start of just one name: that one.
+  if (!choice && done && tidyName(text)) {
+    const starts = listed.filter(n => n.startsWith(tidyName(text)));
+    if (starts.length === 1) {
+      choice = names.get(starts[0]);
+      row.text = starts[0];
+      $('name' + i).value = starts[0];
+    }
+  }
+  if (!sameChoice(choice, row.choice)) {
+    row.choice = choice;
+    row.posture = null;        // (a posture belongs to the charge it was chosen for)
+    row.line = null;           // (and a line to the ordinary)
+  }
+}
+
+// Everything that can be typed in a charge's box: the ordinaries, then every
+// charge of the library (an ordinary's own name always means the ordinary).
+function listNames() {
+  names.clear();
+  listed = [];
+  const add = (name, choice, show = true) => {
+    const key = tidyName(name);
+    if (!key || names.has(key)) return;
+    names.set(key, choice);
+    if (show) listed.push(key);
+  };
+  for (const id of Object.keys(ORDINARIES)) {
+    add(ordinaryLabel(id), { kind: 'ordinary', id });
+    add(ORDINARIES[id].name, { kind: 'ordinary', id }, false);
+  }
+  for (const charge of library.charges) add(charge.name, { kind: 'charge', id: charge.id });
+  // (a charge's plural finds it too: "mullets")
+  for (const charge of library.charges) add(charge.plural || charge.name + 's', { kind: 'charge', id: charge.id }, false);
+  $('chargeNames').innerHTML = listed.map(name => `<option value="${esc(name)}"></option>`).join('');
+}
+
+document.addEventListener('input', e => {
+  const d = e.target.dataset;
+  if (d.name === undefined) return;
+  setName(Number(d.name), e.target.value, false);
+  render();
+});
+document.addEventListener('change', e => {
+  const el = e.target, d = el.dataset;
+  if (d.name !== undefined) setName(Number(d.name), el.value, true);
+  else if (d.field) setField(d.field, el.value, Number(d.part || 0));
+  else if (d.set) setRow(Number(d.row), d.set, el.type === 'checkbox' ? el.checked : el.value);
+  else if (d.colour) state.colours = el.checked ? [...state.colours, d.colour] : state.colours.filter(t => t !== d.colour);
+  else if (el.id === 'way') setWay(el.value);
+  else if (el.id === 'noCharge') state.noCharge = el.checked;
+  else if (el.id === 'noBackground') state.noBackground = el.checked;
+  else return;
+  // (a change to the background's own menus makes it the herald's; anything
+  // else may fill the background in, or take back what was filled in)
+  settleBackground(!!d.field);
+  render();
+});
+document.addEventListener('click', e => {
+  const el = e.target.closest('button');
+  if (!el) return;
+  if (el.id === 'showImages') state.images = !state.images;
+  else if (el.id === 'clearAll') {
+    // Every answer is taken back; "show images" stays as it is.
+    Object.assign(state, fresh());
+    state.rows.forEach((row, i) => { $('name' + i).value = ''; });
+  } else if (el.dataset.pick) {
+    const [what, row] = el.dataset.pick.split(':'), value = el.dataset.value;
+    if (what === 'way') setWay(value);
+    else if (row !== undefined) setRow(Number(row), what, value);
+    else setField(what, value);
+    settleBackground(what !== 'way' && row === undefined);
+  } else return;
+  render();
+});
+
+// ---- Starting up ----------------------------------------------------------------------
+// Shields are drawn in the palette chosen on the build mode page, if one was
+// (it keeps the choice in this browser), and otherwise in the usual one.
+let saved = null;
+try { saved = localStorage.getItem('heraldryPalette'); } catch (e) { /* private window: the usual palette */ }
+usePalette(saved || DEFAULT_PALETTE);
+
+document.title = TEXT.title;
+$('title').textContent = TEXT.title;
+$('modeLink').textContent = TEXT.modeLink;
+$('showImages').textContent = TEXT.showImages;
+$('clearAll').textContent = TEXT.clearAll;
+$('fieldHeading').textContent = TEXT.fieldHeading;
+$('coloursHeading').textContent = TEXT.shieldColours;
+$('noBackgroundLabel').textContent = TEXT.noBackground;
+$('chargeHeading').textContent = TEXT.chargeHeading;
+$('noChargeLabel').textContent = TEXT.noCharge;
+$('arrangeHeading').textContent = TEXT.arrangeHeading;
+
+// "AI disclosure": a small link in the corner that opens a box over the page.
+const marked = text => esc(text)
+  .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+  .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+$('aiOpen').textContent = TEXT.aiDisclosure;
+$('aiTitle').textContent = TEXT.aiDisclosure;
+$('aiClose').setAttribute('aria-label', TEXT.aiClose);
+$('aiBody').innerHTML = TEXT.aiText.map(p => `<p>${marked(p)}</p>`).join('');
+$('aiOpen').addEventListener('click', () => $('aiBox').showModal());
+$('aiClose').addEventListener('click', () => $('aiBox').close());
+$('aiBox').addEventListener('click', e => {      // a click outside the box shuts it too
+  const box = $('aiBox'), r = box.getBoundingClientRect();
+  if (e.target === box && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) box.close();
+});
+
+buildRows();
+listNames();
+render();
+
+// The charge library loads in the background. The page works before it
+// arrives (ordinaries need none of it); whatever was typed meanwhile is
+// looked up again when it does.
+loadLibrary().then(loaded => {
+  library = loaded;
+  chargeById = new Map(loaded.charges.map(c => [c.id, c]));
+  const rank = p => (p.default === 'TRUE' ? (p.from === 'own' ? 0 : 1) : p.from === 'own' ? 2 : 3);
+  picturesById = new Map();
+  for (const p of loaded.all) picturesById.set(p.charge_id, [...(picturesById.get(p.charge_id) || []), p]);
+  for (const list of picturesById.values()) list.sort((a, b) => rank(a) - rank(b));
+  listNames();
+  state.rows.forEach((row, i) => { if (row.text) setName(i, row.text, !row.typing); });
+  render();
+}).catch(err => console.error(err));
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="58.5 81 306 193.5" width="306" height="193.5">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 58.5 81 L 364.5 81 L 364.5 274.5 L 58.5 274.5 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Furison_(3)" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Furison (3)</title>
+    <g id="Furison_(3)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Graphic_1575">
+        <path d="M 347.41 270.51 C 318.93 181.64 359.58 162.21 360 131.29 C 360.5 92.97 304.61 65.77 283.01 102.05 C 361.49 98.17 320.45 216.36 237.5 149.72 L 185.44 149.72 C 102.55 216.39 61.51 98.21 139.99 102.08 C 118.39 65.8 62.5 93 63 131.33 C 63.42 162.24 104.01 181.65 75.53 270.51 Z M 322.24 251.83 L 100.12 251.83 C 109.96 230.42 111.83 206.94 100.12 179.63 C 134.97 192.38 177.43 189.12 211.57 170.76 C 245.72 189.22 288.18 192.48 323.03 179.73 C 311.32 207.04 312.39 230.6 322.24 251.83 Z" fill="#ffffff"/>
+        <path d="M 347.41 270.51 C 318.93 181.64 359.58 162.21 360 131.29 C 360.5 92.97 304.61 65.77 283.01 102.05 C 361.49 98.17 320.45 216.36 237.5 149.72 L 185.44 149.72 C 102.55 216.39 61.51 98.21 139.99 102.08 C 118.39 65.8 62.5 93 63 131.33 C 63.42 162.24 104.01 181.65 75.53 270.51 Z M 322.24 251.83 L 100.12 251.83 C 109.96 230.42 111.83 206.94 100.12 179.63 C 134.97 192.38 177.43 189.12 211.57 170.76 C 245.72 189.22 288.18 192.48 323.03 179.73 C 311.32 207.04 312.39 230.6 322.24 251.83 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

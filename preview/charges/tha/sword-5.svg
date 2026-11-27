@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="112.5 61.59 76.5 353.81" width="76.5" height="353.81">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 112.5 61.59 L 189 61.59 L 189 415.41 L 112.5 415.41 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Sword_(5)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Sword (5)</title>
+    <g id="Sword_(5)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_3">
+        <g id="Graphic_11">
+          <path d="M 141.62 170.26 L 141.72 170.26 C 142.16 134.72 145.16 99.32 150.65 64.58 L 150.65 63.73 L 150.72 64.16 L 150.79 63.73 L 150.79 64.58 C 156.29 99.32 159.28 134.72 159.72 170.26 L 159.88 170.26 L 159.88 346.48 L 141.62 346.48 Z" fill="#ffffff"/>
+          <path d="M 141.62 170.26 L 141.72 170.26 C 142.16 134.72 145.16 99.32 150.65 64.58 L 150.65 63.73 L 150.72 64.16 L 150.79 63.73 L 150.79 64.58 C 156.29 99.32 159.28 134.72 159.72 170.26 L 159.88 170.26 L 159.88 346.48 L 141.62 346.48 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_10">
+          <line x1="151.25" y1="343.44" x2="151.25" y2="131.91" fill="#ffffff"/>
+          <line x1="151.25" y1="343.44" x2="151.25" y2="131.91" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_9">
+          <path d="M 146.14 403.05 L 140.87 348.08 L 160.62 348.08 L 155.35 403.05 Z" fill="#ffffff"/>
+          <path d="M 146.14 403.05 L 140.87 348.08 L 160.62 348.08 L 155.35 403.05 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Group_7">
+          <title>shape2-12</title>
+          <g id="Graphic_8">
+            <path d="M 139.89 402.5 C 139.94 408.46 144.79 413.26 150.75 413.26 C 156.71 413.26 161.56 408.46 161.61 402.5 C 161.64 398.6 159.58 394.98 156.21 393.02 C 152.83 391.06 148.67 391.06 145.29 393.02 C 141.92 394.98 139.86 398.6 139.89 402.5 Z" fill="#ffffff"/>
+            <path d="M 139.89 402.5 C 139.94 408.46 144.79 413.26 150.75 413.26 C 156.71 413.26 161.56 408.46 161.61 402.5 C 161.64 398.6 159.58 394.98 156.21 393.02 C 152.83 391.06 148.67 391.06 145.29 393.02 C 141.92 394.98 139.86 398.6 139.89 402.5 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          </g>
+        </g>
+        <g id="Group_5">
+          <title>shape1-14</title>
+          <g id="Graphic_6">
+            <circle cx="150.75" cy="402.51" r="5.8" fill="#ffffff"/>
+            <circle cx="150.75" cy="402.51" r="5.8" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+        </g>
+        <g id="Graphic_4">
+          <path d="M 115.72 341.98 C 115.69 339.45 117.73 337.38 120.26 337.35 C 122.79 337.33 124.86 339.36 124.88 341.89 C 133.24 345.5 142.81 344.93 150.68 340.36 L 150.82 340.36 C 158.69 344.93 168.26 345.5 176.62 341.89 C 176.64 339.36 178.71 337.33 181.24 337.35 C 183.77 337.38 185.81 339.45 185.78 341.98 C 185.78 343.91 184.57 345.64 182.74 346.29 C 178.21 348.73 173.11 349.91 167.98 349.7 C 156.49 349.68 145.01 349.68 133.52 349.7 C 128.38 349.91 123.28 348.73 118.75 346.29 C 116.93 345.64 115.71 343.91 115.72 341.98 Z" fill="#ffffff"/>
+          <path d="M 115.72 341.98 C 115.69 339.45 117.73 337.38 120.26 337.35 C 122.79 337.33 124.86 339.36 124.88 341.89 C 133.24 345.5 142.81 344.93 150.68 340.36 L 150.82 340.36 C 158.69 344.93 168.26 345.5 176.62 341.89 C 176.64 339.36 178.71 337.33 181.24 337.35 C 183.77 337.38 185.81 339.45 185.78 341.98 C 185.78 343.91 184.57 345.64 182.74 346.29 C 178.21 348.73 173.11 349.91 167.98 349.7 C 156.49 349.68 145.01 349.68 133.52 349.7 C 128.38 349.91 123.28 348.73 118.75 346.29 C 116.93 345.64 115.71 343.91 115.72 341.98 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
