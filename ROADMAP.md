@@ -141,6 +141,53 @@ here were made with the maintainer; add to it as things are decided.
   are drawn (as outlines) in "save as png (outlines only)"; an ordinary
   through the middle with an orle is offered, drawn stopping where it meets
   the orle.
+- **Posture, orientation and art for each charge** (the maintainer, late
+  November 2026): a chosen charge's card has menus for its posture, for
+  another artist's drawing of it, and for the way it is turned (fesswise,
+  bendwise, bendwise sinister, inverted, facing sinister); "expand" opens a
+  bigger box under the cards showing all of them as pictures. The importer
+  now brings in up to ten pictures of each labelled charge from Traceable
+  Heraldic Art (2,055 pictures of 576 charges, 86 MB), one of each posture
+  first, with the posture read from the picture's name. The list of charges
+  shows each charge once, as its usual picture. A chosen picture with no
+  credit in the collection's list is kept, linked to its page at
+  heraldicart.org. The Traceable Heraldic Art crescent is the usual one now.
+- **The search says what the picture shows:** a charge whose number has not
+  been chosen is searched as the number drawn ("don't specify" keeps it
+  open); postures go in the O&A's own words, worked out from its records
+  ("sejant erect" is indexed as rampant, "contourny" as "to sinister"); and
+  a line under the search button says when number or posture is missing.
+- **Canton, flaunches and gore** are drawn by code, their curves copied
+  from Traceable Heraldic Art's device forms. Other charges keep clear of
+  them; a charge can lie on a canton or gore, one on each flaunch.
+- **Furs and field treatments** (items 4 and 5): vair is offered with the
+  ermines; "More complex options" makes "X ermined Y", "vairy X and Y",
+  "counter-vairy", "potenty" (so potent), "X masoned Y", "X scaly Y" and "X
+  papellony Y" from one colour and one metal. Vair and its kin are neutral
+  and may not share a tincture with what lies on them (SENA A3B1); a field
+  with a treatment may stand alone, a fur may not (A3E3). The search lines
+  were worked out from the records (`core/oanda.js`). NOT built: vair en
+  pointe, counter-potent, papellony as a fur ("papellony gules and Or"),
+  plumetty, and jaguar (registerable since the July 2026 Cover Letter, in
+  Or and sable or argent and sable only; nobody has yet said how it counts
+  for contrast, and there is no drawing to copy). Kürsch is not an SCA
+  tincture: it is in none of SENA, the Glossary or the O&A.
+- **Orly, and two divisions counterchanged over each other** (item 12):
+  "more complex background" has "and counterchanged with", so "orly and
+  chevronelly", "barry and per pale", "per pale and per chevron" can be
+  made, in two tinctures. Drawn by laying the divisions over each other
+  (`isLayered` in `core/geometry.js`); the rules treat the result as a field
+  of many pieces. The generator does not make them at random.
+- **Rules relaxed, late November 2026** (the maintainer; to be checked with
+  another herald): a chief, bordure or base may share a tincture with a
+  field of many pieces (SENA A3B4b allows it "if drawn so that the shared
+  tinctures are not against each other"); an ordinary may be counterchanged
+  over a field of many pieces (SENA A3F4 wants that "attested"; the College
+  registered "Paly azure and argent, a bend counterchanged" in 2018 and
+  "Gyronny vert and Or, a saltire counterchanged" in 2019).
+- **Smaller things:** the background's colours are chosen automatically
+  when the shield's colours leave only one set (azure and Or ticked, then
+  per pale); an "AI disclosure" link beside the herald tick.
 
 ## Next, in the maintainer's words
 
@@ -163,11 +210,14 @@ here were made with the maintainer; add to it as things are decided.
    be a PNG with a transparent background, cropped close, white with black
    outlines, or it won't work. (`loadPicture` in `core/art.js` already accepts
    any picture; the page needs the file picker and the warning.)
-4. **More furs:** vair and the other SCA furs. (The maintainer also mentioned
+4. *(Built, see "Furs and field treatments" above; vair en pointe,
+   counter-potent, papellony as a fur, plumetty and jaguar still to do.)*
+   **More furs:** vair and the other SCA furs. (The maintainer also mentioned
    "jaguar" from memory: to confirm what was meant.) SENA treats vair and
    potent as neutral; the O&A indexes vair differently
    (`FIELD TREATMENT-VAIRY`, `FIELD:solid:vair`), so check real records first.
-5. **Field treatments,** e.g. masoned. The O&A has `FIELD TREATMENT-...`
+5. *(Built: masoned, scaly, papellony. Mailly, honeycombed and the rest of
+   my.cat's list still to do.)* **Field treatments,** e.g. masoned. The O&A has `FIELD TREATMENT-...`
    categories in my.cat.
 6. **Complex lines,** e.g. per bend wavy. The shield description already has
    a `line` on every division; the O&A's line words are in my.cat. Needs the
@@ -221,7 +271,8 @@ here were made with the maintainer; add to it as things are decided.
      rayonny 8, dancetty 6, engrailed 5 and a dozen rarer ones, on every
      division; "Quarterly per fess indented" (only the fess line); points
      ending in fleurs-de-lys or mullets. This is item 6.
-   - **Two divisions, counterchanged** (23, every one in two tinctures):
+   - *(Built, late November 2026, without complex lines or "throughout";
+     see above.)* **Two divisions, counterchanged** (23, every one in two tinctures):
      barry and per pale, barry and per chevron throughout, bendy and per
      pale, bendy and per bend sinister, bendy sinister and per bend, paly
      and chevronelly inverted, paly counterchanged per saltire, per pale and
@@ -254,7 +305,74 @@ here were made with the maintainer; add to it as things are decided.
    The roll of arms at https://op.atlantia.sca.org/roll_of_arms.php is the
    next thing to go through, to flag shields the tools cannot draw.
 
+13. **Three things asked about, not built** (the maintainer, late November
+   2026), with what each would take:
+   - **Charges "proper"** (a tree with a brown trunk and green leaves).
+     *One colour is easy:* SENA A3B1 lets any animal that can be brown be "a
+     brown X proper" ("completely brown"), and wooden things "a wooden X
+     proper", brown being a colour. That needs a brown in each palette and
+     a "proper" entry in the colour menu for the charges it applies to (a
+     label in `charges/charges.csv`); the O&A has the tincture words
+     `brown` and `proper`. *Several colours is real work:* the pictures are
+     black lines over one white inside, so nothing says which white area is
+     trunk and which is leaves. Each such charge would need its areas
+     marked by hand once (the rose proper is "gules barbed vert seeded
+     Or"); the Glossary of Terms lists which charges have a defined proper.
+     Suggested order: brown first, then the dozen commonest from the
+     Glossary's list.
+   - **A "Custom" palette:** small. A palette is just ten or so colour
+     codes (`core/palettes.js`), and the choice is already kept in the
+     browser. It needs a row of boxes to type codes into (the browser's own
+     colour picker can do the typing), with anything left empty taken from
+     the palette last used. About a day; no risk to anything else.
+   - **"Manually tweak this image":** moderate. The layout already hands
+     back a list of places `{ cx, cy, size }` for every charge, so a nudge
+     up, down, left, right or a shrink per charge is a small adjustment
+     applied after it, for the shield top right and the saved PNG only.
+     Decisions needed: whether the rules should judge the tweaked picture
+     (probably not: it is the same blazon), and that a tweak is forgotten
+     when the charge or its number changes. Ordinaries would not move.
+
 ## Questions waiting for the maintainer
+
+From the round of late November 2026 (postures, furs, combined backgrounds):
+
+- **Two rules relaxed on your say-so, to check with another herald:** a
+  chief, bordure or base sharing a tincture with a field of many pieces is
+  now offered; and so is ANY ordinary counterchanged over a field of many
+  pieces (pale, pile and pall included, and chief, bordure, orle, base).
+  SENA A3F4 says a single charge counterchanged over more than four pieces
+  "must be attested"; the O&A shows bends, a saltire and bordures
+  registered that way since 2013. Should it be narrower (say bend, fess,
+  pale, chevron, bordure)?
+- **Orientation is a rule of thumb:** a picture drawn upright (a sword) goes
+  point to dexter for "fesswise" and point to dexter chief for "bendwise";
+  one drawn lying down (a fish, a lion passant) goes head upward for
+  "palewise" and head to dexter chief for "bendwise"; "bendwise sinister"
+  for a lying picture puts the head to dexter base. Say where a charge
+  should go the other way. "Inverted" is not sent to the search (the O&A's
+  records had no consistent word for it).
+- **Postures the search leaves out** because the records were too few to be
+  sure: lodged, tergiant, embowed, urinant, in annulo, and guardant /
+  regardant (not indexed at all). A lion drawn in Traceable Heraldic Art's
+  "Lion (1)" has no posture word in its name, so none is sent for it; our
+  own lion is "rampant".
+- **Number assumed:** with no number chosen, the shield top right, its
+  blazon and the search all say the number drawn (one; three around a
+  chevron), and the suggestions still vary it. Is that right, or should
+  picking a charge tick "1" in its card?
+- **"furs" is the heading over field treatments too** ("azure masoned Or")
+  in the colour menus. A second heading needs your word for it.
+- **Jaguar fur and kürsch:** see "Furs and field treatments" under Built.
+  Jaguar needs a ruling on its contrast and a picture to copy; kürsch is
+  not registerable, so it has been left out unless you say otherwise.
+- **Three charges and a canton** do not fit their usual places (the canton
+  sits where the first would go), so that is reported as "not enough room".
+- **Wording to check** (all marked DRAFT in the page's `TEXT`): "as drawn",
+  "facing sinister", the names in the art menu ("Crescent (3), by Roana
+  d'Evreux"), "More ways to draw the lion", "and counterchanged with" /
+  "nothing else", "add vert ermined Or", "Choose one colour and one metal",
+  and "pineapple (see its page)" in the artist credits.
 
 From the Traceable Heraldic Art work (November 2026):
 
@@ -268,9 +386,6 @@ From the Traceable Heraldic Art work (November 2026):
   celestial; "compact" is a picture no more than 1.35 times as long as it
   is wide, "long and thin" at least 2.4 times. Say where any of this is not
   what was meant.
-- **The maintainer's sentence under the background colours** still says
-  "use the question above to select colours", which now points at the
-  division question, not the shield's colours.
 - **Labels not in `data/taxonomy.csv`:** the topics Maritime and Sciences
   and the type Symbolic are used by a few charges, so they show in the menu.
 - **Fleur-de-lys** has no "easy to draw" label (it is not in the old list
@@ -279,11 +394,9 @@ From the Traceable Heraldic Art work (November 2026):
   public domain). Pictures the collection credits to nobody are credited to
   its editor, as its terms page says. Is "lion by Miss Helard" enough, or
   should the collection be named too?
-- **Which picture of a charge:** only the one picture chosen for each charge
-  is in. Traceable Heraldic Art has 18 lions; choosing among them (and
-  postures) is the next step for the picker.
-- **"Orly and chevronelly":** orly is on the poster as a field of its own.
-  Was a registered "orly and chevronelly" meant, or two examples?
+- **Which picture of a charge:** up to ten of each are in now (one of each
+  posture first). Traceable Heraldic Art has 92 lions; raising the limit
+  (`MOST` in `tools/import_tha.py`) costs about 40 KB a picture.
 
 - **Suggestions: how many, and how laid out?** Built as one row of 12 along
   the bottom that scrolls sideways (`SUGGESTION_COUNT`). The "3 rows of 6"

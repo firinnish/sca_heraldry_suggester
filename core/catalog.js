@@ -11,7 +11,28 @@
 //                            are light, colours and counter-ermine/pean dark)
 // plain: the everyday word.   hex: the colour used when drawing.
 // fur:   for furs, the background tincture and the tincture of the spots.
-export const TINCTURES = {
+//
+// MORE FURS AND FIELD TREATMENTS (November 2026). Beside the eleven named
+// here, TINCTURES also answers for "vair", "potent" and for tinctures MADE
+// FROM TWO OTHERS, whose id is "<pattern>:<first>:<second>":
+//   ermined:vert:or          "vert ermined Or"         (a fur; counts as its background)
+//   vairy:or:gules           "vairy Or and gules"      (a fur; neutral)
+//   countervairy:or:gules    "counter-vairy Or and gules"
+//   potenty:or:gules         "potenty Or and gules"
+//   masoned:azure:or         "azure masoned Or"        (a field treatment; counts as its background)
+//   scaly:gules:argent       "gules scaly argent"
+//   papellony:gules:or       "gules papellony Or"
+// ("vair" is vairy argent and azure, "potent" potenty argent and azure.)
+// Each has, beside the usual things:
+//   pattern: which of the patterns above it is drawn with (draw.js)
+//   pair:    its two tinctures: the background, then the spots, bells or lines
+//   tone:    may also be 'neutral': SENA A3B1, "Furs such as vair and potent
+//            ... are treated as neutral". Ermined furs "are grouped in the
+//            same way as their background color" (the same paragraph); a
+//            field treatment is "considered a part of the field or charge
+//            tincture" (Glossary of Terms, "Field Treatment").
+// See PATTERNS below for the list, and tinctureFrom() to make an id.
+const NAMED_TINCTURES = {
   gules:   { name: 'gules',   plain: 'red',    kind: 'colour', tone: 'dark',  hex: '#C8102E' },
   vert:    { name: 'vert',    plain: 'green',  kind: 'colour', tone: 'dark',  hex: '#157F3B' },
   azure:   { name: 'azure',   plain: 'blue',   kind: 'colour', tone: 'dark',  hex: '#0056A8' },
@@ -26,10 +47,63 @@ export const TINCTURES = {
   pean:          { name: 'pean',           plain: 'black with yellow ermine spots', kind: 'fur', tone: 'dark',  fur: { field: 'sable',  spots: 'or' } },
 };
 
+// The patterns a tincture can be made from two others with.
+//   kind:    'fur' or 'treatment' (SENA A3E3: a field of a fur alone cannot
+//            be registered, but "A field with a field treatment, such as
+//            scaly, is not considered a single tincture")
+//   neutral: true = one tincture must be a metal and the other a colour, and
+//            the result is neutral; otherwise it counts as its background,
+//            which the second tincture must contrast with (Glossary:
+//            "Ermined Tinctures", "Field Treatment")
+//   name:    how it is blazoned
+export const PATTERNS = {
+  ermined:      { kind: 'fur',       neutral: false, name: (a, b) => `${a} ermined ${b}` },
+  vairy:        { kind: 'fur',       neutral: true,  name: (a, b) => `vairy ${a} and ${b}` },
+  countervairy: { kind: 'fur',       neutral: true,  name: (a, b) => `counter-vairy ${a} and ${b}` },
+  potenty:      { kind: 'fur',       neutral: true,  name: (a, b) => `potenty ${a} and ${b}` },
+  masoned:      { kind: 'treatment', neutral: false, name: (a, b) => `${a} masoned ${b}` },
+  scaly:        { kind: 'treatment', neutral: false, name: (a, b) => `${a} scaly ${b}` },
+  papellony:    { kind: 'treatment', neutral: false, name: (a, b) => `${a} papellony ${b}` },
+};
+const SHORT_NAMES = { 'vairy:argent:azure': 'vair', 'potenty:argent:azure': 'potent' };
+const LONG_IDS = { vair: 'vairy:argent:azure', potent: 'potenty:argent:azure' };
+// The id of a tincture made from two plain ones ("vair" and "potent" keep
+// their short names), or null if the rules for that pattern do not allow the
+// pair: a metal with a colour, and for an ermined fur or a treatment never
+// the same one twice.
+export function tinctureFrom(pattern, first, second) {
+  const def = PATTERNS[pattern], a = NAMED_TINCTURES[first], b = NAMED_TINCTURES[second];
+  if (!def || !a || !b || a.fur || b.fur || a.tone === b.tone) return null;
+  const id = `${pattern}:${first}:${second}`;
+  return Object.keys(LONG_IDS).find(short => LONG_IDS[short] === id) || id;
+}
+const madeTinctures = new Map();
+function madeTincture(id) {
+  if (!madeTinctures.has(id)) {
+    const [pattern, first, second] = (LONG_IDS[id] || id).split(':');
+    const def = PATTERNS[pattern], a = NAMED_TINCTURES[first], b = NAMED_TINCTURES[second];
+    madeTinctures.set(id, !def || !a || !b || a.fur || b.fur ? undefined : {
+      name: SHORT_NAMES[`${pattern}:${first}:${second}`] || def.name(a.name, b.name),
+      plain: def.name(a.plain, b.plain), kind: def.kind, tone: def.neutral ? 'neutral' : a.tone,
+      pattern, pair: [first, second],
+      // (an ermined fur is drawn exactly as ermine is, in its own two tinctures)
+      ...(pattern === 'ermined' ? { fur: { field: first, spots: second } } : {}),
+    });
+  }
+  return madeTinctures.get(id);
+}
+// (Looking one up works as for the named ones: TINCTURES['vairy:or:gules'].
+// Listing them, with Object.keys, gives only the eleven named ones.)
+export const TINCTURES = new Proxy(NAMED_TINCTURES, {
+  get: (named, id) => (typeof id !== 'string' || id in named ? named[id] : LONG_IDS[id] || id.includes(':') ? madeTincture(id) : undefined),
+});
+
 // The order swatches are shown in.
 export const COLOUR_ORDER = ['gules', 'vert', 'azure', 'sable', 'purpure'];
 export const METAL_ORDER = ['or', 'argent'];
-export const FUR_ORDER = ['ermine', 'counterermine', 'erminois', 'pean'];
+// (Vair is offered with the four ermines: the maintainer, November 2026.
+// Every other fur and treatment is made on request: tinctureFrom above.)
+export const FUR_ORDER = ['ermine', 'counterermine', 'erminois', 'pean', 'vair'];
 
 // ---- Field divisions -------------------------------------------------------
 // name:      how it is blazoned ("per pale").
@@ -43,8 +117,17 @@ export const FUR_ORDER = ['ermine', 'counterermine', 'erminois', 'pean'];
 // plainLine: true = records reliably carry "pl" (plain line) for this division.
 // tincturesIndexed: false = the O&A does not record which tinctures are used
 //                    (true of the three-part divisions).
-export const DIVISIONS = {
-  perPale:            { name: 'per pale',             parts: 2, code: 'PPALE',  fieldWord: 'divided palewise',             ordered: true,  plainLine: true },
+//
+// TWO DIVISIONS TOGETHER (November 2026): "orly and chevronelly", "barry and
+// per pale", "per pale and per chevron": one division counterchanged over
+// another, in two tinctures. Its id is the two ids joined by "+"
+// ("orly+chevronelly"; make one with divisionsTogether below), and DIVISIONS
+// answers for it like any other division of two parts. The O&A's records
+// of such fields nearly all carry "FIELD DIV.9OTHER:<tinctures, alphabetical>"
+// ("Barry and per pale argent and gules" has FIELD DIV.9OTHER:argent:~and
+// gules beside lines for barry and per pale), so that is the line searched.
+const ONE_DIVISIONS = {
+  perPale:            { name: 'per pale',            parts: 2, code: 'PPALE',  fieldWord: 'divided palewise',             ordered: true,  plainLine: true },
   perFess:            { name: 'per fess',             parts: 2, code: 'PFESS',  fieldWord: 'divided fesswise',             ordered: true,  plainLine: true },
   perBend:            { name: 'per bend',             parts: 2, code: 'PB',     fieldWord: 'divided bendwise',             ordered: true,  plainLine: true },
   perBendSinister:    { name: 'per bend sinister',    parts: 2, code: 'PBS',    fieldWord: 'divided bendwise sinister',    ordered: true,  plainLine: true },
@@ -63,7 +146,28 @@ export const DIVISIONS = {
 
   perPall:            { name: 'per pall',             parts: 3, code: 'FIELD DIV.-PER PALL',   fieldWord: 'divided pallwise',          ordered: true, plainLine: true, tincturesIndexed: false },
   perPallInverted:    { name: 'per pall inverted',    parts: 3, code: 'FIELD DIV.-PER PALL*7', fieldWord: 'divided pallwise inverted', ordered: true, plainLine: true, tincturesIndexed: false },
+  // Orly: shield shapes one inside another ("Orly sable and Or", registered
+  // August 2021, is indexed FIELD DIV.9OTHER:or:~and sable and
+  // FIELD:divided orly:multicolor neutral:~ or:~and sable).
+  orly:               { name: 'orly',                 parts: 2, code: 'FIELD DIV.9OTHER',      fieldWord: 'divided orly',              ordered: false, plainLine: false },
 };
+const together = new Map();
+function divisionTogether(id) {
+  if (!together.has(id)) {
+    const [a, b, more] = id.split('+'), A = ONE_DIVISIONS[a], B = ONE_DIVISIONS[b];
+    together.set(id, more !== undefined || !A || !B || a === b || A.parts !== 2 || B.parts !== 2 ? undefined
+      : { name: `${A.name} and ${B.name}`, parts: 2, code: 'FIELD DIV.9OTHER', fieldWord: 'divided', ordered: false, plainLine: false, together: [a, b] });
+  }
+  return together.get(id);
+}
+// The id of two divisions counterchanged over each other, or null if they
+// cannot be (they must be two different divisions of two tinctures).
+export const divisionsTogether = (a, b) => (divisionTogether(`${a}+${b}`) ? `${a}+${b}` : null);
+// (Looking one up works as for the others: DIVISIONS['orly+chevronelly'].
+// Listing them, with Object.keys, gives only the single divisions.)
+export const DIVISIONS = new Proxy(ONE_DIVISIONS, {
+  get: (one, id) => (typeof id !== 'string' || id in one || !id.includes('+') ? one[id] : divisionTogether(id)),
+});
 
 // How SENA sorts divisions for its contrast rules (SENA A3B3):
 //   two:   "divided in two parts"            (any two tinctures)
@@ -74,18 +178,33 @@ const FAMILIES = {
   two: ['perPale', 'perFess', 'perBend', 'perBendSinister', 'perChevron', 'perChevronInverted'],
   four: ['quarterly', 'perSaltire'],
   three: ['perPall', 'perPallInverted'],
-  many: ['gyronny', 'checky', 'lozengy', 'paly', 'barry', 'bendy', 'bendySinister', 'chevronelly'],
+  many: ['gyronny', 'checky', 'lozengy', 'paly', 'barry', 'bendy', 'bendySinister', 'chevronelly', 'orly'],
 };
 export function familyOf(division) {
+  // (Two divisions counterchanged over each other make many pieces: SENA
+  // A3B3d, "Elements not already mentioned must have good contrast between
+  // their parts".)
+  if (division.includes('+')) return 'many';
   return Object.keys(FAMILIES).find(f => FAMILIES[f].includes(division));
 }
 
 // The plain tincture a tincture counts as underneath: a fur's background.
 // (SENA: "No two parts may share a background tincture".)
 export function baseTincture(tincture) {
-  const t = TINCTURES[tincture];
-  return t.fur ? t.fur.field : tincture;
+  return groundsOf(tincture)[0];
 }
+// Every plain tincture that something of this tincture could be mistaken
+// for: its background; for a neutral fur, both of its tinctures (SENA A3B1:
+// vair has good contrast with colours and metals "as long as they do not
+// share a tincture with the color or metal").
+export function groundsOf(tincture) {
+  const t = TINCTURES[tincture];
+  if (t.pair) return t.tone === 'neutral' ? t.pair : [t.pair[0]];
+  return [t.fur ? t.fur.field : tincture];
+}
+// Do two tinctures share a background tincture? (Argent and ermine do; so
+// do azure and vair.)
+export const sharesGround = (a, b) => groundsOf(a).some(g => groundsOf(b).includes(g));
 
 // ---- Ordinaries ------------------------------------------------------------
 // Simple geometric charges that draw.js draws itself (no picture needed).

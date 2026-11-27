@@ -25,7 +25,7 @@
 //
 // GOOD CONTRAST (SENA A3B2) is metal against colour, or neutral against either.
 
-import { TINCTURES, SEMY, familyOf, baseTincture } from './catalog.js';
+import { TINCTURES, SEMY, familyOf, sharesGround } from './catalog.js';
 import { COUNTERCHANGED, isComplete, isNested, leafTinctures, tincturesIn, shieldTinctures,
          roles, allGroups, typeOf, isCentralOrdinary } from './shield.js';
 import { partMap } from './geometry.js';
@@ -49,7 +49,10 @@ const BARELY = 0.03;
 // (SENA A3B4b, case 2): see checkGroup.
 const READS_CLEARLY = new Set(['chief', 'bordure', 'base']);
 
-const classOf = tincture => (TINCTURES[tincture].tone === 'light' ? 1 : -1);
+// (Vair and the furs like it are neutral: SENA A3B1, "As they are made up of
+// multiple pieces, divided evenly between a color and a metal, they are
+// treated as neutral".)
+const classOf = tincture => ({ light: 1, dark: -1, neutral: 0 }[TINCTURES[tincture].tone]);
 const sign = v => (v > 1e-9 ? 1 : v < -1e-9 ? -1 : 0);
 
 // SENA A3B2: good contrast unless both are metals or both are colours.
@@ -82,7 +85,7 @@ function checkField(field, problems, depth = 0) {
   // ermine side by side cannot be told apart.
   for (let i = 0; i < plainParts.length; i++) {
     for (let j = i + 1; j < plainParts.length; j++) {
-      if (baseTincture(plainParts[i].tincture) === baseTincture(plainParts[j].tincture)) {
+      if (sharesGround(plainParts[i].tincture, plainParts[j].tincture)) {
         problems.push({ id: 'same-base', sena: 'A3B3', level: 'sena' });
       }
     }
@@ -95,8 +98,7 @@ function checkField(field, problems, depth = 0) {
   // drawing instead, and falls under the house rule further down.
   for (const p of nested) {
     if (familyOf(p.division) === 'many') continue;
-    const bases = leafTinctures(p).map(baseTincture);
-    if (plainParts.some(q => bases.includes(baseTincture(q.tincture)))) {
+    if (plainParts.some(q => leafTinctures(p).some(t => sharesGround(t, q.tincture)))) {
       problems.push({ id: 'same-base', sena: 'A3B3', level: 'sena' });
     }
   }
@@ -269,7 +271,7 @@ function checkGroup(field, group, coverage, frame, crossed, problems, variant = 
     // so it is not offered.
     const under = tincturesBehind(field, points, frame, {}, points.length, variant);
     for (const t of Object.keys(under)) {
-      if (under[t] > BARELY && baseTincture(t) === baseTincture(group.tincture)) shares = true;
+      if (under[t] > BARELY && sharesGround(t, group.tincture)) shares = true;
     }
   }
   if (shares) {
@@ -304,7 +306,10 @@ export function checkShield({ field, groups = [], noCharge = false }) {
   // SENA A3E3: "Designs that consist only of a single tincture will not be
   // registered. Designs must consist at least of a divided field or a plain
   // field with at least one charge."
-  if (field.type === 'plain' && field.tincture !== null && noCharge && !groups.length) {
+  // "A field with a field treatment, such as scaly, is not considered a
+  // single tincture for the purposes of this rule and may be registered."
+  // (A fur is: SENA's examples are "neither Gules nor Pean".)
+  if (field.type === 'plain' && field.tincture !== null && noCharge && !groups.length && TINCTURES[field.tincture].kind !== 'treatment') {
     problems.push({ id: 'single-tincture', sena: 'A3E3', level: 'sena' });
   }
 
@@ -461,7 +466,7 @@ function checkTertiary(field, host, group, problems) {
     // The charge underneath is made of the field's two tinctures. A charge
     // on it that shares one of them has nothing to stand out against there
     // (SENA A3B4b, as for a charge on a divided field).
-    if (isComplete(field) && tincturesIn(field).some(t => baseTincture(t) === baseTincture(group.tincture))) {
+    if (isComplete(field) && tincturesIn(field).some(t => sharesGround(t, group.tincture))) {
       problems.push({ id: 'charge-shares-tincture', sena: 'A3B4b', level: 'sena' });
     }
     return;

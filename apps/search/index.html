@@ -93,6 +93,10 @@
   .pick-more .link-btn { font-size: 0.75rem; text-decoration: none; border: 1px solid transparent; border-radius: 5px; padding: 0 5px; }
   .pick-more .link-btn[aria-pressed="true"] { border-color: var(--accent); background: #f3f0fa; }
   .name-btn.small { font-size: 0.75rem; padding: 2px 8px; border-width: 1.5px; }
+  /* "More complex options": a kind of fur or treatment, two colours, and a button. */
+  .maker { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 8px 0 4px; }
+  .maker svg { width: 30px; height: 30px; flex: none; }
+  .maker select { padding: 4px 6px; }
   /* "expand": the bigger box under the cards for one charge's postures, drawings and orientations. */
   .explorer { border: 1.5px solid var(--ink); border-radius: 6px; padding: 8px 12px 12px; margin-top: 10px; }
   .explorer .row-label { font-weight: bold; color: var(--ink); }
@@ -196,7 +200,8 @@
 
 <script type="module">
 import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, familyOf,
-         ARRANGEMENTS, USUAL_ARRANGEMENT, SEMY, arrangementsFor, ORIENTATIONS, isLying, postureCode, ordinaryLabel } from '../../core/catalog.js';
+         ARRANGEMENTS, USUAL_ARRANGEMENT, SEMY, arrangementsFor, ORIENTATIONS, isLying, postureCode, ordinaryLabel,
+         PATTERNS, tinctureFrom, divisionsTogether } from '../../core/catalog.js';
 import { plain, divided, isComplete, isNested, leafTinctures, shieldTinctures, blazon, ordinaryGroup,
          chargeGroupFromLibrary, allGroups, COUNTERCHANGED } from '../../core/shield.js';
 import { layoutShield } from '../../core/layout.js';
@@ -230,6 +235,12 @@ const TEXT = {
   coloursLabel: 'colours',      // (these three as in the maintainer's sketch of the colour menu)
   metalsLabel: 'metals',
   fursLabel: 'furs',
+  // Furs and field treatments made from two colours (the button's words are the maintainer's).
+  moreOptions: 'More complex options',
+  makerKind: 'What kind of fur or field treatment',                    // DRAFT (read out by screen readers only)
+  makerColour: 'Which colour',                                          // DRAFT (the same)
+  makerAdd: name => (name ? `add ${name}` : 'add'),                     // DRAFT
+  makerNeeds: 'Choose one colour and one metal',                        // DRAFT
   fieldColours: 'What colours are used in the background?',
   fieldColoursHelp: "If you're not sure what counts as background (field) in heraldry, use the question at the top to select colours and scroll down for more questions",
   dividedHeading: 'How is the background divided?',
@@ -238,6 +249,8 @@ const TEXT = {
   complexOption: 'more complex background',
   swap: 'Swap the two colours',                                         // DRAFT
   builderDivision: 'The background is divided',                         // DRAFT
+  builderOver: 'and counterchanged with',                               // DRAFT (a second division over the first: "orly and chevronelly")
+  builderNoOver: 'nothing else',                                        // DRAFT
   builderPart: n => `Part ${n} is`,                                     // DRAFT
   builderAnd: 'and',                                                    // DRAFT
   chargeHeading: 'What charges are on the field?',
@@ -391,7 +404,10 @@ const TEXT = {
 const SUGGESTION_COUNT = 12;   // how many suggestions along the bottom
 const MAX_CARDS = 18;          // most option pictures in one group (3 rows of 6)
 const MAX_NAMES_SHOWN = 40;
-const ALL_TINCTURES = [...COLOUR_ORDER, ...METAL_ORDER, ...FUR_ORDER];
+// Every tincture on offer: the plain ones, the furs always shown, and any fur
+// or field treatment made under "More complex options" (state.extraTinctures).
+const furOrder = () => [...FUR_ORDER, ...state.extraTinctures];
+const allTinctures = () => [...COLOUR_ORDER, ...METAL_ORDER, ...furOrder()];
 const TWO_TINCTURE = Object.keys(DIVISIONS).filter(d => DIVISIONS[d].parts === 2);
 const THREE_TINCTURE = Object.keys(DIVISIONS).filter(d => DIVISIONS[d].parts === 3);
 // A fresh starting point for the random pictures each time the page is opened.
@@ -438,6 +454,9 @@ const state = {
   chargeFilter: '',
   view: 'default',       // which charges the list shows: 'default' | 'all' | 'type:...' | 'theme:...' | 'need:...'
   any: false,            // suggestions may use any of the charges chosen (true) or must use all of them (false)
+  extraTinctures: [],    // furs and field treatments made under "More complex options" (ids from tinctureFrom in core/catalog.js)
+  moreOptions: false,    // is "More complex options" open?
+  maker: { pattern: 'ermined', first: 'vert', second: 'or' },   // what it is set to make
   explore: null,         // which chosen charge's bigger box of postures and orientations is open ("expand"), or null
   pinned: [],            // suggestions the user has pinned
   epoch: 0,
@@ -455,7 +474,7 @@ let shownArrangements = [];                    // the arrangement pictures on sc
 // (otherwise the only possible shield would be one plain colour).
 const palette = () => (state.shieldColours.length >= 2 ? state.shieldColours : null);
 const mustInclude = () => (state.shieldColours.length === 1 ? state.shieldColours[0] : null);
-const offered = () => palette() || ALL_TINCTURES;
+const offered = () => palette() || allTinctures();
 
 // Keep the answers consistent with each other after any change.
 function tidy() {
@@ -780,13 +799,13 @@ function slimSets(ids, { attr, on, why = () => null, counterchanged = false, als
     }
     return `<button class="slim${faults ? ` greyed" aria-disabled="${!state.herald}" title="${esc(ruleText(faults[0]))}` : ''}" type="button" ${attr}="${id}" aria-pressed="${!!on(id)}">` +
       `${counter ? counterchangedSwatchSVG() : swatchSVG(id)}<span><b>${esc(name)}</b>` +
-      `${counter || t.kind === 'fur' ? '' : `<small>(${esc(t.plain)})</small>`}</span></button>`;
+      `${counter || (t.kind !== 'colour' && t.kind !== 'metal') ? '' : `<small>(${esc(t.plain)})</small>`}</span></button>`;
   };
   const set = (label, order) => {
     const list = order.filter(id => ids.includes(id));
     return list.length ? `<div class="slim-set"><div class="slim-label">${esc(label)}</div><div class="slim-row">${list.map(one).join('')}</div></div>` : '';
   };
-  const sets = set(TEXT.coloursLabel, COLOUR_ORDER) + set(TEXT.metalsLabel, METAL_ORDER) + set(TEXT.fursLabel, FUR_ORDER);
+  const sets = set(TEXT.coloursLabel, COLOUR_ORDER) + set(TEXT.metalsLabel, METAL_ORDER) + set(TEXT.fursLabel, furOrder());
   const last = counterchanged || also
     ? `<div class="slim-set slim-extra">${counterchanged ? `<div class="slim-row">${one(COUNTERCHANGED)}</div>` : ''}${also}</div>` : '';
   const listed = names => cap(names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0]);
@@ -794,9 +813,29 @@ function slimSets(ids, { attr, on, why = () => null, counterchanged = false, als
   return `<div class="slim-sets">${sets}${last}</div>` + (line ? `<p class="why-line">${esc(line)}</p>` : '');
 }
 
+// "More complex options" (the maintainer's words, November 2026): the furs
+// and field treatments that are made from two colours ("vert ermined Or",
+// "vairy purpure and argent", "azure masoned Or"). Choosing a kind and two
+// colours and pressing the button adds it to the furs in every colour menu.
+// What can be made, and the names, come from PATTERNS in core/catalog.js.
+function tinctureMaker() {
+  let html = `<button class="link-btn" type="button" data-more-options aria-expanded="${state.moreOptions}">${esc(TEXT.moreOptions)}</button>`;
+  if (!state.moreOptions) return html;
+  const m = state.maker, id = tinctureFrom(m.pattern, m.first, m.second);
+  const opt = (value, label, selected) => `<option value="${value}"${selected ? ' selected' : ''}>${esc(label)}</option>`;
+  const colours = which => `<select data-maker="${which}" aria-label="${esc(TEXT.makerColour)}">` +
+    [...COLOUR_ORDER, ...METAL_ORDER].map(t => opt(t, TINCTURES[t].name, m[which] === t)).join('') + `</select>`;
+  html += `<div class="maker"><select data-maker="pattern" aria-label="${esc(TEXT.makerKind)}">` +
+    Object.keys(PATTERNS).map(p => opt(p, PATTERNS[p].name('…', '…'), m.pattern === p)).join('') + `</select>` +
+    `${colours('first')} ${colours('second')}` + (id ? swatchSVG(id) : '') +
+    `<button class="plain-btn" type="button" data-maker-add${id && !allTinctures().includes(id) ? '' : ' disabled'}>${esc(TEXT.makerAdd(id ? TINCTURES[id].name : ''))}</button>` +
+    (id ? '' : `<span class="why">${esc(TEXT.makerNeeds)}</span>`) + `</div>`;
+  return html;
+}
+
 function renderColourPanels() {
   $('shieldColoursPanel').innerHTML = `<h2>${esc(TEXT.shieldColours)}</h2><p class="help">${esc(TEXT.shieldColoursHelp)}</p>` +
-    slimSets(ALL_TINCTURES, { attr: 'data-q1', on: id => state.shieldColours.includes(id) }) + paletteChooser();
+    slimSets(allTinctures(), { attr: 'data-q1', on: id => state.shieldColours.includes(id) }) + tinctureMaker() + paletteChooser();
   $('fieldColoursPanel').innerHTML = `<h2>${esc(TEXT.fieldColours)}</h2><p class="help">${esc(TEXT.fieldColoursHelp)}</p>` +
     slimSets(offered(), { attr: 'data-q2', on: id => state.fieldColours.includes(id),
       also: `<button class="name-btn" type="button" data-field-unspecified aria-pressed="${state.fieldUnspecified}">${esc(TEXT.dontSpecify)}</button>` });
@@ -861,17 +900,24 @@ function renderDivisionPanel() {
 
 function plainLabel(tincture) {
   const t = TINCTURES[tincture];
-  return TEXT.plainBackground(t.kind === 'fur' ? t.name : cap(t.plain));
+  return TEXT.plainBackground(t.kind !== 'colour' && t.kind !== 'metal' ? t.name : cap(t.plain));
 }
 
 // ---- The "more complex background" form ---------------------------------------
 function builderToField(b) {
   const parts = b.parts.slice(0, DIVISIONS[b.division].parts).map(p =>
     p.kind === 'plain' ? plain(p.tincture) : divided(p.kind, [plain(p.a), plain(p.b)]));
-  return divided(b.division, parts);
+  // Two divisions counterchanged over each other ("orly and chevronelly"):
+  // both parts are plain, and the second division is laid over the first.
+  const both = b.over && parts.every(p => p.type === 'plain') ? divisionsTogether(b.division, b.over) : null;
+  return divided(both || b.division, parts);
 }
 
 function builderFromField(field) {
+  if (field.division.includes('+')) {
+    const [division, over] = field.division.split('+');
+    return { ...builderFromField({ ...field, division }), over };
+  }
   const parts = field.parts.map(p => (p.type === 'plain'
     ? { kind: 'plain', tincture: p.tincture, a: p.tincture, b: p.tincture }
     : { kind: p.division, tincture: p.parts[0].tincture, a: p.parts[0].tincture, b: p.parts[1].tincture }));
@@ -895,7 +941,7 @@ function defaultBuilder() {
     const found = set.length >= 3 && randomShield({ fieldTinctures: set, charge: 'none', allowBare: true }, key, library);
     if (found && isNested(found.field)) return builderFromField(found.field);
   }
-  const t = [...chosen, ...pool, ...ALL_TINCTURES];
+  const t = [...chosen, ...pool, ...allTinctures()];
   return builderFromField(divided('perPale', [plain(t[0]), divided('checky', [plain(t[1]), plain(t[2])])]));
 }
 
@@ -909,7 +955,7 @@ function renderBuilder() {
   // Would this change leave a background the rules allow?
   const allowed = change => {
     if (state.herald) return true;
-    const trial = { division: b.division, parts: b.parts.map(p => ({ ...p })) };
+    const trial = { division: b.division, over: b.over || null, parts: b.parts.map(p => ({ ...p })) };
     change(trial);
     return checkShield({ field: builderToField(trial), groups: [] }).length === 0;
   };
@@ -922,6 +968,12 @@ function renderBuilder() {
   const tops = Object.keys(DIVISIONS);
   let html = `<div class="builder"><label>${esc(TEXT.builderDivision)} <select data-b="division">` +
     tops.map(id => opt(id, DIVISIONS[id].name, id === b.division, allowed(t => { t.division = id; }))).join('') + `</select></label>`;
+  // A second division counterchanged over the first: "orly and chevronelly"
+  // (the maintainer, November 2026). Only when each part is one plain colour.
+  if (parts === 2 && b.parts.slice(0, 2).every(p => p.kind === 'plain')) {
+    html += `<label>${esc(TEXT.builderOver)} <select data-b="over">` + opt('', TEXT.builderNoOver, !b.over, true) +
+      TWO_TINCTURE.filter(id => id !== b.division).map(id => opt(id, DIVISIONS[id].name, id === b.over, allowed(t => { t.over = id; }))).join('') + `</select></label>`;
+  }
   for (let i = 0; i < parts; i++) {
     const p = b.parts[i];
     const kinds =
@@ -1118,7 +1170,7 @@ function slotBlock(slot, c) {
   const square = id => `<button class="sq${greyedAttr(colours.get(id) ? ruleText(colours.get(id)[0]) : '')}" type="button" data-slot="${slot}" ` +
     `data-charge-tincture="${id}" aria-pressed="${item.tincture === id}" aria-label="${esc(tinctureName(id))}"` +
     `${colours.get(id) ? '' : ` title="${esc(tinctureName(id))}"`}>${id === COUNTERCHANGED ? counterchangedSwatchSVG() : swatchSVG(id)}</button>`;
-  const inOrder = [...COLOUR_ORDER, ...METAL_ORDER, ...FUR_ORDER].filter(id => offer.includes(id));
+  const inOrder = allTinctures().filter(id => offer.includes(id));
   html += `<div class="pick-row"><label class="pick-label" for="colour${slot}">${esc(TEXT.colourLabel)}</label>` +
     `<select id="colour${slot}" data-colour-select="${slot}"><option value="">${esc(TEXT.roleUnset)}</option>` +
     inOrder.map(id => option(id, TINCTURES[id].name, colours.get(id))).join('') +
@@ -1623,7 +1675,7 @@ function adopt(shield) {
   const { field, groups } = shield;
   state.fieldColours = [...new Set(leafTinctures(field))];
   if (field.type === 'plain') { state.division = 'plain'; state.builder = null; }
-  else if (isNested(field)) { state.division = 'complex'; state.builder = builderFromField(field); }
+  else if (isNested(field) || field.division.includes('+')) { state.division = 'complex'; state.builder = builderFromField(field); }
   else { state.division = field.division; state.builder = null; state.fieldColours = leafTinctures(field); }
   // The charges, one entry each, and how they go together.
   const made = unarrange(groups);
@@ -1728,6 +1780,16 @@ document.addEventListener('click', e => {
     }
     assume = true;
     refocus = `[data-q1="${d.q1}"]`;
+  } else if ('moreOptions' in d) {
+    state.moreOptions = !state.moreOptions;
+    refocus = '[data-more-options]';
+  } else if ('makerAdd' in d) {
+    // The fur or treatment made joins the furs on offer, and the shield's
+    // colours if any are ticked.
+    const id = tinctureFrom(state.maker.pattern, state.maker.first, state.maker.second);
+    if (id && !allTinctures().includes(id)) state.extraTinctures.push(id);
+    if (id && state.shieldColours.length && !state.shieldColours.includes(id)) state.shieldColours.push(id);
+    refocus = `[data-q1="${id}"]`;
   } else if ('fieldUnspecified' in d) {
     state.fieldUnspecified = !state.fieldUnspecified;
     refocus = '[data-field-unspecified]';
@@ -1857,8 +1919,16 @@ document.addEventListener('change', e => {
     document.querySelector(`select[data-role="${i}"]`)?.focus({ preventScroll: true });
     return;
   }
+  // "More complex options": the kind of fur or treatment, and its two colours.
+  const maker = e.target.closest('select[data-maker]');
+  if (maker) {
+    state.maker = { ...state.maker, [maker.dataset.maker]: maker.value };
+    render();
+    document.querySelector(`select[data-maker="${maker.dataset.maker}"]`)?.focus({ preventScroll: true });
+    return;
+  }
   // A chosen charge's posture, which drawing of it, and which way it is turned.
-  const pose = e.target.closest('select[data-posture-select], select[data-art-select]');
+  const pose =e.target.closest('select[data-posture-select], select[data-art-select]');
   if (pose) {
     const slot = Number(pose.dataset.postureSelect ?? pose.dataset.artSelect), key = pose.id;
     const refocus = () => document.getElementById(key)?.focus({ preventScroll: true });
@@ -1892,7 +1962,8 @@ document.addEventListener('change', e => {
   const sel = e.target.closest('select[data-b]');
   if (!sel) return;
   const b = state.builder, i = Number(sel.dataset.i);
-  if (sel.dataset.b === 'division') b.division = sel.value;
+  if (sel.dataset.b === 'division') { b.division = sel.value; if (b.over === b.division) b.over = null; }
+  else if (sel.dataset.b === 'over') b.over = sel.value || null;
   else if (sel.dataset.b === 'kind') {
     if (sel.value.startsWith('plain:')) { b.parts[i].kind = 'plain'; b.parts[i].tincture = sel.value.slice(6); }
     else b.parts[i].kind = sel.value;

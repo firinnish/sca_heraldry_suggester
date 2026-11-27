@@ -9,7 +9,7 @@
 
 import { TINCTURES } from './catalog.js';
 import { COUNTERCHANGED, counterchangedField } from './shield.js';
-import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes, framePath } from './geometry.js';
+import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes, framePath, isLayered } from './geometry.js';
 import { layoutShield } from './layout.js';
 import { scatter } from './scatter.js';
 
@@ -50,8 +50,12 @@ function ermineSpot(x, y, fill, outlined = false) {
 function paintFor(tincture, ctx) {
   const t = TINCTURES[tincture];
   const lines = ctx.mode === 'lines';
-  if (!t.fur) return lines ? '#fff' : t.hex;
-  const id = `${ctx.id}-${tincture}`;
+  if (!t.fur && !t.pattern) return lines ? '#fff' : t.hex;
+  const id = `${ctx.id}-${tincture.replace(/:/g, '_')}`;
+  if (!t.fur) {
+    if (!ctx.furs.has(tincture)) { ctx.furs.add(tincture); ctx.defs.push(patternOf(id, t, lines)); }
+    return `url(#${id})`;
+  }
   if (!ctx.furs.has(tincture)) {
     ctx.furs.add(tincture);
     const spots = TINCTURES[t.fur.spots].hex;
@@ -61,6 +65,36 @@ function paintFor(tincture, ctx) {
       ermineSpot(4.5, 2, spots, lines) + ermineSpot(13.5, 13, spots, lines) + `</pattern>`);
   }
   return `url(#${id})`;
+}
+
+// The furs and field treatments that repeat like a tiling (catalog.js:
+// PATTERNS), each as one tile: its size on a shield 100 wide, and its shapes
+// in the second tincture over a background of the first. The shapes were
+// measured from Traceable Heraldic Art's drawings: five vair bells or four
+// and a half bricks across a shield, every slope of a bell at 45 degrees.
+// In vair the colour makes the bells, points upward.
+const poly = (points, dx = 0, dy = 0) => `<path d="M${points.map(([x, y]) => `${x + dx} ${y + dy}`).join(' L')} Z"/>`;
+const BELL = [[0, 20], [5, 15], [5, 5], [10, 0], [15, 5], [15, 15], [20, 20]];
+const BELL_DOWN = BELL.map(([x, y]) => [x, 40 - y]);
+const CRUTCH = [[0, 14], [0, 7], [7, 7], [7, 0], [14, 0], [14, 7], [21, 7], [21, 14]];
+// (a scale hangs downward from the line it is sewn to; a "papellony" one is its edge alone)
+const scale = (x, y, inner) => `<path d="M${x} ${y} a12.5 12.5 0 0 0 25 0 ${inner}Z"/>`;
+const TILES = {
+  vairy:        { w: 20, h: 40, shapes: () => poly(BELL) + poly(BELL, 10, 20) + poly(BELL, -10, 20) },
+  countervairy: { w: 20, h: 40, shapes: () => poly(BELL) + poly(BELL_DOWN) },
+  potenty:      { w: 28, h: 28, shapes: () => poly(CRUTCH) + poly(CRUTCH, 14, 14) + poly(CRUTCH, -14, 14) },
+  masoned:      { w: 22, h: 28, thin: true, shapes: () => `<path d="M0 0 H22 M0 14 H22 M0 28 H22 M11 0 V14 M0 14 V28 M22 14 V28"/>` },
+  scaly:        { w: 25, h: 25, shapes: () => [[0, 0], [-12.5, 12.5], [12.5, 12.5], [0, 25]].map(([x, y]) => scale(x, y, 'a12.5 8 0 0 1 -25 0')).join('') },
+  papellony:    { w: 25, h: 25, shapes: () => [[0, 0], [-12.5, 12.5], [12.5, 12.5], [0, 25]].map(([x, y]) => scale(x, y, 'h-2.5 a10 10 0 0 1 -20 0')).join('') },
+};
+function patternOf(id, t, lines) {
+  const tile = TILES[t.pattern], [ground, over] = t.pair.map(p => TINCTURES[p].hex);
+  // (masoning is drawn as lines; everything else as filled shapes, which in
+  // the picture of outlines alone are white with a line round them)
+  const paint = tile.thin ? `fill="none" stroke="${lines ? LINE : over}" stroke-width="${lines ? 0.6 : 1.3}"`
+    : lines ? `fill="#fff" stroke="${LINE}" stroke-width="0.5"` : `fill="${over}"`;
+  return `<pattern id="${id}" width="${tile.w}" height="${tile.h}" patternUnits="userSpaceOnUse">` +
+    `<rect width="${tile.w}" height="${tile.h}" fill="${lines ? '#fff' : ground}"/><g ${paint}>${tile.shapes()}</g></pattern>`;
 }
 
 // ---- The field -------------------------------------------------------------
@@ -86,7 +120,8 @@ function drawField(field, ctx, regions = [], key = 'whole', frame = null) {
   const variant = regions.length ? null : ctx.variant;
   return divisionShapes(field.division, frame, variant).map((polygons, i) => {
     const clipId = `${ctx.id}-c${ctx.clips++}`, d = pathOf(polygons);
-    ctx.defs.push(`<clipPath id="${clipId}"><path d="${d}"/></clipPath>`);
+    // (layered shapes, such as orly's, make their pieces by "evenodd": geometry.js)
+    ctx.defs.push(`<clipPath id="${clipId}"><path d="${d}"${isLayered(field.division) ? ' clip-rule="evenodd"' : ''}/></clipPath>`);
     const part = drawField(field.parts[i], ctx, [...regions, polygons], `${key}/${frame || ''}${field.division}${variant || ''}${i}`, frame);
     // Outlines only: each part draws the line round itself, inside its own
     // edge, so the two halves of every line meet and nothing spills over.
@@ -188,7 +223,9 @@ function drawCharge(group, paint, picture, flipY, { cx, cy, size, turn }, ctx) {
 // `image` is the <image ...> element, left open so that more can be added.
 function paintedImage(group, paint, image, n, ctx) {
   const maskId = `${ctx.id}-m${n}`, linesId = `${ctx.id}-l${n}`;
-  const [r, g, b] = (ctx.mode !== 'lines' && DARK_CHARGES.has(group.tincture) ? LINE_ON_DARK : LINE_ON_LIGHT).map(v => (v / 255).toFixed(3));
+  const made = TINCTURES[group.tincture];           // (a fur or treatment on a sable background is dark too)
+  const dark = DARK_CHARGES.has(group.tincture) || (!!made && !!made.pair && made.tone !== 'neutral' && made.pair[0] === 'sable');
+  const [r, g, b] = (ctx.mode !== 'lines' && dark ? LINE_ON_DARK : LINE_ON_LIGHT).map(v => (v / 255).toFixed(3));
   ctx.defs.push(
     `<mask id="${maskId}">${image}/></mask>` +
     // keeps the picture's dark lines only: colour = line colour, opacity = opacity - brightness

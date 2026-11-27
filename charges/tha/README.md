@@ -9,7 +9,13 @@ copies are shared under the same licence.
 - **Who drew each one** is listed in [`../tha.csv`](../tha.csv): the artist,
   the source the collection took it from, and a link to its page in the
   collection. The search page shows these credits under any shield that uses
-  one of the pictures.
+  one of the pictures. A few pictures (fourteen in November 2026) are not in
+  the collection's list of credits; for those the artist is left empty and
+  the link goes to the charge's page in the collection, where its credit is
+  given.
+- **Which pictures:** for each charge, the picture chosen for it, then one
+  of each posture the collection draws it in, then other artists' drawings
+  of it, up to ten in all.
 - **What has been changed:** the numbers in each drawing are rounded to two
   decimal places to make the files smaller, and the very pale grey the
   insides are painted with is made white, so that the tools can paint a
