@@ -162,10 +162,11 @@ const DARK_CHARGES = new Set(['sable', 'counterermine', 'pean']);
 const BLOB = 'M50 4 C78 2 98 22 94 50 C99 78 74 98 48 95 C22 99 2 76 6 50 C1 24 22 3 50 4 Z';
 
 function drawCharge(group, paint, picture, flipY, { cx, cy, size, turn }, ctx) {
-  const w = size, h = size / picture.aspect, x = cx - w / 2, y = cy - h / 2;
-  const n = ctx.clips++;
   // A charge lying along a bend or a chevron's arm is turned to follow it.
   const turning = turn ? `rotate(${turn} ${cx} ${cy}) ` : '';
+  if (picture.base) return drawTurned(group, paint, picture, { cx, cy, size }, turning, ctx);
+  const w = size, h = size / picture.aspect, x = cx - w / 2, y = cy - h / 2;
+  const n = ctx.clips++;
   if (!picture.href) {
     const id = `${ctx.id}-b${n}`;
     const blob = `<path d="${BLOB}" transform="${turning}translate(${x} ${y}) scale(${w / 100} ${h / 100})"`;
@@ -180,6 +181,12 @@ function drawCharge(group, paint, picture, flipY, { cx, cy, size, turn }, ctx) {
     ? ` transform="${turning}translate(${cx} ${cy}) scale(${group.mirror ? -1 : 1} ${flipY ? -1 : 1}) translate(${-cx} ${-cy})"`
     : '';
   const image = `<image href="${picture.href}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none"${flip}`;
+  return paintedImage(group, paint, image, n, ctx);
+}
+
+// The picture painted in the group's tincture, with its lines on top.
+// `image` is the <image ...> element, left open so that more can be added.
+function paintedImage(group, paint, image, n, ctx) {
   const maskId = `${ctx.id}-m${n}`, linesId = `${ctx.id}-l${n}`;
   const [r, g, b] = (ctx.mode !== 'lines' && DARK_CHARGES.has(group.tincture) ? LINE_ON_DARK : LINE_ON_LIGHT).map(v => (v / 255).toFixed(3));
   ctx.defs.push(
@@ -188,6 +195,21 @@ function drawCharge(group, paint, picture, flipY, { cx, cy, size, turn }, ctx) {
     `<filter id="${linesId}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" ` +
     `values="0 0 0 0 ${r}  0 0 0 0 ${g}  0 0 0 0 ${b}  -1 0 0 1 0"/></filter>`);
   return paint(`mask="url(#${maskId})"`) + `${image} filter="url(#${linesId})"/>`;
+}
+
+// A charge TURNED to lie another way ("a sword bendwise"). `picture` is the
+// turned picture from art.js: the layout fitted its turned shape, `size`
+// wide, about (cx, cy); what is drawn is the picture itself (`base`), first
+// mirrored or turned over as wanted, then turned about its own centre.
+function drawTurned(group, paint, picture, { cx, cy, size }, turning, ctx) {
+  const base = picture.base, n = ctx.clips++;
+  const w = size * picture.k, h = w / base.aspect;
+  const px = cx + picture.ox * size, py = cy + picture.oy * size;     // the picture's own centre
+  const round = v => Math.round(v * 1000) / 1000;
+  const flip = picture.mirror || picture.flipY ? ` translate(${round(px)} ${round(py)}) scale(${picture.mirror ? -1 : 1} ${picture.flipY ? -1 : 1}) translate(${round(-px)} ${round(-py)})` : '';
+  const image = `<image href="${base.href}" x="${round(px - w / 2)}" y="${round(py - h / 2)}" width="${round(w)}" height="${round(h)}" preserveAspectRatio="none"` +
+    ` transform="${turning}rotate(${picture.turn} ${round(px)} ${round(py)})${flip}"`;
+  return paintedImage(group, paint, image, n, ctx);
 }
 
 // One group as the layout (layout.js) has placed it, then whatever lies on it.
@@ -214,7 +236,7 @@ function drawGroup(group, entry, field, ctx, frame) {
 // What is drawn over what: the primary group, the groups around it, then the
 // ordinaries along the edge (a bordure lies over the ends of a fess, and a
 // chief over the top of a bordure).
-const PERIPHERAL_ORDER = ['base', 'bordure', 'orle', 'chief'];
+const PERIPHERAL_ORDER = ['base', 'flaunches', 'gore', 'bordure', 'orle', 'chief', 'canton'];
 const layer = (group, entry) =>
   (entry.role === 'primary' ? 0 : entry.role === 'secondary' ? 1 : 2 + PERIPHERAL_ORDER.indexOf(group.ordinary));
 

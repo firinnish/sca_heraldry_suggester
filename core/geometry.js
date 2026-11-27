@@ -339,7 +339,33 @@ const ORDINARY_SHAPES = {
   pile: (division, k) => [[[C - 1.5 * UNIT * k, -2], [C + 1.5 * UNIT * k, -2], [C, 115.6]]],
   chief: () => [rect(-10, -10, W + 20, CHIEF_BOTTOM + 10)],
   base: () => [rect(-10, BASE_TOP, W + 20, H)],
+  // The next three follow Traceable Heraldic Art's device forms ("Canton",
+  // "Flaunches" and "Gore"), whose curves are copied here point for point.
+  // A canton: a square in the dexter chief corner, as deep as a chief.
+  canton: () => [rect(-10, -10, CHIEF_BOTTOM + 10, CHIEF_BOTTOM + 10)],
+  // Flaunches: a curve in from each side, from the corner of the chief to
+  // low on the flank, reaching about a quarter of the way across.
+  flaunches: () => {
+    const curve = curvePoints([1.89, 1.93], [25.46, 25.51], [31.5, 59.97], [20.02, 89.13]);
+    const dexter = [[-10, -10], [1.2, -10], ...curve, [-10, 95]];
+    return [dexter, dexter.map(([x, y]) => [W - x, y])];
+  },
+  // A gore: two curves, from the dexter chief corner and from the point of
+  // the shield, meeting just short of the fess point.
+  gore: () => [[[-10, -10], [1.31, -10],
+    ...curvePoints([1.31, 1.27], [1.31, 1.27], [4.96, 42.67], [44.51, 49.93]),
+    ...curvePoints([44.51, 49.93], [25.66, 90.16], [50.02, 118.17], [50.02, 118.17]).slice(1),
+    [50.02, H + 10], [-10, H + 10]]],
 };
+
+// Points along a curve from `a` to `d` that leaves towards `b` and arrives
+// from `c` (a cubic Bezier curve, as in a drawing program).
+function curvePoints(a, b, c, d, steps = 24) {
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const t = i / steps, u = 1 - t;
+    return [0, 1].map(k => +(u * u * u * a[k] + 3 * u * u * t * b[k] + 3 * u * t * t * c[k] + t * t * t * d[k]).toFixed(2));
+  });
+}
 
 // Fields whose lines run corner to corner through the fess point. On these a
 // chevron (or chevron inverted) is drawn with its point at the fess point, so

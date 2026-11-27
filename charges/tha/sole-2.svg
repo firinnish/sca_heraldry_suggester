@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="63 63 99 351" width="99" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 63 63 L 162 63 L 162 414 L 63 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Sole_(2)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Sole (2)</title>
+    <g id="Sole_(2)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_768">
+        <path d="M 112.42 65.49 C 112.42 65.49 66.56 112.3 66.56 168.58 C 66.56 224.86 87.27 235.38 87.27 283.66 C 87.27 331.93 73.02 348.97 73.02 371.02 C 73.02 393.06 91.52 411.51 112.27 411.51 C 133.02 411.51 151.47 395.53 151.47 370.21 C 151.47 344.88 133.44 331.19 133.44 284.58 C 133.44 237.98 158.44 228.34 158.44 168.5 C 158.44 108.66 112.42 65.49 112.42 65.49 Z" fill="#ffffff"/>
+        <path d="M 112.42 65.49 C 112.42 65.49 66.56 112.3 66.56 168.58 C 66.56 224.86 87.27 235.38 87.27 283.66 C 87.27 331.93 73.02 348.97 73.02 371.02 C 73.02 393.06 91.52 411.51 112.27 411.51 C 133.02 411.51 151.47 395.53 151.47 370.21 C 151.47 344.88 133.44 331.19 133.44 284.58 C 133.44 237.98 158.44 228.34 158.44 168.5 C 158.44 108.66 112.42 65.49 112.42 65.49 Z" stroke="#383838" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

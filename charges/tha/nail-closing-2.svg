@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="94.5 63 175.5 351" width="175.5" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 94.5 63 L 270 63 L 270 360 L 245.7 414 L 94.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Nail,_Closing_(2)" stroke-opacity="1" stroke="none" fill="none" fill-opacity="1" stroke-dasharray="none">
+    <title>Nail, Closing (2)</title>
+    <g id="Nail,_Closing_(2)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_55">
+        <g id="Graphic_53">
+          <path d="M 151.22 65.25 C 151.22 65.25 130.53 96.28 99.5 116.97 L 155.02 116.97 C 160.56 190.24 171.41 325 182.25 411.75 C 193.09 325 203.94 190.24 209.48 116.97 L 265 116.97 C 233.97 96.28 213.28 65.25 213.28 65.25 Z" fill="#ffffff"/>
+          <path d="M 151.22 65.25 C 151.22 65.25 130.53 96.28 99.5 116.97 L 155.02 116.97 C 160.56 190.24 171.41 325 182.25 411.75 C 193.09 325 203.94 190.24 209.48 116.97 L 265 116.97 C 233.97 96.28 213.28 65.25 213.28 65.25 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Line_54">
+          <path d="M 153 117 C 153 117 211.4 117.38 211.5 117" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

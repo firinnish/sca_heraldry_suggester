@@ -24,11 +24,21 @@ function measure(img) {
   g.drawImage(img, 0, 0, w, h);
   const alpha = g.getImageData(0, 0, w, h).data;
   const aspect = img.naturalWidth / img.naturalHeight;
+  // Which pixels of the (shrunken) picture are part of the charge. Used to
+  // place a charge ON this one, where the outline alone is not enough: the
+  // gap between a lion's tail and its back is inside the outline.
+  const data = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) data[i] = alpha[i * 4 + 3] > 40 ? 1 : 0;
+  return { aspect, outline: outlineOf(w, h, data, aspect), solid: { w, h, data } };
+}
+
+// The outline of the charge in a grid of pixels (`data`: 1 = part of it).
+function outlineOf(w, h, data, aspect) {
   const left = [], right = [];
   for (let y = 0; y < h; y++) {
     let first = -1, last = -1;
     for (let x = 0; x < w; x++) {
-      if (alpha[(y * w + x) * 4 + 3] > 40) { if (first < 0) first = x; last = x; }
+      if (data[y * w + x]) { if (first < 0) first = x; last = x; }
     }
     if (first < 0) continue;
     for (const edge of [y, y + 1]) {          // top and bottom edge of this row of pixels
@@ -37,14 +47,57 @@ function measure(img) {
       right.push([(last + 1) / w - 0.5, v]);
     }
   }
-  const outline = left.length ? [...left, ...right.reverse()]
+  return left.length ? [...left, ...right.reverse()]
     : [[-0.5, -0.5 / aspect], [0.5, -0.5 / aspect], [0.5, 0.5 / aspect], [-0.5, 0.5 / aspect]];
-  // Which pixels of the (shrunken) picture are part of the charge. Used to
-  // place a charge ON this one, where the outline alone is not enough: the
-  // gap between a lion's tail and its back is inside the outline.
-  const data = new Uint8Array(w * h);
-  for (let i = 0; i < w * h; i++) data[i] = alpha[i * 4 + 3] > 40 ? 1 : 0;
-  return { aspect, outline, solid: { w, h, data } };
+}
+
+// A picture TURNED to lie another way ("a sword bendwise"): the same picture,
+// with its shape worked out afresh as it will be drawn, so that layout.js
+// can fit it like any other. `mirror` (facing sinister) and `flipY` (upside
+// down) are applied first, to the picture as it was drawn; then it is turned
+// `angle` degrees clockwise. Beside what every picture has, the result has:
+//   base      the picture itself: what draw.js actually draws, turned
+//   turn      the angle
+//   k         the picture's own width, as a share of the turned shape's width
+//   ox, oy    where the picture's own centre lies, measured from the centre
+//             of the turned shape, as a share of the turned shape's width
+const turnedPictures = new Map();
+export function turnedPicture(picture, angle, mirror = false, flipY = false) {
+  if (!picture.solid || !angle) return picture;
+  const key = [picture.href, angle, mirror, flipY].join('|');
+  if (turnedPictures.has(key)) return turnedPictures.get(key);
+  const { w, h, data } = picture.solid;
+  const rad = angle * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
+  const W = Math.ceil(Math.abs(w * cos) + Math.abs(h * sin)) + 2, H = Math.ceil(Math.abs(w * sin) + Math.abs(h * cos)) + 2;
+  const grid = new Uint8Array(W * H);
+  let x0 = W, x1 = -1, y0 = H, y1 = -1;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      // where this point was before the turn (and before any flip)
+      const dx = x + 0.5 - W / 2, dy = y + 0.5 - H / 2;
+      let sx = dx * cos + dy * sin, sy = -dx * sin + dy * cos;
+      if (mirror) sx = -sx;
+      if (flipY) sy = -sy;
+      const px = Math.floor(sx + w / 2), py = Math.floor(sy + h / 2);
+      if (px < 0 || py < 0 || px >= w || py >= h || !data[py * w + px]) continue;
+      grid[y * W + x] = 1;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+    }
+  }
+  if (x1 < 0) return picture;
+  const tw = x1 - x0 + 1, th = y1 - y0 + 1, cropped = new Uint8Array(tw * th);
+  for (let y = 0; y < th; y++) for (let x = 0; x < tw; x++) cropped[y * tw + x] = grid[(y + y0) * W + x + x0];
+  const aspect = tw / th;
+  const made = {
+    href: picture.href, aspect, outline: outlineOf(tw, th, cropped, aspect), solid: { w: tw, h: th, data: cropped },
+    base: picture, turn: angle, mirror, flipY, k: w / tw,
+    ox: (W / 2 - (x0 + x1 + 1) / 2) / tw, oy: (H / 2 - (y0 + y1 + 1) / 2) / tw,
+  };
+  turnedPictures.set(key, made);
+  return made;
 }
 
 // Where a picture's file is. Our own pictures are PNGs in charges/art/; the

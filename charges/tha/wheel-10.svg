@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="33.75 60.75 297 297" width="297" height="297">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 33.75 60.75 L 330.75 60.75 L 330.75 274.5 L 253.07 357.75 L 33.75 357.75 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Wheel_(10)" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Wheel (10)</title>
+    <g id="Wheel_(10)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_133">
+        <g id="Graphic_132">
+          <title>rect1142</title>
+          <rect x="177.93" y="103.75" width="8.64" height="75.53" fill="#ffffff"/>
+          <rect x="177.93" y="103.75" width="8.64" height="75.53" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_131">
+          <title>rect1142-9</title>
+          <rect x="177.93" y="238.78" width="8.64" height="75.74" fill="#ffffff"/>
+          <rect x="177.93" y="238.78" width="8.64" height="75.74" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_130">
+          <title>rect1142-99</title>
+          <path d="M 253.77 131.7 L 259.88 137.81 L 206.47 191.22 L 200.36 185.11 Z" fill="#ffffff"/>
+          <path d="M 253.77 131.7 L 259.88 137.81 L 206.47 191.22 L 200.36 185.11 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_129">
+          <title>rect1142-9-2</title>
+          <path d="M 104.63 280.85 L 110.73 286.95 L 164.29 233.39 L 158.18 227.29 Z" fill="#ffffff"/>
+          <path d="M 104.63 280.85 L 110.73 286.95 L 164.29 233.39 L 158.18 227.29 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_128">
+          <title>rect1142-99-3</title>
+          <rect x="212.16" y="204.93" width="75.53" height="8.64" fill="#ffffff"/>
+          <rect x="212.16" y="204.93" width="75.53" height="8.64" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_127">
+          <title>rect1142-9-2-6</title>
+          <rect x="76.67" y="204.93" width="75.74" height="8.64" fill="#ffffff"/>
+          <rect x="76.67" y="204.93" width="75.74" height="8.64" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_126">
+          <title>rect1142-99-3-5</title>
+          <path d="M 259.88 280.76 L 253.76 286.88 L 200.36 233.47 L 206.47 227.36 Z" fill="#ffffff"/>
+          <path d="M 259.88 280.76 L 253.76 286.88 L 200.36 233.47 L 206.47 227.36 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_125">
+          <title>rect1142-9-2-6-4</title>
+          <path d="M 110.73 131.63 L 104.63 137.73 L 158.18 191.29 L 164.29 185.18 Z" fill="#ffffff"/>
+          <path d="M 110.73 131.63 L 104.63 137.73 L 158.18 191.29 L 164.29 185.18 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_124">
+          <path d="M 326.25 209.25 L 326.25 209.25 C 326.25 129.72 261.78 65.25 182.25 65.25 C 102.72 65.25 38.25 129.72 38.25 209.25 C 38.25 288.78 102.72 353.25 182.25 353.25 C 261.78 353.25 326.25 288.78 326.25 209.25 Z M 287.54 209.25 L 287.54 209.25 C 287.54 267.4 240.4 314.54 182.25 314.54 C 124.1 314.54 76.96 267.4 76.96 209.25 C 76.96 151.1 124.1 103.96 182.25 103.96 C 240.4 103.96 287.54 151.1 287.54 209.25 Z" fill="#ffffff"/>
+          <path d="M 326.25 209.25 L 326.25 209.25 C 326.25 129.72 261.78 65.25 182.25 65.25 C 102.72 65.25 38.25 129.72 38.25 209.25 C 38.25 288.78 102.72 353.25 182.25 353.25 C 261.78 353.25 326.25 288.78 326.25 209.25 Z M 287.54 209.25 L 287.54 209.25 C 287.54 267.4 240.4 314.54 182.25 314.54 C 124.1 314.54 76.96 267.4 76.96 209.25 C 76.96 151.1 124.1 103.96 182.25 103.96 C 240.4 103.96 287.54 151.1 287.54 209.25 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_123">
+          <title>path815-2-5-8-0-2-0</title>
+          <circle cx="182.25" cy="209.25" r="30.22" fill="#ffffff"/>
+          <circle cx="182.25" cy="209.25" r="30.22" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Group_114">
+          <g id="Line_122">
+            <line x1="299.08" y1="160.79" x2="279.57" y2="168.87" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+          <g id="Line_121">
+            <line x1="84.93" y1="249.5" x2="65.42" y2="257.58" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+          <g id="Line_120">
+            <line x1="230.64" y1="92.36" x2="222.56" y2="111.87" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+          <g id="Line_119">
+            <line x1="141.94" y1="306.51" x2="133.86" y2="326.01" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+          <g id="Line_118">
+            <line x1="230.55" y1="325.88" x2="222.47" y2="306.37" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+          <g id="Line_117">
+            <line x1="141.85" y1="111.73" x2="133.77" y2="92.22" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+          <g id="Line_116">
+            <line x1="299.08" y1="257.58" x2="279.57" y2="249.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+          <g id="Line_115">
+            <line x1="84.93" y1="168.87" x2="65.42" y2="160.79" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+        </g>
+        <g id="Graphic_113">
+          <path d="M 274.39 117.11 C 223.5 66.22 141 66.22 90.11 117.11 C 39.22 168 39.22 250.5 90.11 301.39 C 141 352.28 223.5 352.28 274.39 301.39 C 325.28 250.5 325.28 168 274.39 117.11 M 271.71 119.79 C 321.12 169.2 321.12 249.3 271.71 298.71 C 222.3 348.12 142.2 348.12 92.79 298.71 C 43.38 249.3 43.38 169.2 92.79 119.79 C 142.2 70.38 222.3 70.38 271.71 119.79" fill="#ffffff"/>
+          <path d="M 274.39 117.11 C 223.5 66.22 141 66.22 90.11 117.11 C 39.22 168 39.22 250.5 90.11 301.39 C 141 352.28 223.5 352.28 274.39 301.39 C 325.28 250.5 325.28 168 274.39 117.11 M 271.71 119.79 C 321.12 169.2 321.12 249.3 271.71 298.71 C 222.3 348.12 142.2 348.12 92.79 298.71 C 43.38 249.3 43.38 169.2 92.79 119.79 C 142.2 70.38 222.3 70.38 271.71 119.79" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width=".75"/>
+        </g>
+        <g id="Graphic_112">
+          <path d="M 195.38 196.12 C 188.13 188.87 176.37 188.87 169.12 196.12 C 161.87 203.37 161.87 215.13 169.12 222.38 C 176.37 229.63 188.13 229.63 195.38 222.38 C 202.63 215.13 202.63 203.37 195.38 196.12 M 192.36 199.14 C 197.95 204.72 197.95 213.78 192.36 219.36 C 186.78 224.95 177.72 224.95 172.14 219.36 C 166.55 213.78 166.55 204.72 172.14 199.14 C 177.72 193.55 186.78 193.55 192.36 199.14" fill="#ffffff"/>
+          <path d="M 195.38 196.12 C 188.13 188.87 176.37 188.87 169.12 196.12 C 161.87 203.37 161.87 215.13 169.12 222.38 C 176.37 229.63 188.13 229.63 195.38 222.38 C 202.63 215.13 202.63 203.37 195.38 196.12 M 192.36 199.14 C 197.95 204.72 197.95 213.78 192.36 219.36 C 186.78 224.95 177.72 224.95 172.14 219.36 C 166.55 213.78 166.55 204.72 172.14 199.14 C 177.72 193.55 186.78 193.55 192.36 199.14" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width=".75"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

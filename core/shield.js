@@ -21,7 +21,7 @@
 // Drawing shows these in grey, the blazon says so in words, the search leaves
 // them out, and the rules skip whatever they cannot judge yet.
 
-import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, AROUND_NAMED, SEMY } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, AROUND_NAMED, SEMY } from './catalog.js';
 
 const checkTincture = t => {
   if (t !== null && !TINCTURES[t]) throw new Error('Unknown tincture: ' + t);
@@ -55,9 +55,16 @@ export function divided(division, parts, line = 'plain') {
 // posture:     the O&A's word for it ('rampant'), or '' if none.
 // inverted:    true if the charge is upside down on the shield.
 // mirror:      true if it faces sinister.
-// art:         a picture from charges/art/, or null to draw a blob.
+// turned:      null, or an id from ORIENTATIONS in catalog.js when the charge
+//              is turned to lie along a line of the shield ('fesswise',
+//              'bendwise'...): "a sword bendwise".
+// art:       a picture from charges/art/, or null to draw a blob.
 // artInverted: true if that picture was drawn upside down; the drawing code
 //              turns it over as needed, so one picture serves both ways up.
+// artPosture:  the posture the picture shows (normally the same as
+//              `posture`, which may be left empty to keep it out of the
+//              blazon and the search). It tells an upright picture from one
+//              lying down when the charge is `turned`.
 // number:      how many (1, 2 or 3 so far), or null for "any number".
 // tincture:    a tincture id, COUNTERCHANGED, or null for "not chosen yet".
 //
@@ -104,16 +111,19 @@ const checkChargeTincture = t => { if (t !== COUNTERCHANGED) checkTincture(t); }
 export function ordinaryGroup(ordinary, tincture, { role = null, place = null, charged = null } = {}) {
   if (!ORDINARIES[ordinary]) throw new Error('Unknown ordinary: ' + ordinary);
   checkChargeTincture(tincture);
-  return { kind: 'ordinary', ordinary, number: 1, tincture, role, place, charged };
+  // (Flaunches come as a pair: catalog.js.)
+  return { kind: 'ordinary', ordinary, number: ORDINARIES[ordinary].count || 1, tincture, role, place, charged };
 }
 
 export function chargeGroup({ charge, name = charge, plural = '', category = '', posture = '',
-                              inverted = false, mirror = false, art = null, artInverted = false,
+                              inverted = false, mirror = false, turned = null, art = null, artInverted = false,
+                              artPosture = posture,
                               number = 1, tincture, role = null, place = null, charged = null, arranged = null }) {
   checkChargeTincture(tincture);
   if (arranged !== null && !ARRANGEMENTS[arranged]) throw new Error('Unknown arrangement: ' + arranged);
-  return { kind: 'charge', charge, name, plural, category, posture, inverted, mirror,
-           art, artInverted, number, tincture, role, place, charged, arranged };
+  if (turned !== null && !ORIENTATIONS[turned]) throw new Error('Unknown orientation: ' + turned);
+  return { kind: 'charge', charge, name, plural, category, posture, inverted, mirror, turned,
+           art, artInverted, artPosture, number, tincture, role, place, charged, arranged };
 }
 
 // ---- What each group on the field is ---------------------------------------------
@@ -176,6 +186,7 @@ export function chargeGroupFromLibrary(charge, picture, options) {
   return chargeGroup({
     charge: charge.id, name: charge.name, plural: charge.plural, category: charge.oanda_category,
     posture: picture ? picture.posture : '',
+    artPosture: picture ? picture.posture : '',
     art: picture ? picture.file : null,
     artInverted: picture ? picture.inverted : false,
     ...options,
@@ -258,11 +269,14 @@ function groupWords(group, words) {
   const one = (group.kind === 'ordinary' ? ORDINARIES[group.ordinary].name : group.name).toLowerCase();
   const many = group.plural ? group.plural.toLowerCase() : one + 's';
   let text;
-  if (group.number === 1) text = (/^[aeiou]/.test(one) ? 'an ' : 'a ') + one;
+  // "Or, flaunches azure": a pair is named without its number.
+  if (group.kind === 'ordinary' && ORDINARIES[group.ordinary].count === 2) text = ORDINARIES[group.ordinary].plural;
+  else if (group.number === 1) text = (/^[aeiou]/.test(one) ? 'an ' : 'a ') + one;
   else if (group.number === SEMY) text = 'semy of ' + many;
   else if (group.number === null) text = words.number + ' ' + many;
   else text = (NUMBER_WORDS[group.number] || group.number) + ' ' + many;
   if (group.posture) text += ' ' + group.posture;
+  if (group.turned) text += ' ' + ORIENTATIONS[group.turned].name;
   if (group.inverted) text += ' inverted';
   if (group.mirror) text += ' contourny';
   // How they are set out, if not the usual way: "in pale three roundels",

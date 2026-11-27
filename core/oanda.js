@@ -30,7 +30,7 @@
 // NOT CHOSEN YET: anything the shield description leaves open (see shield.js)
 // is simply left out of the pattern, so the search matches any value for it.
 
-import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, SEMY } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, SEMY, postureCode } from './catalog.js';
 import { COUNTERCHANGED, tincturesIn, isComplete, roles, isPeripheral } from './shield.js';
 
 const FORM_URL = 'https://oanda.sca.org/oanda_complex.cgi';
@@ -174,6 +174,19 @@ function tinctureFeatures(group, field) {
 // number out.
 const numberWord = n => (n === SEMY ? 'seme' : String(n));
 
+// A charge's posture and the way it is turned, in the O&A's own words
+// (catalog.js: POSTURES and ORIENTATIONS, both checked against real records):
+// "a lion passant guardant contourny" is "passant to sinister", "a sword
+// bendwise" is "bendwise". A swimming bird has a word of its own ("Azure, a
+// swan naiant argent" has "bird naiant to dexter"). Anything the O&A has no
+// sure word for is left out.
+function stanceFeatures(group) {
+  if (group.kind !== 'charge') return [];
+  let posture = postureCode(group.posture, !!group.mirror);
+  if (posture && posture.startsWith('naiant') && /^BIRD/.test(group.category || '')) posture = 'bird ' + posture;
+  return [posture, group.turned ? ORIENTATIONS[group.turned].code : null].filter(Boolean);
+}
+
 function groupLine(group, field, word, count = group.number) {
   const def = group.kind === 'ordinary' ? ORDINARIES[group.ordinary] : null;
   const bits = [def ? def.code : group.category];
@@ -182,7 +195,7 @@ function groupLine(group, field, word, count = group.number) {
   else if ((!def || def.numbered) && count !== null) bits.push(numberWord(count));
   bits.push(...tinctureFeatures(group, field));
   if (def) bits.push('pl');
-  if (group.posture) bits.push(group.posture);
+  bits.push(...stanceFeatures(group));
   if (word) bits.push(word);
   return bits.join(':');
 }
@@ -196,7 +209,7 @@ function primaryLines(group, field) {
   if (number) lines.push([code, number, 'primary']);
   if (tincture.length) lines.push([code, ...tincture, 'primary']);
   if (def) lines.push([code, 'pl', 'primary']);
-  if (group.posture) lines.push([code, group.posture, 'primary']);
+  for (const feature of stanceFeatures(group)) lines.push([code, feature, 'primary']);
   if (!lines.length) lines.push([code, 'primary']);
   // A named arrangement is one more thing about the group, with a category
   // of its own: "Argent, in pale three suns sable" has INPALE:3:g3pa:sable
@@ -204,6 +217,17 @@ function primaryLines(group, field) {
   const arranged = group.arranged ? ARRANGEMENTS[group.arranged] : null;
   if (arranged && arranged.code) lines.push([arranged.code, 'primary']);
   return lines.map(bits => bits.join(':'));
+}
+
+// A chief, bordure, orle or base is <code>:<tincture>:pl. Checked against
+// real records for the others: flaunches carry their number ("Or, flaunches
+// azure" has FLAUNCH:2:azure:pl), a gore too but no "pl" ("... and a gore
+// sinister azure" has GORE AND GUSSET:1:azure), and a canton neither
+// ("... and a canton Or" has CANTON:or). See ORDINARIES in catalog.js.
+function peripheralLine(group, field) {
+  const def = ORDINARIES[group.ordinary];
+  return [def.code, ...(def.count ? [String(def.count)] : []), ...tinctureFeatures(group, field),
+          ...(def.plainLine === false ? [] : ['pl'])].join(':');
 }
 
 // All the search patterns for a whole shield: the field, then each charge
@@ -214,7 +238,7 @@ export function shieldPatterns(field, groups = [], { noCharge = false } = {}) {
   const r = roles(groups);
   const patterns = [...fieldPatterns(field)], tertiary = [];
   groups.forEach((g, i) => {
-    if (r[i].role === 'peripheral') patterns.push([ORDINARIES[g.ordinary].code, ...tinctureFeatures(g, field), 'pl'].join(':'));
+    if (r[i].role === 'peripheral') patterns.push(peripheralLine(g, field));
     else if (!r[i].chosen) patterns.push(groupLine(g, field, null));
     else if (r[i].role === 'primary') patterns.push(...primaryLines(g, field));
     else patterns.push(groupLine(g, field, 'secondary'));

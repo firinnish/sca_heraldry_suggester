@@ -216,7 +216,16 @@ def main():
         elif not check_image(path, problems, warnings, name):
             images_checked = False
 
+    # A charge whose usual picture comes from Traceable Heraldic Art
+    # (charges/tha.csv, made by tools/import_tha.py) needs none marked here.
+    tha_path = os.path.join(folder, 'tha.csv')
+    tha_default = set()
+    if os.path.isfile(tha_path):
+        _, tha = read_csv(tha_path)
+        tha_default = {(r.get('charge_id') or '').strip() for r in tha if (r.get('default') or '').strip() == 'TRUE'}
     for cid in sorted({(r.get('charge_id') or '').strip() for r in art}):
+        if cid in tha_default and defaults.get(cid, 0) == 0:
+            continue
         if cid in by_id and defaults.get(cid, 0) != 1:
             warnings.append(f'art.csv: "{cid}" should have exactly one image marked default (it has {defaults.get(cid, 0)})')
 

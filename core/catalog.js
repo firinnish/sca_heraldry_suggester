@@ -108,7 +108,20 @@ export const ORDINARIES = {
   bordure:         { name: 'bordure',          code: 'BORDURE',   numbered: false, peripheral: true },
   orle:            { name: 'orle',             code: 'ORLE AND TRESSURE', numbered: true, peripheral: true },
   base:            { name: 'base',             code: 'BASE',      numbered: false, peripheral: true },
+  // Three more along the edge (the maintainer, November 2026), shaped as in
+  // Traceable Heraldic Art's device forms. How the O&A's records carry them:
+  // "Gules, a standing balance and a canton Or" has CANTON:or; "Or,
+  // flaunches azure" has FLAUNCH:2:azure:pl (and PO); "Or, a threaded needle
+  // and a gore sinister azure" has GORE AND GUSSET:1:azure.
+  // count:     how many the O&A's line says (flaunches come as a pair).
+  // plainLine: false = its records carry no "pl".
+  // plural:    how the blazon names it when it is a pair ("flaunches").
+  canton:          { name: 'canton',           code: 'CANTON',    numbered: false, peripheral: true, plainLine: false },
+  flaunches:       { name: 'flaunch', plural: 'flaunches', code: 'FLAUNCH', numbered: true, peripheral: true, count: 2 },
+  gore:            { name: 'gore',             code: 'GORE AND GUSSET', numbered: true, peripheral: true, count: 1, plainLine: false },
 };
+// What to call an ordinary on a button or in a list: "flaunches", "chevron".
+export const ordinaryLabel = id => (ORDINARIES[id].count === 2 ? ORDINARIES[id].plural : ORDINARIES[id].name);
 
 // ---- Arrangements ----------------------------------------------------------
 // How the charges of one group are set out, when it is not simply the usual
@@ -147,6 +160,82 @@ export const USUAL_ARRANGEMENT = { 2: 'side by side', 3: 'two and one', 4: 'two 
 // out, because there is no default: "a cross between in bend two roundels"
 // (the maintainer, November 2026; the O&A has some fifty blazons like it).
 export const AROUND_NAMED = { cross: { 2: 'in bend' } };
+
+// ---- Postures and orientations ------------------------------------------------
+// POSTURES: what the O&A calls each posture a blazon may name. Each entry is
+// [the words in the blazon, the O&A's word, its word when the charge faces
+// sinister ("contourny")]. The longest entry found in a blazon's posture
+// words wins, so "sejant erect" is found before "sejant". Worked out from
+// the records of armory with one charge (November 2026): "a bear sejant
+// erect" and "a bear statant erect" are indexed "rampant to dexter", "a stag
+// springing" likewise, "a stag trippant" is "passant to dexter", "a stag at
+// gaze" is "statant to dexter", "a winged lion sejant affronty" is
+// "affronte", "a dolphin haurient" is "hauriant". The O&A has both "rampant
+// to dexter" and plain "rampant", which finds either way round; birds
+// rising, volant, striking or stooping have no plain word, only "to dexter"
+// and "to sinister". Guardant and regardant are not indexed. Words not
+// listed (lodged, tergiant, embowed...) had too few records to be sure of,
+// so they are left out of the search.
+export const POSTURES = [
+  ['sejant affronty', 'affronte', 'affronte'],
+  ['sejant erect', 'rampant', 'rampant to sinister'],
+  ['statant erect', 'rampant', 'rampant to sinister'],
+  ['at gaze', 'statant', 'statant to sinister'],
+  ['rampant', 'rampant', 'rampant to sinister'],
+  ['segreant', 'rampant', 'rampant to sinister'],
+  ['springing', 'rampant', 'rampant to sinister'],
+  ['salient', 'salient', 'salient to sinister'],
+  ['passant', 'passant', 'passant to sinister'],
+  ['trippant', 'passant', 'passant to sinister'],
+  ['statant', 'statant', 'statant to sinister'],
+  ['couchant', 'couchant', 'couchant to sinister'],
+  ['dormant', 'dormant', 'dormant to sinister'],
+  ['courant', 'courant', 'courant to sinister'],
+  ['sejant', 'sejant', 'sejant to sinister'],
+  ['affronty', 'affronte', 'affronte'],
+  ['displayed', 'displayed', 'displayed'],
+  ['close', 'close', 'close to sinister'],
+  ['rising', 'rising to dexter', 'rising to sinister'],
+  ['volant', 'volant to dexter', 'volant to sinister'],
+  ['striking', 'striking to dexter', 'striking to sinister'],
+  ['stooping', 'stooping to dexter', 'stooping to sinister'],
+  ['haurient', 'hauriant', 'hauriant'],
+  ['naiant', 'naiant to dexter', 'naiant to sinister'],
+];
+// The O&A's word for a posture as blazoned ("passant guardant" -> "passant"),
+// or null if it has none we are sure of.
+export function postureCode(words, toSinister = false) {
+  const text = ` ${String(words || '').toLowerCase()} `;
+  const found = POSTURES.filter(p => text.includes(` ${p[0]} `)).sort((a, b) => b[0].length - a[0].length)[0];
+  return found ? found[toSinister ? 2 : 1] : null;
+}
+
+// ORIENTATIONS: the ways a charge can be turned to lie along a line of the
+// shield. `name` is the blazon's word and `code` the O&A's (my.cat's
+// "orientation" words). `tall` and `wide` are how far the picture is turned,
+// in degrees clockwise, for a picture that is drawn upright (a sword, point
+// up) and one drawn lying down (a fish, head to dexter): a sword fesswise
+// has its point to dexter, a sword bendwise its point to dexter chief.
+export const ORIENTATIONS = {
+  palewise:     { name: 'palewise',          code: 'palewise',          tall: 0,   wide: 90 },
+  fesswise:     { name: 'fesswise',          code: 'fesswise',          tall: -90, wide: 0 },
+  bendwise:     { name: 'bendwise',          code: 'bendwise',          tall: -45, wide: 45 },
+  bendSinister: { name: 'bendwise sinister', code: 'bendwise sinister', tall: 45,  wide: -45 },
+};
+// Is a picture drawn lying down (a fish, a lion passant: head to dexter)
+// rather than upright (a sword, a lion rampant)? Its posture says, if it has
+// one; otherwise a picture this much wider than it is tall is lying down.
+export const LYING = 1.25;
+const UPRIGHT_POSTURES = /\b(rampant|salient|segreant|springing|sejant|displayed|haurient|hauriant|erect|rising|affronty)\b/;
+const LYING_POSTURES = /\b(statant|passant|courant|couchant|dormant|naiant|trippant|lodged|at gaze)\b/;
+export function isLying(shape, posture = '') {
+  if (UPRIGHT_POSTURES.test(posture)) return false;      // ("statant erect" is upright)
+  if (LYING_POSTURES.test(posture)) return true;
+  return shape >= LYING;
+}
+// How far a picture of this shape (width / height) and posture is turned for an orientation.
+export const turnFor = (orientation, shape, posture = '') =>
+  (ORIENTATIONS[orientation] ? ORIENTATIONS[orientation][isLying(shape, posture) ? 'wide' : 'tall'] : 0);
 
 // SEMY: instead of a number, a group's `number` can be SEMY: the charges are
 // strewn over the whole field (or over the ordinary they lie on), as many as

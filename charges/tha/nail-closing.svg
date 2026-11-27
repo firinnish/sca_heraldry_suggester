@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="40.5 67.5 144 342" width="144" height="342">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 40.5 67.5 L 184.5 67.5 L 184.5 409.5 L 40.5 409.5 Z"/>
+    </clipPath>
+  </defs>
+  <metadata> Produced by OmniGraffle 7.11.5 
+    <dc:date>2021-01-27 03:56:51 +0000</dc:date>
+  </metadata>
+  <g id="Nail,_Closing" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none" fill-opacity="1">
+    <title>Nail, Closing</title>
+    <g id="Nail,_Closing: Layer 2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_549">
+        <g id="Graphic_555">
+          <path d="M 79.67 131.19 L 110.65 401.19 C 110.78 402.28 111.77 403.07 112.87 402.94 C 113.79 402.84 114.52 402.11 114.63 401.19 L 145.61 131.19 C 145.73 130.09 144.95 129.1 143.85 128.97 C 143.77 128.96 143.7 128.96 143.62 128.96 L 81.66 128.96 C 80.55 128.96 79.66 129.85 79.66 130.96 C 79.66 131.04 79.66 131.11 79.67 131.19 Z" fill="#ffffff"/>
+          <path d="M 79.67 131.19 L 110.65 401.19 C 110.78 402.28 111.77 403.07 112.87 402.94 C 113.79 402.84 114.52 402.11 114.63 401.19 L 145.61 131.19 C 145.73 130.09 144.95 129.1 143.85 128.97 C 143.77 128.96 143.7 128.96 143.62 128.96 L 81.66 128.96 C 80.55 128.96 79.66 129.85 79.66 130.96 C 79.66 131.04 79.66 131.11 79.67 131.19 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_554">
+          <ellipse cx="112.64" cy="106.41" rx="67.64" ry="32.04" fill="#ffffff"/>
+          <ellipse cx="112.64" cy="106.41" rx="67.64" ry="32.04" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_553">
+          <path d="M 131.62 143.2 C 131.62 143.2 117.34 313.45 117.39 314.08" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_552">
+          <ellipse cx="112.64" cy="102.85" rx="66.45" ry="30.85" fill="#ffffff"/>
+          <ellipse cx="112.64" cy="102.85" rx="66.45" ry="30.85" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_551">
+          <path d="M 112.64 102.85 L 166.95 96.71 C 174.99 109.37 157.19 122.38 127.19 125.78 C 102.61 128.56 76.67 124.02 63.94 114.72 L 112.64 102.85 Z" fill="#ffffff"/>
+          <path d="M 112.64 102.85 L 166.95 96.71 C 174.99 109.37 157.19 122.38 127.19 125.78 C 102.61 128.56 76.67 124.02 63.94 114.72 L 112.64 102.85 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+        <g id="Line_550">
+          <path d="M 103.15 140.83 C 103.15 140.83 107.84 263.61 107.89 264.24" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

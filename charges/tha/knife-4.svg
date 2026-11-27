@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" viewBox="72.87 63 80.13 351" width="80.13" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 72.87 63 L 153 63 L 153 414 L 72.87 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Knife_(4)" stroke="none" stroke-opacity="1" fill-opacity="1" stroke-dasharray="none" fill="none">
+    <title>Knife (4)</title>
+    <g id="Knife_(4)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_832">
+        <g id="Graphic_836">
+          <path d="M 137.53 65.25 C 137.53 65.25 107.59 103.75 92.61 155.08 C 77.64 206.42 75.5 287.69 75.5 287.69 L 137.53 287.69 Z" fill="#ffffff"/>
+          <path d="M 137.53 65.25 C 137.53 65.25 107.59 103.75 92.61 155.08 C 77.64 206.42 75.5 287.69 75.5 287.69 L 137.53 287.69 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_835">
+          <path d="M 107.59 362.56 C 103.75 362.56 99.92 364.02 97 366.94 C 91.15 372.79 91.15 382.27 97 388.11 C 100.08 391.2 104.17 392.65 108.21 392.49 C 106.69 397.59 107.94 403.34 111.97 407.36 C 117.82 413.21 127.3 413.21 133.14 407.36 C 137.75 402.76 138.73 395.91 136.08 390.35 C 139.68 390.18 143.23 388.72 145.98 385.98 C 151.83 380.13 151.83 370.65 145.98 364.8 C 143.6 362.42 140.62 361.01 137.53 360.57 L 137.53 287.69 L 107.59 287.69 Z" fill="#e1e1e1"/>
+          <path d="M 107.59 362.56 C 103.75 362.56 99.92 364.02 97 366.94 C 91.15 372.79 91.15 382.27 97 388.11 C 100.08 391.2 104.17 392.65 108.21 392.49 C 106.69 397.59 107.94 403.34 111.97 407.36 C 117.82 413.21 127.3 413.21 133.14 407.36 C 137.75 402.76 138.73 395.91 136.08 390.35 C 139.68 390.18 143.23 388.72 145.98 385.98 C 151.83 380.13 151.83 370.65 145.98 364.8 C 143.6 362.42 140.62 361.01 137.53 360.57 L 137.53 287.69 L 107.59 287.69 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_834">
+          <circle cx="122.56" cy="306.94" r="4.28" fill="#ffffff"/>
+          <circle cx="122.56" cy="306.94" r="4.28" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_833">
+          <circle cx="122.56" cy="334.75" r="4.28" fill="#ffffff"/>
+          <circle cx="122.56" cy="334.75" r="4.28" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

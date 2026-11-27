@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="49.5 58.5 279 365.5" width="279" height="365.5">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 49.5 58.5 L 328.5 58.5 L 328.5 373.5 L 243 424 L 49.5 424 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Hammer_(2)" stroke-opacity="1" stroke="none" fill="none" fill-opacity="1" stroke-dasharray="none">
+    <title>Hammer (2)</title>
+    <g id="Hammer_(2)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_30">
+        <g id="Graphic_32">
+          <path d="M 185.35 419.52 C 188.84 419.52 192.18 418.14 194.64 415.68 C 197.11 413.22 198.49 409.88 198.49 406.39 L 198.48 76.13 C 198.48 68.88 192.6 63 185.35 63 L 159.29 63 C 152.04 63 146.16 68.88 146.16 76.13 L 146.16 406.39 C 146.16 413.64 152.04 419.52 159.29 419.52 Z" fill="#ffffff"/>
+          <path d="M 185.35 419.52 C 188.84 419.52 192.18 418.14 194.64 415.68 C 197.11 413.22 198.49 409.88 198.49 406.39 L 198.48 76.13 C 198.48 68.88 192.6 63 185.35 63 L 159.29 63 C 152.04 63 146.16 68.88 146.16 76.13 L 146.16 406.39 C 146.16 413.64 152.04 419.52 159.29 419.52 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_31">
+          <path d="M 324 153.48 L 249.36 74.68 L 54 74.68 L 54 153.48 Z" fill="#ffffff"/>
+          <path d="M 324 153.48 L 249.36 74.68 L 54 74.68 L 54 153.48 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -45,6 +45,9 @@ const COVERING = 0.3;              // ...at least this share of the part.
 // almost completely (SENA A3B4b: "appear only on a section of the field with
 // a different tincture").
 const BARELY = 0.03;
+// The ordinaries that may share a tincture with a field of many pieces
+// (SENA A3B4b, case 2): see checkGroup.
+const READS_CLEARLY = new Set(['chief', 'bordure', 'base']);
 
 const classOf = tincture => (TINCTURES[tincture].tone === 'light' ? 1 : -1);
 const sign = v => (v > 1e-9 ? 1 : v < -1e-9 ? -1 : 0);
@@ -234,7 +237,14 @@ function checkGroup(field, group, coverage, frame, crossed, problems, variant = 
     // SENA A3F4: "it was used mainly with two or four part divisions of the
     // field ... The counterchanging of a single charge over a field division
     // with more than four sections must be attested to be allowed."
-    if (family === 'many') problems.push({ id: 'counterchange-many', sena: 'A3F4', level: 'sena' });
+    // An ORDINARY is let through (the maintainer, November 2026): the
+    // College has gone on registering ordinaries counterchanged over such
+    // fields under SENA, so that pattern is attested. From the O&A: "Paly
+    // azure and argent, a bend counterchanged" (September 2018), "Paly Or
+    // and vert, a bend counterchanged" (September 2016), "Gyronny vert and
+    // Or, a saltire counterchanged" (April 2019). Any other charge still
+    // needs its own evidence.
+    if (family === 'many' && group.kind !== 'ordinary') problems.push({ id: 'counterchange-many', sena: 'A3F4', level: 'sena' });
     // Each piece of the charge sits on the other tincture, so the two must
     // themselves have good contrast (SENA A3B4a).
     const [a, b] = field.parts.map(fieldClass);
@@ -268,7 +278,14 @@ function checkGroup(field, group, coverage, frame, crossed, problems, variant = 
     // other" (SENA's example: Lozengy vert and Or, a chief Or).
     const caseTwo = group.kind === 'ordinary' && field.type === 'divided' &&
       familyOf(field.division) === 'many' && !isNested(field);
-    problems.push({ id: 'charge-shares-tincture', sena: 'A3B4b', level: caseTwo ? 'house' : 'sena' });
+    // A chief, bordure or base along the edge of such a field reads clearly
+    // as drawn, shared tincture and all, so those are offered (the
+    // maintainer, November 2026: "they still read perfectly clearly"). An
+    // ordinary through the middle can vanish into the pieces beside it (a
+    // pale azure on paly Or and azure), so those are still held back.
+    if (!(caseTwo && READS_CLEARLY.has(group.ordinary))) {
+      problems.push({ id: 'charge-shares-tincture', sena: 'A3B4b', level: caseTwo ? 'house' : 'sena' });
+    }
   } else if (lowContrast) problems.push({ id: 'charge-low-contrast', sena: 'A3B4a', level: 'sena', hint: lowContrast });
 }
 

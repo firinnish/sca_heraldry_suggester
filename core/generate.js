@@ -14,7 +14,8 @@
 //   items:          what is on the shield: null (anything, or nothing) |
 //                   'none' | a list of { charge, number, tincture }, where
 //                     charge:   null (any) | { kind: 'ordinary', id }
-//                               | { kind: 'charge', id, file }  (file null = no picture)
+//                               | { kind: 'charge', id, file }  (file null = no picture;
+//                                 it may also say how the charge is turned: see stanceOf)
 //                     number:   null (any) | 1, 2, 3...
 //                     tincture: null (any) | a tincture id | COUNTERCHANGED
 //                     arranged: null (any) | 'usual' | an arrangement id
@@ -200,7 +201,18 @@ function groupFromChoice(choice, library) {
   const charge = index.charges.get(choice.id);
   if (!charge) return null;
   const picture = choice.file ? index.pictures.get(choice.file) : null;
-  return chargeGroupFromLibrary(charge, picture || null, { tincture: null, number: null });
+  return chargeGroupFromLibrary(charge, picture || null, { tincture: null, number: null, ...stanceOf(choice) });
+}
+
+// How a chosen charge is to be turned, from the choice itself: `turned` (an
+// id from ORIENTATIONS in catalog.js), `inverted`, `mirror` (facing
+// sinister), and `noPosture` (leave its posture out of the blazon and the
+// search). Pages use this too, so a charge is drawn the same everywhere.
+export function stanceOf(choice) {
+  return {
+    turned: choice.turned || null, inverted: !!choice.inverted, mirror: !!choice.mirror,
+    ...(choice.noPosture ? { posture: '' } : {}),
+  };
 }
 
 // How likely each place for a charge is to be picked, when nobody has chosen.
