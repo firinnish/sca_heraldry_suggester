@@ -9,7 +9,7 @@
 
 import { TINCTURES } from './catalog.js';
 import { COUNTERCHANGED, counterchangedField } from './shield.js';
-import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes, framePath } from './geometry.js';
+import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes, framePath, isLayered } from './geometry.js';
 import { layoutShield } from './layout.js';
 import { scatter } from './scatter.js';
 
@@ -50,8 +50,12 @@ function ermineSpot(x, y, fill, outlined = false) {
 function paintFor(tincture, ctx) {
   const t = TINCTURES[tincture];
   const lines = ctx.mode === 'lines';
-  if (!t.fur) return lines ? '#fff' : t.hex;
-  const id = `${ctx.id}-${tincture}`;
+  if (!t.fur && !t.pattern) return lines ? '#fff' : t.hex;
+  const id = `${ctx.id}-${tincture.replace(/:/g, '_')}`;
+  if (!t.fur) {
+    if (!ctx.furs.has(tincture)) { ctx.furs.add(tincture); ctx.defs.push(patternOf(id, t, lines)); }
+    return `url(#${id})`;
+  }
   if (!ctx.furs.has(tincture)) {
     ctx.furs.add(tincture);
     const spots = TINCTURES[t.fur.spots].hex;
@@ -61,6 +65,36 @@ function paintFor(tincture, ctx) {
       ermineSpot(4.5, 2, spots, lines) + ermineSpot(13.5, 13, spots, lines) + `</pattern>`);
   }
   return `url(#${id})`;
+}
+
+// The furs and field treatments that repeat like a tiling (catalog.js:
+// PATTERNS), each as one tile: its size on a shield 100 wide, and its shapes
+// in the second tincture over a background of the first. The shapes were
+// measured from Traceable Heraldic Art's drawings: five vair bells or four
+// and a half bricks across a shield, every slope of a bell at 45 degrees.
+// In vair the colour makes the bells, points upward.
+const poly = (points, dx = 0, dy = 0) => `<path d="M${points.map(([x, y]) => `${x + dx} ${y + dy}`).join(' L')} Z"/>`;
+const BELL = [[0, 20], [5, 15], [5, 5], [10, 0], [15, 5], [15, 15], [20, 20]];
+const BELL_DOWN = BELL.map(([x, y]) => [x, 40 - y]);
+const CRUTCH = [[0, 14], [0, 7], [7, 7], [7, 0], [14, 0], [14, 7], [21, 7], [21, 14]];
+// (a scale hangs downward from the line it is sewn to; a "papellony" one is its edge alone)
+const scale = (x, y, inner) => `<path d="M${x} ${y} a12.5 12.5 0 0 0 25 0 ${inner}Z"/>`;
+const TILES = {
+  vairy:        { w: 20, h: 40, shapes: () => poly(BELL) + poly(BELL, 10, 20) + poly(BELL, -10, 20) },
+  countervairy: { w: 20, h: 40, shapes: () => poly(BELL) + poly(BELL_DOWN) },
+  potenty:      { w: 28, h: 28, shapes: () => poly(CRUTCH) + poly(CRUTCH, 14, 14) + poly(CRUTCH, -14, 14) },
+  masoned:      { w: 22, h: 28, thin: true, shapes: () => `<path d="M0 0 H22 M0 14 H22 M0 28 H22 M11 0 V14 M0 14 V28 M22 14 V28"/>` },
+  scaly:        { w: 25, h: 25, shapes: () => [[0, 0], [-12.5, 12.5], [12.5, 12.5], [0, 25]].map(([x, y]) => scale(x, y, 'a12.5 8 0 0 1 -25 0')).join('') },
+  papellony:    { w: 25, h: 25, shapes: () => [[0, 0], [-12.5, 12.5], [12.5, 12.5], [0, 25]].map(([x, y]) => scale(x, y, 'h-2.5 a10 10 0 0 1 -20 0')).join('') },
+};
+function patternOf(id, t, lines) {
+  const tile = TILES[t.pattern], [ground, over] = t.pair.map(p => TINCTURES[p].hex);
+  // (masoning is drawn as lines; everything else as filled shapes, which in
+  // the picture of outlines alone are white with a line round them)
+  const paint = tile.thin ? `fill="none" stroke="${lines ? LINE : over}" stroke-width="${lines ? 0.6 : 1.3}"`
+    : lines ? `fill="#fff" stroke="${LINE}" stroke-width="0.5"` : `fill="${over}"`;
+  return `<pattern id="${id}" width="${tile.w}" height="${tile.h}" patternUnits="userSpaceOnUse">` +
+    `<rect width="${tile.w}" height="${tile.h}" fill="${lines ? '#fff' : ground}"/><g ${paint}>${tile.shapes()}</g></pattern>`;
 }
 
 // ---- The field -------------------------------------------------------------
@@ -86,7 +120,8 @@ function drawField(field, ctx, regions = [], key = 'whole', frame = null) {
   const variant = regions.length ? null : ctx.variant;
   return divisionShapes(field.division, frame, variant).map((polygons, i) => {
     const clipId = `${ctx.id}-c${ctx.clips++}`, d = pathOf(polygons);
-    ctx.defs.push(`<clipPath id="${clipId}"><path d="${d}"/></clipPath>`);
+    // (layered shapes, such as orly's, make their pieces by "evenodd": geometry.js)
+    ctx.defs.push(`<clipPath id="${clipId}"><path d="${d}"${isLayered(field.division) ? ' clip-rule="evenodd"' : ''}/></clipPath>`);
     const part = drawField(field.parts[i], ctx, [...regions, polygons], `${key}/${frame || ''}${field.division}${variant || ''}${i}`, frame);
     // Outlines only: each part draws the line round itself, inside its own
     // edge, so the two halves of every line meet and nothing spills over.
@@ -162,10 +197,11 @@ const DARK_CHARGES = new Set(['sable', 'counterermine', 'pean']);
 const BLOB = 'M50 4 C78 2 98 22 94 50 C99 78 74 98 48 95 C22 99 2 76 6 50 C1 24 22 3 50 4 Z';
 
 function drawCharge(group, paint, picture, flipY, { cx, cy, size, turn }, ctx) {
-  const w = size, h = size / picture.aspect, x = cx - w / 2, y = cy - h / 2;
-  const n = ctx.clips++;
   // A charge lying along a bend or a chevron's arm is turned to follow it.
   const turning = turn ? `rotate(${turn} ${cx} ${cy}) ` : '';
+  if (picture.base) return drawTurned(group, paint, picture, { cx, cy, size }, turning, ctx);
+  const w = size, h = size / picture.aspect, x = cx - w / 2, y = cy - h / 2;
+  const n = ctx.clips++;
   if (!picture.href) {
     const id = `${ctx.id}-b${n}`;
     const blob = `<path d="${BLOB}" transform="${turning}translate(${x} ${y}) scale(${w / 100} ${h / 100})"`;
@@ -180,14 +216,37 @@ function drawCharge(group, paint, picture, flipY, { cx, cy, size, turn }, ctx) {
     ? ` transform="${turning}translate(${cx} ${cy}) scale(${group.mirror ? -1 : 1} ${flipY ? -1 : 1}) translate(${-cx} ${-cy})"`
     : '';
   const image = `<image href="${picture.href}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none"${flip}`;
+  return paintedImage(group, paint, image, n, ctx);
+}
+
+// The picture painted in the group's tincture, with its lines on top.
+// `image` is the <image ...> element, left open so that more can be added.
+function paintedImage(group, paint, image, n, ctx) {
   const maskId = `${ctx.id}-m${n}`, linesId = `${ctx.id}-l${n}`;
-  const [r, g, b] = (ctx.mode !== 'lines' && DARK_CHARGES.has(group.tincture) ? LINE_ON_DARK : LINE_ON_LIGHT).map(v => (v / 255).toFixed(3));
+  const made = TINCTURES[group.tincture];           // (a fur or treatment on a sable background is dark too)
+  const dark = DARK_CHARGES.has(group.tincture) || (!!made && !!made.pair && made.tone !== 'neutral' && made.pair[0] === 'sable');
+  const [r, g, b] = (ctx.mode !== 'lines' && dark ? LINE_ON_DARK : LINE_ON_LIGHT).map(v => (v / 255).toFixed(3));
   ctx.defs.push(
     `<mask id="${maskId}">${image}/></mask>` +
     // keeps the picture's dark lines only: colour = line colour, opacity = opacity - brightness
     `<filter id="${linesId}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" ` +
     `values="0 0 0 0 ${r}  0 0 0 0 ${g}  0 0 0 0 ${b}  -1 0 0 1 0"/></filter>`);
   return paint(`mask="url(#${maskId})"`) + `${image} filter="url(#${linesId})"/>`;
+}
+
+// A charge TURNED to lie another way ("a sword bendwise"). `picture` is the
+// turned picture from art.js: the layout fitted its turned shape, `size`
+// wide, about (cx, cy); what is drawn is the picture itself (`base`), first
+// mirrored or turned over as wanted, then turned about its own centre.
+function drawTurned(group, paint, picture, { cx, cy, size }, turning, ctx) {
+  const base = picture.base, n = ctx.clips++;
+  const w = size * picture.k, h = w / base.aspect;
+  const px = cx + picture.ox * size, py = cy + picture.oy * size;     // the picture's own centre
+  const round = v => Math.round(v * 1000) / 1000;
+  const flip = picture.mirror || picture.flipY ? ` translate(${round(px)} ${round(py)}) scale(${picture.mirror ? -1 : 1} ${picture.flipY ? -1 : 1}) translate(${round(-px)} ${round(-py)})` : '';
+  const image = `<image href="${base.href}" x="${round(px - w / 2)}" y="${round(py - h / 2)}" width="${round(w)}" height="${round(h)}" preserveAspectRatio="none"` +
+    ` transform="${turning}rotate(${picture.turn} ${round(px)} ${round(py)})${flip}"`;
+  return paintedImage(group, paint, image, n, ctx);
 }
 
 // One group as the layout (layout.js) has placed it, then whatever lies on it.
@@ -214,7 +273,7 @@ function drawGroup(group, entry, field, ctx, frame) {
 // What is drawn over what: the primary group, the groups around it, then the
 // ordinaries along the edge (a bordure lies over the ends of a fess, and a
 // chief over the top of a bordure).
-const PERIPHERAL_ORDER = ['base', 'bordure', 'orle', 'chief'];
+const PERIPHERAL_ORDER = ['base', 'flaunches', 'gore', 'bordure', 'orle', 'chief', 'canton'];
 const layer = (group, entry) =>
   (entry.role === 'primary' ? 0 : entry.role === 'secondary' ? 1 : 2 + PERIPHERAL_ORDER.indexOf(group.ordinary));
 

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="99 63 166.5 351" width="166.5" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 99 63 L 265.5 63 L 265.5 360 L 201.46 414 L 99 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Torch_(3)" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Torch (3)</title>
+    <g id="Torch_(3)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_53">
+        <g id="Graphic_61">
+          <path d="M 135.62 176.04 C 134.18 150.88 105.86 131.64 104.96 109.45 C 115.51 126.58 134.06 130.07 148.57 150.7 C 133.37 130.53 141.72 109.44 121.46 95.89 C 147.92 93.36 155.03 126.12 162.12 145.39 C 152.9 99.19 174.04 112.25 152.69 65.25 C 179.78 78.06 175.87 111.83 181.57 141.27 C 189.43 107.92 173.12 83.34 196.3 65.25 C 186.79 92 204.07 103.45 197.48 143.04 C 203.38 108.96 228.71 95.06 247.57 90.59 C 216.54 107.92 227.57 119.64 211.62 149.52 C 228.17 117.05 251.14 123.8 258.18 101.2 C 267.08 126.07 229.4 142.84 229.89 176.04 Z" fill="#e1e1e1"/>
+          <path d="M 135.62 176.04 C 134.18 150.88 105.86 131.64 104.96 109.45 C 115.51 126.58 134.06 130.07 148.57 150.7 C 133.37 130.53 141.72 109.44 121.46 95.89 C 147.92 93.36 155.03 126.12 162.12 145.39 C 152.9 99.19 174.04 112.25 152.69 65.25 C 179.78 78.06 175.87 111.83 181.57 141.27 C 189.43 107.92 173.12 83.34 196.3 65.25 C 186.79 92 204.07 103.45 197.48 143.04 C 203.38 108.96 228.71 95.06 247.57 90.59 C 216.54 107.92 227.57 119.64 211.62 149.52 C 228.17 117.05 251.14 123.8 258.18 101.2 C 267.08 126.07 229.4 142.84 229.89 176.04 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_60">
+          <path d="M 135.6 176.04 L 178.03 407.04 C 178.03 407.04 178.03 411.75 182.75 411.75 C 187.46 411.75 187.46 407.04 187.46 407.04 L 229.89 176.04 Z" fill="#ffffff"/>
+          <path d="M 135.6 176.04 L 178.03 407.04 C 178.03 407.04 178.03 411.75 182.75 411.75 C 187.46 411.75 187.46 407.04 187.46 407.04 L 229.89 176.04 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_59">
+          <line x1="182.75" y1="176.04" x2="222.84" y2="213.89" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_58">
+          <line x1="141.2" y1="176.04" x2="216.71" y2="247.87" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_57">
+          <line x1="143.27" y1="218.46" x2="210.57" y2="282.08" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_56">
+          <line x1="152.53" y1="267.21" x2="204.2" y2="316.29" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_55">
+          <line x1="161.49" y1="315.82" x2="197.59" y2="350.03" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_54">
+          <line x1="170.22" y1="364.19" x2="191.69" y2="384.95" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

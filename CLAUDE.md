@@ -66,7 +66,14 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   about what the tools can draw and name: one level of nesting, and not the
   same division inside itself. The other "house" case is an ordinary sharing
   a tincture with a field of many pieces (SENA allows it only if drawn so the
-  shared tinctures don't touch, which the drawing doesn't yet guarantee).
+  shared tinctures don't touch, which the drawing doesn't yet guarantee);
+  a chief, bordure or base is let through, because the maintainer finds they
+  read clearly as drawn (late November 2026).
+- An ORDINARY may be counterchanged over a field of many pieces (the
+  maintainer, late November 2026; SENA A3F4 wants it "attested", and the O&A
+  shows the College registering such bends, saltires and bordures since).
+  Any other single charge still may not. Both of these were to be checked
+  with another herald: see ROADMAP.md before widening or narrowing them.
 - A field of many pieces (barry, chevronelly, checky...) counts as neutral
   under a charge lying across its pieces (SENA A3B1; raised by Měryem,
   November 2026). The drawing still nudges such charges onto the tincture
@@ -163,7 +170,67 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   against the same guesses instead of guessing afresh for each.
 - Open questions for the maintainer about all this are in ROADMAP.md.
 
+## Postures, furs and backgrounds laid over each other (built late November 2026)
+- **A charge can be turned.** `chargeGroup` has `turned` (an id from
+  `ORIENTATIONS` in `catalog.js`: palewise, fesswise, bendwise, bendSinister)
+  beside `inverted` and `mirror`, and `artPosture` (what the picture shows,
+  which tells an upright picture from one lying down: `isLying`). `art.js`
+  makes a TURNED PICTURE (`turnedPicture`): the same picture with its outline
+  worked out again as it will be drawn, so `layout.js` fits it like any
+  other, and `draw.js` (`drawTurned`) draws the real picture rotated. Flips
+  happen first, in the picture's own frame, then the turn.
+- **Postures for the search** are `POSTURES` in `catalog.js`: blazon words to
+  the O&A's word, each checked against real records (the notes there say
+  which). Do not add one without checking. `stanceOf` in `generate.js` reads
+  how a chosen charge is turned from its choice (`turned`, `inverted`,
+  `mirror`, `noPosture`), for pages and the generator alike.
+- **Three more ordinaries along the edge:** canton, flaunches, gore
+  (`ORDINARIES`: `count` is the number the O&A's line carries, `plainLine:
+  false` means no "pl"; flaunches are a pair, named without "two"). Their
+  curves are copied from Traceable Heraldic Art's device forms. They take
+  up space without re-framing the field (`TAKES_SPACE` in `layout.js`).
+- **Furs and field treatments made from two tinctures.** `TINCTURES` also
+  answers for `vair`, `potent` and ids like `ermined:vert:or`,
+  `vairy:or:gules`, `masoned:azure:or` (`PATTERNS` and `tinctureFrom` in
+  `catalog.js`). `Object.keys(TINCTURES)` still lists only the eleven named
+  ones, which `tests/index.html` relies on. `tone` may be `neutral` (vair
+  and its kin: SENA A3B1); `groundsOf` / `sharesGround` say what a tincture
+  can be mistaken for (use these, not `baseTincture`, for "share a
+  tincture"). The tiles are `TILES` in `draw.js`; the O&A lines, each from
+  real records, are at `madeFieldLine` and `chargeTincture` in `oanda.js`.
+  Jaguar and kürsch are deliberately absent (ROADMAP.md says why).
+- **Orly, and two divisions counterchanged over each other.** A division id
+  may be two ids joined by "+" (`orly+chevronelly`; `divisionsTogether` in
+  `catalog.js`), and `DIVISIONS` answers for it; `Object.keys(DIVISIONS)`
+  lists only the single ones, so the generator and the division pictures
+  never offer them. They, and orly, are LAYERED shapes (`isLayered` in
+  `geometry.js`): a place belongs to a part if an odd number of that part's
+  shapes cover it, which drawing does with "evenodd" and `partMap` does by
+  counting. The rules treat them as fields of many pieces.
+
 ## How the page behaves (decided with the maintainer)
+- (Late November 2026.) The list of charges shows each charge ONCE, as its
+  usual picture (`picturesOf`: the default in art.csv, else in tha.csv). Its
+  card, once picked, has "posture:", "art:" and "orientation:" as well as
+  number and colour, and "expand", which opens a box the full width of the
+  question with all of them as pictures (`explorerBox`). A posture or
+  another drawing is another picture: fetch it before drawing
+  (`setPicture`).
+- The shield top right says the number it DRAWS when none is chosen
+  (`assumeNumbers`), and so do its blazon and search; "don't specify" under
+  the number keeps it open. When the search lacks a number or a posture, a
+  line under the button says so (the maintainer's sentence, `searchNeeds`).
+- When the shield's colours leave the background only one set of colours,
+  they are ticked in the background question as soon as a division is
+  picked or the shield's colours change (`assumeFieldColours`): not
+  continuously, so a colour can still be un-ticked by hand.
+- "More complex options" (the maintainer's words) under the shield's
+  colours makes a fur or field treatment from two colours and adds it to
+  the furs in every colour menu (`state.extraTinctures`).
+- "more complex background" has "and counterchanged with" for a second
+  division over the first, when both parts are plain colours.
+- "AI disclosure" beside the herald tick opens a box with the maintainer's
+  own text (`TEXT.aiText`): do not reword it.
 - Three areas: questions (top left, scrolls on its own, always shows every
   question), the shield being built (top right), suggestions (bottom).
 - Nothing waits for an earlier answer. Unanswered things are filled at random
@@ -296,8 +363,11 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   The collection is shared under Creative Commons CC-BY-SA
   (https://heraldicart.org/credits), which allows this as long as the
   credits stay and the copies are shared the same way
-  (`charges/tha/README.md`). Never add a picture there by hand, and never
-  one that cannot be credited: run `tools/import_tha.py`.
+  (`charges/tha/README.md`). Never add a picture there by hand: run
+  `tools/import_tha.py`. A picture the collection's list gives no credit
+  for goes in only if it is the one the maintainer chose for a charge, and
+  then with a link to that charge's page at heraldicart.org in place of an
+  artist (the maintainer, late November 2026); the script does this.
 - `data/oanda.db` (SCA copyright). Only `tests/` needs it; nothing users see
   may depend on it being present.
 - The repository is public (GitHub Pages on a free account needs that) and
@@ -320,9 +390,13 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   `python tools/import_tha.py <entries.json>` (entries.json is the
   collection's list of credits, from https://heraldicart.org/json) out of
   the labels in `data/charges.csv` and the local `SVG/` folder. Their
-  insides are a pale grey in the original, made white on the way in. A
-  charge with a picture of our own does not get one from there. The script
-  says what it left out and why. `tests/tha.html` draws every one: look at
+  insides are a pale grey in the original, made white on the way in. Each
+  charge gets up to ten pictures (`MOST`): the one the maintainer chose,
+  then one of each posture, then other drawings; `posture` is read from the
+  picture's name (`VARIANT_WORDS`), and a name with any other word in it is
+  a different charge and is left out. A charge with a picture of our own
+  keeps it as its usual one unless art.csv leaves `default` empty (the
+  crescent). The script says what it left out and why. `tests/tha.html` draws every one: look at
   it after importing. `art.csv` has a `complexity` column ("Easy to Draw" /
   "Complex", the maintainer's label), which the default view sorts by.
 - Run `python tools/check_charges.py` after any change to it; it must report
@@ -350,7 +424,8 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
 - Charge groups are `ordinaryGroup` / `chargeGroup` in `core/shield.js` (see
   "Several charge groups" above). Ordinaries are in `catalog.js`
   (`ORDINARIES`) and drawn by code. See ROADMAP.md for what comes next.
-- Never commit a picture whose `artist` and `permission` are empty. The
+- Never commit a picture of our own (`charges/art/`) whose `artist` and
+  `permission` are empty. The
   maintainer's own tracings of medieval sources are recorded as
   "public domain".
 

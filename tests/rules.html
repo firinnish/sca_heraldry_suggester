@@ -75,7 +75,22 @@ const CASES = [
   ['no', two('perPale', 'azure', 'argent'), [blob('azure')], {}, 'A3B4b'],
   ['yes', two('chevronelly', 'azure', 'or'), [blob('gules')], {}, 'A3B1 (a field of many pieces is neutral)'],
   ['yes', two('barry', 'or', 'vert'), [blob('sable', 3)], {}, 'A3B1 (a field of many pieces is neutral)'],
-  ['house', two('lozengy', 'vert', 'or'), [ordinaryGroup('chief', 'or')], {}, 'A3B4b'],
+  ['yes', two('lozengy', 'vert', 'or'), [ordinaryGroup('chief', 'or')], {}, 'A3B4b (offered since November 2026: the maintainer finds a chief or bordure reads clearly)'],
+  ['house', two('paly', 'or', 'azure'), [ordinaryGroup('pale', 'azure')], {}, 'A3B4b (held back: a pale can vanish into the pieces beside it)'],
+  // Furs and field treatments (November 2026)
+  ['yes', P('vair'), [ordinaryGroup('chief', 'gules')], {}, 'A3B1: vair is neutral'],
+  ['no', P('vair'), [ordinaryGroup('chief', 'argent')], {}, 'A3B1: "as long as they do not share a tincture with the color or metal" (its example: Vair, a griffin argent)'],
+  ['no', P('vair'), [], { noCharge: true }, 'A3E3: a fur alone ("neither Gules nor Pean")'],
+  ['yes', P('scaly:gules:argent'), [], { noCharge: true }, 'A3E3: "Gules scaly argent would be registerable because of the field treatment"'],
+  ['yes', two('perSaltire', 'vert', 'vairy:gules:argent'), [], {}, 'A3B3c: "per saltire vert and vairy gules and argent"'],
+  ['no', two('perSaltire', 'gules', 'masoned:gules:or'), [], {}, 'A3B3c: "may not consist of ... gules and gules masoned Or"'],
+  ['yes', two('perPale', 'or', 'ermined:vert:or'), [], {}, 'an ermined fur counts as its background (A3B1): vert against Or'],
+  // Orly, and two divisions counterchanged over each other
+  ['yes', two('orly', 'sable', 'or'), [], {}, 'registered August 2021: "Orly sable and Or"'],
+  ['no', two('orly', 'sable', 'gules'), [], {}, 'A3B3d: many pieces need good contrast'],
+  ['yes', two('barry+perPale', 'argent', 'gules'), [], {}, 'registered: "Barry and per pale argent and gules"'],
+  ['no', two('orly+chevronelly', 'azure', 'gules'), [], {}, 'A3B3d: many pieces need good contrast'],
+  ['yes', two('paly', 'or', 'azure'), [ordinaryGroup('fess', COUNTERCHANGED)], {}, 'A3F4 (an ordinary counterchanged over many pieces: registered since SENA, e.g. "Paly azure and argent, a bend counterchanged", 2018)'],
   // A3D1c: a chief or base with a per fess field
   ['no', two('perFess', 'argent', 'sable'), [ordinaryGroup('chief', 'gules')], {}, 'A3D1c'],
   ['yes', two('perPale', 'argent', 'sable'), [ordinaryGroup('chief', 'gules')], {}, 'A3D1c'],

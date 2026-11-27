@@ -20,11 +20,11 @@
 // The same placements are used by draw.js (to draw) and rules.js (to see what
 // part of the field each charge lies on), so the two can never disagree.
 
-import { getPicture } from './art.js';
+import { getPicture, turnedPicture } from './art.js';
 import { SAMPLES, insideShield, pointInPolygon, samplesInBox, ordinarySamples, ordinaryShapes, suitsDivision, partMap,
          frameCentre, frameName, frameScale, CHIEF_BOTTOM, BASE_TOP, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, ARM_HALF,
          DIVISION_VARIANTS } from './geometry.js';
-import { TINCTURES, ARRANGEMENTS, SEMY, familyOf, baseTincture } from './catalog.js';
+import { TINCTURES, ARRANGEMENTS, SEMY, familyOf, baseTincture, turnFor } from './catalog.js';
 import { roles } from './shield.js';
 import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, centroid, heights, sides, cuts,
          probeOf, turned, largestFit, fitsAt, bestSpot, clearDistance } from './space.js';
@@ -98,17 +98,15 @@ function covers(outline, cx, cy, size) {
 // `field` (optional) lets charges on a field of many pieces be nudged onto
 // the tincture they contrast with; see nudge() below.
 export function placeGroup(group, field = null) {
-  const picture = (group.art && getPicture(group.art)) || BLOB_PICTURE;
-  // Turn the picture over if it was drawn the other way up from what is wanted.
-  const flipY = !!picture.href && !!group.inverted !== !!group.artInverted;
+  // (Its picture, turned over or turned to lie another way as wanted.)
+  const { picture, flipY, outline, key: pictureKey } = pictureOf(group);
   const number = group.number || 1;
-  const key = [picture.href || 'blob', group.mirror, flipY, number].join('|');
+  const key = [pictureKey, number].join('|');
   if (!placeCache.has(key)) {
     // Two charges wider than they are tall (a lion passant, a sword fesswise)
     // are by default one above the other ("in pale"), not side by side.
     const spaces = number === 2 && picture.aspect >= WIDE ? TWO_WIDE : SPACES[number];
     if (!spaces) throw new Error(`No layout yet for ${number} charges`);
-    const outline = picture.outline.map(([u, v]) => [group.mirror ? -u : u, flipY ? -v : v]);
     const step = Math.max(1, Math.floor(outline.length / 70));
     const thinned = outline.filter((_, i) => i % step === 0);
     const centres = spaces.map(centreOf);
@@ -292,6 +290,7 @@ const ON_ORDINARY = {
   fess: [1, 2, 3, 4], chief: [1, 2, 3, 4], base: [1, 2, 3], pale: [1, 2, 3, 4],
   bend: [1, 2, 3, 4], bendSinister: [1, 2, 3, 4], chevron: [1, 2, 3], chevronInverted: [1, 2, 3],
   cross: [1, 4, 5], saltire: [1, 4, 5], pall: [1, 3], pile: [1],
+  canton: [1], gore: [1], flaunches: [2],      // (one on each flaunch)
 };
 
 // How many charges can go around this primary group in a default arrangement.
@@ -325,6 +324,13 @@ const SLIM = 0.6, SLIM_CHARGED = 0.8;
 function pictureOf(group) {
   const picture = (group.art && getPicture(group.art)) || BLOB_PICTURE;
   const flipY = !!picture.href && !!group.inverted !== !!group.artInverted;
+  // Turned to lie another way ("a sword bendwise"): the turned picture knows
+  // its own shape, mirrored and turned over as needed (art.js).
+  const angle = picture.href && group.turned ? turnFor(group.turned, picture.aspect, group.artPosture || '') : 0;
+  if (angle) {
+    const turned = turnedPicture(picture, angle, !!group.mirror, flipY);
+    return { picture: turned, flipY, outline: turned.outline, flipped: true, key: [picture.href, !!group.mirror, flipY, angle].join('|') };
+  }
   const outline = picture.outline.map(([u, v]) => [group.mirror ? -u : u, flipY ? -v : v]);
   return { picture, flipY, outline, key: [picture.href || 'blob', !!group.mirror, flipY].join('|') };
 }
@@ -344,16 +350,23 @@ function frameOf(groups) {
   const has = id => groups.some(g => g.kind === 'ordinary' && g.ordinary === id);
   const chief = has('chief'), base = has('base');
   const inset = has('orle') ? ORLE_GAP + ORLE_WIDTH : has('bordure') ? BORDURE_WIDTH : 0;
-  const key = [chief, base, inset].join('|');
+  // A canton, flaunches or a gore simply take up part of the space: the
+  // field runs on under them, and whatever else is on it keeps clear.
+  const taken = TAKES_SPACE.filter(has).join();
+  const key = [chief, base, inset, taken].join('|');
   if (!frameCache.has(key)) {
     let mask = inset ? insetMask(inset) : shieldMask();
     // (A bordure or orle runs along under a chief, so the space inside it
     // starts that much lower.)
     if (chief || base) mask = where(mask, (x, y) => (!chief || y > CHIEF_BOTTOM + inset) && (!base || y < BASE_TOP));
+    for (const id of taken ? taken.split(',') : []) mask = minus(mask, maskFromPolygons(ordinaryShapes(id, null, frameName(chief))));
     frameCache.set(key, mask);
   }
-  return { chief, base, inset, bordure: has('bordure'), orle: has('orle'), mask: frameCache.get(key) };
+  // `lopsided`: the space left is not centred on the shield (beside a gore),
+  // so what goes in it is centred on the space itself.
+  return { chief, base, inset, taken, lopsided: taken.includes('gore'), bordure: has('bordure'), orle: has('orle'), mask: frameCache.get(key) };
 }
+const TAKES_SPACE = ['canton', 'flaunches', 'gore'];
 
 function ordinaryParts(group, division, frame, width = 1) {
   return {
@@ -619,7 +632,9 @@ function cellsOn(ordinary, number, host, [cx, cy], [sx, sy], width = 1) {
   // (measured as on the whole shield: the frame may have made the ordinary smaller)
   const zone = test => where(host, (x, y) => test((x - cx) / sx, (y - cy) / sy));
   switch (ordinary) {
-    case 'fess': case 'chief': case 'base': return along(x => x, 0);
+    case 'fess': case 'chief': case 'base': case 'flaunches': return along(x => x, 0);
+    case 'canton': return [{ mask: host, turn: 0 }];
+    case 'gore': return [{ mask: host, turn: 0, best: true }];
     case 'pale': return along((x, y) => y, 0);
     case 'bend': return along((x, y) => x + y, -45);
     case 'bendSinister': return along((x, y) => y - x, 45);
@@ -662,7 +677,8 @@ function placeTertiary(host, hostEntry, group, frame, centre, scale, width) {
     if (!hostEntry.shapes) return none;                 // on a bordure or orle: not yet
     // The part of the ordinary that shows: a chief lies over a bordure, a
     // bordure over everything else.
-    const seen = host.ordinary === 'chief' ? shieldMask() : host.ordinary === 'base' ? (frame.inset ? insetMask(frame.inset) : shieldMask()) : frame.mask;
+    const seen = host.ordinary === 'chief' ? shieldMask()
+      : host.ordinary === 'base' || TAKES_SPACE.includes(host.ordinary) ? (frame.inset ? insetMask(frame.inset) : shieldMask()) : frame.mask;
     if (number === SEMY) {                              // strewn over the ordinary, a little smaller than on the field
       const strewn = placeSemy(shape, and(maskFromPolygons(hostEntry.shapes), seen), SEMY_EXTENT * 0.8);
       return strewn.places.length ? { ok: true, ...chargeParts(shape, strewn.places) } : none;
@@ -681,7 +697,7 @@ function placeTertiary(host, hostEntry, group, frame, centre, scale, width) {
     const hostShape = pictureOf(host), probe = probeFor(shape);
     places = hostEntry.places.map(p => {
       const mask = hostShape.picture.solid
-        ? maskFromPicture(hostShape.picture.solid, hostShape.picture.aspect, p, !!host.mirror, hostShape.flipY)
+        ? maskFromPicture(hostShape.picture.solid, hostShape.picture.aspect, p, !hostShape.flipped && !!host.mirror, !hostShape.flipped && hostShape.flipY)
         : hullMask(hostShape, [p]);
       const spot = bestSpot(probe, mask, { pull: 0.05 });
       return spot && { ...spot, turn: 0 };
@@ -732,7 +748,7 @@ function compose(groups, r, division) {
   let largest = null;                                   // the most a secondary charge may measure
   // Everything a placing beside or on a group depends on, as text: the frame,
   // and the group as it is drawn here.
-  const frameKey = [frame.chief, frame.base, frame.inset].join();
+  const frameKey = [frame.chief, frame.base, frame.inset, frame.taken].join();
   // An ordinary with charges around it is drawn narrower.
   const width = primary && primary.kind === 'ordinary' && secondary.length ? (primary.charged ? SLIM_CHARGED : SLIM) : 1;
   const drawnAs = g => [frameKey, signature({ ...g, charged: null }), g.kind === 'ordinary' && suitsDivision(g.ordinary, division),
@@ -750,7 +766,7 @@ function compose(groups, r, division) {
     let region = frame.mask;
     if (wanted.includes('chief')) region = where(region, (x, y) => y >= chiefLine);
     if (wanted.includes('base')) region = where(region, (x, y) => y <= baseLine);
-    const whole = region === frame.mask && !frame.chief && !frame.base;
+    const whole = region === frame.mask && !frame.chief && !frame.base && !frame.lopsided;
     const found = remembered(['primary', drawnAs(primary)].join('|'), () => placeIn(primary, region, whole ? centre : null));
     // (a copy: the remembered placing must not be changed by what follows)
     const placed = found && found.places.length ? { shape: found.shape, places: found.places.map(p => ({ ...p })) } : null;
@@ -807,7 +823,7 @@ function compose(groups, r, division) {
 
 // How one charge group shows in the layout, for a signature of the shield.
 const signature = g => [g.kind, g.ordinary || (g.art && getPicture(g.art) ? g.art : 'blob'), g.number, !!g.mirror, !!g.inverted,
-  !!g.artInverted, g.role || null, g.place || null, g.arranged || null, g.charged ? signature(g.charged) : null];
+  !!g.artInverted, g.role || null, g.place || null, g.arranged || null, g.charged ? signature(g.charged) : null, g.turned || null];
 const layoutCache = new Map();
 
 // Where everything on a shield goes. Returns { frame, entries } with one

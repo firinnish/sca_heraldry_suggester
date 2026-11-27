@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" viewBox="54 63 252 311" width="252" height="311">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 54 63 L 306 63 L 306 374 L 54 374 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Anchor_(5)" fill="none" stroke-opacity="1" stroke-dasharray="none" stroke="none" fill-opacity="1">
+    <title>Anchor (5)</title>
+    <g id="Anchor_(5)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_15">
+        <g id="Graphic_20">
+          <path d="M 104.5 123.5 L 255.5 123.5 C 256.05 123.5 256.5 123.95 256.5 124.5 L 256.5 136 C 256.5 136.55 256.05 137 255.5 137 L 104.5 137 C 103.95 137 103.5 136.55 103.5 136 L 103.5 124.5 C 103.5 123.95 103.95 123.5 104.5 123.5 Z" fill="#ffffff"/>
+          <path d="M 104.5 123.5 L 255.5 123.5 C 256.05 123.5 256.5 123.95 256.5 124.5 L 256.5 136 C 256.5 136.55 256.05 137 255.5 137 L 104.5 137 C 103.95 137 103.5 136.55 103.5 136 L 103.5 124.5 C 103.5 123.95 103.95 123.5 104.5 123.5 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_19">
+          <path d="M 117 287.33 L 94.5 300.83 L 90 336.83 L 58.5 260.33 Z" fill="#ffffff"/>
+          <path d="M 117 287.33 L 94.5 300.83 L 90 336.83 L 58.5 260.33 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_18">
+          <path d="M 202.27 72.25 C 189.97 62.58 170.03 62.58 157.73 72.25 C 145.42 81.91 145.42 97.59 157.73 107.25 C 170.03 116.92 189.97 116.92 202.27 107.25 C 214.58 97.59 214.58 81.91 202.27 72.25 M 194.17 78.61 C 202 84.76 202 94.74 194.17 100.89 C 186.35 107.04 173.65 107.04 165.83 100.89 C 158 94.74 158 84.76 165.83 78.61 C 173.65 72.46 186.35 72.46 194.17 78.61" fill="#ffffff"/>
+          <path d="M 202.27 72.25 C 189.97 62.58 170.03 62.58 157.73 72.25 C 145.42 81.91 145.42 97.59 157.73 107.25 C 170.03 116.92 189.97 116.92 202.27 107.25 C 214.58 97.59 214.58 81.91 202.27 72.25 M 194.17 78.61 C 202 84.76 202 94.74 194.17 100.89 C 186.35 107.04 173.65 107.04 165.83 100.89 C 158 94.74 158 84.76 165.83 78.61 C 173.65 72.46 186.35 72.46 194.17 78.61" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_17">
+          <path d="M 243 287.33 L 265.5 300.83 L 270 336.83 L 301.5 260.33 Z" fill="#ffffff"/>
+          <path d="M 243 287.33 L 265.5 300.83 L 270 336.83 L 301.5 260.33 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_16">
+          <path d="M 189 101 L 171 101 L 162 317 C 162 317 121.5 317 85.5 290 C 90 330.5 174.04 339.74 180 371 C 184.5 339.5 270 330.5 274.5 290 C 238.5 317 198 317 198 317 Z" fill="#ffffff"/>
+          <path d="M 189 101 L 171 101 L 162 317 C 162 317 121.5 317 85.5 290 C 90 330.5 174.04 339.74 180 371 C 184.5 339.5 270 330.5 274.5 290 C 238.5 317 198 317 198 317 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

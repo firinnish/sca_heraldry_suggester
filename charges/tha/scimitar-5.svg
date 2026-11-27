@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="49.5 63 126 351" width="126" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 49.5 63 L 175.5 63 L 175.5 414 L 49.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Scimitar_(5)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Scimitar (5)</title>
+    <g id="Scimitar_(5)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_766">
+        <g id="Graphic_769">
+          <path d="M 172.47 317.78 L 172.47 321.77 C 172.47 322.88 171.57 323.77 170.47 323.77 L 54.53 323.77 C 53.43 323.77 52.53 322.88 52.53 321.77 L 52.53 317.78 C 52.53 316.67 53.43 315.78 54.53 315.78 L 170.47 315.78 C 171.57 315.78 172.47 316.67 172.47 317.78 Z" fill="#e1e1e1"/>
+          <path d="M 172.47 317.78 L 172.47 321.77 C 172.47 322.88 171.57 323.77 170.47 323.77 L 54.53 323.77 C 53.43 323.77 52.53 322.88 52.53 321.77 L 52.53 317.78 C 52.53 316.67 53.43 315.78 54.53 315.78 L 170.47 315.78 C 171.57 315.78 172.47 316.67 172.47 317.78 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_768">
+          <path d="M 132.49 323.77 C 132.49 323.77 140.48 385.07 119.16 403.73 C 97.84 422.38 79.19 403.73 89.85 395.73 C 113.83 379.74 100.51 323.77 100.51 323.77 Z" fill="#e1e1e1"/>
+          <path d="M 132.49 323.77 C 132.49 323.77 140.48 385.07 119.16 403.73 C 97.84 422.38 79.19 403.73 89.85 395.73 C 113.83 379.74 100.51 323.77 100.51 323.77 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_767">
+          <path d="M 131.82 315.78 C 131.82 315.78 113.17 238.49 137.15 107.89 C 110.5 107.89 97.17 65.25 97.17 65.25 C 49.2 187.85 97.17 315.78 97.17 315.78 Z" fill="#ffffff"/>
+          <path d="M 131.82 315.78 C 131.82 315.78 113.17 238.49 137.15 107.89 C 110.5 107.89 97.17 65.25 97.17 65.25 C 49.2 187.85 97.17 315.78 97.17 315.78 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="87.75 63 189 351" width="189" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 87.75 63 L 276.75 63 L 276.75 391.5 L 225 414 L 87.75 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Goutte_(10)" stroke-opacity="1" stroke="none" fill="none" fill-opacity="1" stroke-dasharray="none">
+    <title>Goutte (10)</title>
+    <g id="Goutte_(10)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_57">
+        <path d="M 92.25 311.62 L 92.25 311.08 C 92.26 250.02 137.25 220.42 182.28 69.75 C 227.25 220.42 272.26 252.49 272.25 313.55 C 272.24 374.61 231.94 407.24 182.24 407.25 C 132.53 407.26 92.24 372.69 92.25 311.62 Z" fill="#ffffff"/>
+        <path d="M 92.25 311.62 L 92.25 311.08 C 92.26 250.02 137.25 220.42 182.28 69.75 C 227.25 220.42 272.26 252.49 272.25 313.55 C 272.24 374.61 231.94 407.24 182.24 407.25 C 132.53 407.26 92.24 372.69 92.25 311.62 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -194,6 +194,15 @@ const DIVISION_SHAPES = {
   bendySinister: (pieces = 4) => stripes(sinisterStrip, -98 - 4 * slant(pieces), 3 * FAR, slant(pieces)),
   // Chevronelly: a chevron covers exactly two pieces (of the usual four).
   chevronelly: (pieces = 4) => stripes(chevronStrip, CHEVRON_APEX - 4 * (CHEVRON_HALF * 4 / pieces), 3 * FAR, CHEVRON_HALF * 4 / pieces),
+  // Orly: shield shapes one inside another, like an orle repeated all the
+  // way to the middle, every band the same width (eight pieces from the edge
+  // to the middle unless said; the first tincture is at the edge). These
+  // are LAYERED shapes: see isLayered below.
+  orly: (pieces = 8) => {
+    const step = 49 / (pieces - 0.5);
+    const inner = Array.from({ length: pieces - 1 }, (_, k) => insetShield((k + 1) * step));
+    return [[EVERYWHERE, ...inner], inner];
+  },
   perPall: () => [
     [[[-FAR, -FAR], [W + FAR, -FAR], [C, C]]],
     [[[-FAR, -FAR], [C, C], [C, H + FAR], [-FAR, H + FAR]]],
@@ -205,6 +214,52 @@ const DIVISION_SHAPES = {
     [[[-FAR, W + FAR], [C, C], [W + FAR, W + FAR], [W + FAR, H + FAR], [-FAR, H + FAR]]],
   ],
 };
+
+// LAYERED SHAPES. Orly, and two divisions counterchanged over each other
+// ("orly and chevronelly", "barry and per pale": catalog.js gives those the
+// id "orly+chevronelly"), are not written as separate pieces but as shapes
+// laid one over another, where a place belongs to a part if an ODD number of
+// that part's shapes cover it. For orly that turns shield shapes one inside
+// another into bands; for two divisions together it means a place takes the
+// second tincture if it is in the second part of one division but not of
+// both, which is what counterchanging them is. Drawing uses the same rule
+// (SVG's "evenodd"), and so does partMap below.
+const EVERYWHERE = rect(-FAR, -FAR, 3 * FAR, 3 * FAR);
+export const isLayered = division => division === 'orly' || division.includes('+');
+// With two divisions together, patterns are drawn finer than alone, so that
+// both can be made out (the maintainer's picture of orly and chevronelly,
+// November 2026).
+const TOGETHER = { chevronelly: 5, bendy: 6, bendySinister: 6, paly: 8, barry: 8 };
+function shapesOf(division, variant = null) {
+  if (!division.includes('+')) return variant === null ? DIVISION_SHAPES[division]() : DIVISION_SHAPES[division](variant);
+  const second = division.split('+').flatMap(d => shapesOf(d, TOGETHER[d] ?? null)[1]);
+  return [[EVERYWHERE, ...second], second];
+}
+
+// The shield's outline moved inward by `d` all the way round (the shield has
+// no dents, so this is simply what is left after cutting `d` off along
+// every edge).
+function insetShield(d) {
+  const centre = [C, C];
+  let shape = SHIELD_POLYGON;
+  for (let i = 0, j = SHIELD_POLYGON.length - 1; i < SHIELD_POLYGON.length; j = i++) {
+    const [ax, ay] = SHIELD_POLYGON[j], [bx, by] = SHIELD_POLYGON[i];
+    const len = Math.hypot(bx - ax, by - ay);
+    if (len < 1e-9) continue;
+    let nx = -(by - ay) / len, ny = (bx - ax) / len;                   // the edge's normal, pointing inward
+    if ((centre[0] - ax) * nx + (centre[1] - ay) * ny < 0) { nx = -nx; ny = -ny; }
+    const depth = ([x, y]) => (x - ax) * nx + (y - ay) * ny - d;       // how far inside the cut a point is
+    const kept = [];
+    for (let k = 0, m = shape.length - 1; k < shape.length; m = k++) {
+      const p = shape[m], q = shape[k], dp = depth(p), dq = depth(q);
+      if ((dp >= 0) !== (dq >= 0)) { const t = dp / (dp - dq); kept.push([p[0] + t * (q[0] - p[0]), p[1] + t * (q[1] - p[1])]); }
+      if (dq >= 0) kept.push(q);
+    }
+    shape = kept;
+    if (!shape.length) break;
+  }
+  return shape;
+}
 
 const divisionCache = new Map();
 // FRAMES: with a chief, the field is drawn in the space below it, as if that
@@ -292,8 +347,8 @@ const KEEPS_ITS_SHAPE = new Set(['checky', 'lozengy']);
 export function divisionShapes(division, frame = null, variant = null) {
   const key = `${division}|${frame}|${variant}`;
   if (!divisionCache.has(key)) {
-    if (!DIVISION_SHAPES[division]) throw new Error('No shape for division: ' + division);
-    const parts = variant === null ? DIVISION_SHAPES[division]() : DIVISION_SHAPES[division](variant);
+    if (!division.split('+').every(d => DIVISION_SHAPES[d])) throw new Error('No shape for division: ' + division);
+    const parts = shapesOf(division, variant);
     divisionCache.set(key, parts.map(polygons => intoFrame(polygons, frame, KEEPS_ITS_SHAPE.has(division))));
   }
   return divisionCache.get(key);
@@ -339,7 +394,33 @@ const ORDINARY_SHAPES = {
   pile: (division, k) => [[[C - 1.5 * UNIT * k, -2], [C + 1.5 * UNIT * k, -2], [C, 115.6]]],
   chief: () => [rect(-10, -10, W + 20, CHIEF_BOTTOM + 10)],
   base: () => [rect(-10, BASE_TOP, W + 20, H)],
+  // The next three follow Traceable Heraldic Art's device forms ("Canton",
+  // "Flaunches" and "Gore"), whose curves are copied here point for point.
+  // A canton: a square in the dexter chief corner, as deep as a chief.
+  canton: () => [rect(-10, -10, CHIEF_BOTTOM + 10, CHIEF_BOTTOM + 10)],
+  // Flaunches: a curve in from each side, from the corner of the chief to
+  // low on the flank, reaching about a quarter of the way across.
+  flaunches: () => {
+    const curve = curvePoints([1.89, 1.93], [25.46, 25.51], [31.5, 59.97], [20.02, 89.13]);
+    const dexter = [[-10, -10], [1.2, -10], ...curve, [-10, 95]];
+    return [dexter, dexter.map(([x, y]) => [W - x, y])];
+  },
+  // A gore: two curves, from the dexter chief corner and from the point of
+  // the shield, meeting just short of the fess point.
+  gore: () => [[[-10, -10], [1.31, -10],
+    ...curvePoints([1.31, 1.27], [1.31, 1.27], [4.96, 42.67], [44.51, 49.93]),
+    ...curvePoints([44.51, 49.93], [25.66, 90.16], [50.02, 118.17], [50.02, 118.17]).slice(1),
+    [50.02, H + 10], [-10, H + 10]]],
 };
+
+// Points along a curve from `a` to `d` that leaves towards `b` and arrives
+// from `c` (a cubic Bezier curve, as in a drawing program).
+function curvePoints(a, b, c, d, steps = 24) {
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const t = i / steps, u = 1 - t;
+    return [0, 1].map(k => +(u * u * u * a[k] + 3 * u * u * t * b[k] + 3 * u * t * t * c[k] + t * t * t * d[k]).toFixed(2));
+  });
+}
 
 // Fields whose lines run corner to corner through the fess point. On these a
 // chevron (or chevron inverted) is drawn with its point at the fess point, so
@@ -391,8 +472,11 @@ export function partMap(division, frame = null, variant = null) {
   const key = `${division}|${frame}|${variant}`;
   if (!partMapCache.has(key)) {
     const shapes = divisionShapes(division, frame, variant);
+    // (layered shapes: in a part if an odd number of its shapes cover the point)
+    const within = isLayered(division)
+      ? (x, y, polygons) => polygons.filter(p => pointInPolygon(x, y, p)).length % 2 === 1 : inAny;
     partMapCache.set(key, SAMPLES.map(([x, y]) => {
-      const i = shapes.findIndex(polygons => inAny(x, y, polygons));
+      const i = shapes.findIndex(polygons => within(x, y, polygons));
       return i < 0 ? 0 : i;
     }));
   }

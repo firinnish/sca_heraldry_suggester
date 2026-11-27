@@ -30,17 +30,66 @@
 // NOT CHOSEN YET: anything the shield description leaves open (see shield.js)
 // is simply left out of the pattern, so the search matches any value for it.
 
-import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, SEMY } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, SEMY, postureCode } from './catalog.js';
 import { COUNTERCHANGED, tincturesIn, isComplete, roles, isPeripheral } from './shield.js';
 
 const FORM_URL = 'https://oanda.sca.org/oanda_complex.cgi';
 export const MAX_PATTERNS = 10;
 
 const isFurTincture = t => TINCTURES[t].kind === 'fur';
-const known = field => field.type !== 'plain' || field.tincture !== null;
+// Vair, potent, and the furs and treatments made from two tinctures
+// (catalog.js: PATTERNS): what the O&A's records say about them is set out
+// at madeFieldLine and chargeTincture below.
+const made = t => (TINCTURES[t].pair ? TINCTURES[t] : null);
 
-// How a part is named on a division line (furs keep their own name).
-const divisionLineName = field => (field.type === 'plain' ? field.tincture : 'multicolor');
+// How a part is named on a division line (furs keep their own name). A fur
+// made from two tinctures is "fur" ("Per pale azure and gules ermined Or");
+// vair and its kin, and treated tinctures, are recorded now one way and now
+// another, so they are left out (null) and the search matches any.
+function divisionLineName(field) {
+  if (field.type !== 'plain') return 'multicolor';
+  const t = made(field.tincture);
+  return !t ? field.tincture : t.pattern === 'ermined' ? 'fur' : null;
+}
+const known = field => field.type !== 'plain' || (field.tincture !== null && divisionLineName(field) !== null);
+
+// A PLAIN FIELD of vair, of a fur made from two tinctures, or with a field
+// treatment has no two-letter category: all are under FIELD TREATMENT
+// headings. From the records (November 2026):
+//   "Vair, a hare salient sable"          FIELD TREATMENT-VAIRY:argent:~and azure
+//   "Vairy Or and gules, ..."             FIELD TREATMENT-VAIRY:gules:~and or     (alphabetical; counter-vair the same)
+//   "Potent, a crescent inverted Or"      FIELD TREATMENT-POTENTY:argent:~and azure
+//   "Gules ermined argent, an escallop"   FIELD TREATMENT-SEME (ERMINED):gules:~and argent  (background first)
+//   "Azure masoned argent, ..."           FIELD TREATMENT-MASONED:argent          (only the masoning)
+//   "Gules scaly Or, ..."                 FIELD TREATMENT-SCALY:gules:~and or     (background first)
+//   "Gules papellony Or, ..."             FIELD TREATMENT-PAPELONNY:gules:~and or
+function madeFieldLine(tincture) {
+  const t = made(tincture), [a, b] = t.pair, [x, y] = [a, b].sort();
+  switch (t.pattern) {
+    case 'vairy': case 'countervairy': return `FIELD TREATMENT-VAIRY:${x}:~and ${y}`;
+    case 'potenty': return `FIELD TREATMENT-POTENTY:${x}:~and ${y}`;
+    case 'ermined': return `FIELD TREATMENT-SEME (ERMINED):${a}:~and ${b}`;
+    case 'masoned': return `FIELD TREATMENT-MASONED:${b}`;
+    case 'scaly': return `FIELD TREATMENT-SCALY:${a}:~and ${b}`;
+    default: return `FIELD TREATMENT-PAPELONNY:${a}:~and ${b}`;
+  }
+}
+
+// A CHARGE of one of those tinctures, from the records: "a lion passant
+// regardant vair" has the word vair; "a chief vairy Or and gules" and "a
+// chief potent" have multicolor neutral with both tinctures, alphabetical;
+// "a wolf rampant gules ermined Or" has just fur; "a fess embattled argent,
+// masoned sable" has just argent; "a chief sable scaly Or" has multicolor
+// dark with both tinctures.
+function chargeTincture(tincture) {
+  const t = made(tincture);
+  if (!t) return [tincture];
+  const [x, y] = [...t.pair].sort();
+  if (tincture === 'vair') return ['vair'];
+  if (t.pattern === 'ermined') return ['fur'];
+  if (t.pattern === 'masoned') return [t.pair[0]];
+  return [`multicolor ${t.tone}`, '~ ' + x, '~and ' + y];
+}
 
 // How a part is named on the general FIELD line (all furs are just "fur").
 const fieldLineName = field =>
@@ -100,7 +149,7 @@ const PLAIN_FIELD_CODES = {
 // (A part that is itself divided shows as "multicolor" on that line.)
 export function fieldPatterns(field) {
   if (!field) return [];
-  if (field.type === 'plain') return field.tincture === null ? ['FIELD:solid'] : [PLAIN_FIELD_CODES[field.tincture]];
+  if (field.type === 'plain') return field.tincture === null ? ['FIELD:solid'] : [PLAIN_FIELD_CODES[field.tincture] || madeFieldLine(field.tincture)];
   return [divisionLine(field)];
 }
 
@@ -109,6 +158,7 @@ export function fieldPatterns(field) {
 // searching; kept because tests/index.html checks it against the records.
 export function fieldDescription(field) {
   if (!field || field.type === 'plain') {
+    if (field && field.tincture !== null && made(field.tincture)) return [madeFieldLine(field.tincture), 'FIELD:solid'];
     return !field ? [] : field.tincture === null ? ['FIELD:solid'] : [`FIELD:${field.tincture}:solid`];
   }
   const def = DIVISIONS[field.division];
@@ -138,9 +188,9 @@ export function fieldDescription(field) {
 
 function tinctureFeatures(group, field) {
   if (group.tincture === null) return [];
-  if (group.tincture !== COUNTERCHANGED) return [group.tincture];
+  if (group.tincture !== COUNTERCHANGED) return chargeTincture(group.tincture);
   const pair = isComplete(field) ? tincturesIn(field) : [];
-  if (pair.length !== 2) return ['multicolor'];
+  if (pair.length !== 2 || pair.some(made)) return ['multicolor'];
   const names = pair.map(t => (isFurTincture(t) ? 'fur' : t)).sort();
   return ['multicolor neutral', '~ ' + names[0], '~and ' + names[1]];
 }
@@ -174,6 +224,19 @@ function tinctureFeatures(group, field) {
 // number out.
 const numberWord = n => (n === SEMY ? 'seme' : String(n));
 
+// A charge's posture and the way it is turned, in the O&A's own words
+// (catalog.js: POSTURES and ORIENTATIONS, both checked against real records):
+// "a lion passant guardant contourny" is "passant to sinister", "a sword
+// bendwise" is "bendwise". A swimming bird has a word of its own ("Azure, a
+// swan naiant argent" has "bird naiant to dexter"). Anything the O&A has no
+// sure word for is left out.
+function stanceFeatures(group) {
+  if (group.kind !== 'charge') return [];
+  let posture = postureCode(group.posture, !!group.mirror);
+  if (posture && posture.startsWith('naiant') && /^BIRD/.test(group.category || '')) posture = 'bird ' + posture;
+  return [posture, group.turned ? ORIENTATIONS[group.turned].code : null].filter(Boolean);
+}
+
 function groupLine(group, field, word, count = group.number) {
   const def = group.kind === 'ordinary' ? ORDINARIES[group.ordinary] : null;
   const bits = [def ? def.code : group.category];
@@ -182,7 +245,7 @@ function groupLine(group, field, word, count = group.number) {
   else if ((!def || def.numbered) && count !== null) bits.push(numberWord(count));
   bits.push(...tinctureFeatures(group, field));
   if (def) bits.push('pl');
-  if (group.posture) bits.push(group.posture);
+  bits.push(...stanceFeatures(group));
   if (word) bits.push(word);
   return bits.join(':');
 }
@@ -196,7 +259,7 @@ function primaryLines(group, field) {
   if (number) lines.push([code, number, 'primary']);
   if (tincture.length) lines.push([code, ...tincture, 'primary']);
   if (def) lines.push([code, 'pl', 'primary']);
-  if (group.posture) lines.push([code, group.posture, 'primary']);
+  for (const feature of stanceFeatures(group)) lines.push([code, feature, 'primary']);
   if (!lines.length) lines.push([code, 'primary']);
   // A named arrangement is one more thing about the group, with a category
   // of its own: "Argent, in pale three suns sable" has INPALE:3:g3pa:sable
@@ -204,6 +267,17 @@ function primaryLines(group, field) {
   const arranged = group.arranged ? ARRANGEMENTS[group.arranged] : null;
   if (arranged && arranged.code) lines.push([arranged.code, 'primary']);
   return lines.map(bits => bits.join(':'));
+}
+
+// A chief, bordure, orle or base is <code>:<tincture>:pl. Checked against
+// real records for the others: flaunches carry their number ("Or, flaunches
+// azure" has FLAUNCH:2:azure:pl), a gore too but no "pl" ("... and a gore
+// sinister azure" has GORE AND GUSSET:1:azure), and a canton neither
+// ("... and a canton Or" has CANTON:or). See ORDINARIES in catalog.js.
+function peripheralLine(group, field) {
+  const def = ORDINARIES[group.ordinary];
+  return [def.code, ...(def.count ? [String(def.count)] : []), ...tinctureFeatures(group, field),
+          ...(def.plainLine === false ? [] : ['pl'])].join(':');
 }
 
 // All the search patterns for a whole shield: the field, then each charge
@@ -214,7 +288,7 @@ export function shieldPatterns(field, groups = [], { noCharge = false } = {}) {
   const r = roles(groups);
   const patterns = [...fieldPatterns(field)], tertiary = [];
   groups.forEach((g, i) => {
-    if (r[i].role === 'peripheral') patterns.push([ORDINARIES[g.ordinary].code, ...tinctureFeatures(g, field), 'pl'].join(':'));
+    if (r[i].role === 'peripheral') patterns.push(peripheralLine(g, field));
     else if (!r[i].chosen) patterns.push(groupLine(g, field, null));
     else if (r[i].role === 'primary') patterns.push(...primaryLines(g, field));
     else patterns.push(groupLine(g, field, 'secondary'));

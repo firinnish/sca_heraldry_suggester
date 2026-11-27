@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="85.5 76.5 193.5 321.4" width="193.5" height="321.4">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 279 76.5 L 85.5 76.5 L 85.5 372.56 L 85.5 397.9 L 279 397.9 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Banner_(2)" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Banner (2)</title>
+    <g id="Banner_(2)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_204">
+        <g id="Graphic_202">
+          <path d="M 259.53 190.47 L 254.2 203.04 L 243.18 198.36 L 237.84 210.92 L 248.87 215.6 L 243.53 228.17 L 232.51 223.49 L 227.18 236.05 L 238.2 240.73 L 232.87 253.29 L 158.51 221.72 C 158.51 221.72 156.9 220.12 157.42 214.92 C 157.95 209.72 195.7 134.1 195.7 134.1 L 270.06 165.67 L 264.87 177.91 L 253.84 173.23 L 248.51 185.79 Z" fill="#ffffff"/>
+          <path d="M 259.53 190.47 L 254.2 203.04 L 243.18 198.36 L 237.84 210.92 L 248.87 215.6 L 243.53 228.17 L 232.51 223.49 L 227.18 236.05 L 238.2 240.73 L 232.87 253.29 L 158.51 221.72 C 158.51 221.72 156.9 220.12 157.42 214.92 C 157.95 209.72 195.7 134.1 195.7 134.1 L 270.06 165.67 L 264.87 177.91 L 253.84 173.23 L 248.51 185.79 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_198">
+          <path d="M 97.29 388.12 L 102.55 86.87 C 102.59 84.39 100.62 82.34 98.13 82.3 C 98.13 82.3 98.13 82.3 98.13 82.3 L 98.13 82.3 C 95.65 82.25 93.6 84.23 93.55 86.72 L 88.29 387.96 C 88.25 390.45 90.23 392.5 92.72 392.54 C 92.72 392.54 92.72 392.54 92.72 392.54 L 92.72 392.54 C 95.2 392.58 97.25 390.6 97.29 388.12 Z" fill="#ffffff"/>
+          <path d="M 97.29 388.12 L 102.55 86.87 C 102.59 84.39 100.62 82.34 98.13 82.3 C 98.13 82.3 98.13 82.3 98.13 82.3 L 98.13 82.3 C 95.65 82.25 93.6 84.23 93.55 86.72 L 88.29 387.96 C 88.25 390.45 90.23 392.5 92.72 392.54 C 92.72 392.54 92.72 392.54 92.72 392.54 L 92.72 392.54 C 95.2 392.58 97.25 390.6 97.29 388.12 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Group_195">
+          <g id="Line_197">
+            <path d="M 100.53 202.3 C 100.53 202.3 95.93 204.57 91.66 202.67" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+          <g id="Line_196">
+            <path d="M 100.52 205.4 C 100.52 205.4 95.92 207.66 91.64 205.77" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+        </g>
+        <g id="Group_192">
+          <g id="Line_194">
+            <path d="M 100.92 179.68 C 100.92 179.68 96.32 181.94 92.04 180.05" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+          <g id="Line_193">
+            <path d="M 100.9 182.77 C 100.9 182.77 96.3 185.04 92.03 183.15" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+        </g>
+        <g id="Group_189">
+          <g id="Line_191">
+            <path d="M 101.3 157.05 C 101.3 157.05 96.7 159.32 92.43 157.42" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+          <g id="Line_190">
+            <path d="M 101.29 160.15 C 101.29 160.15 96.69 162.41 92.42 160.52" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+        </g>
+        <g id="Group_186">
+          <g id="Line_188">
+            <path d="M 101.69 134.43 C 101.69 134.43 97.09 136.69 92.82 134.8" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+          <g id="Line_187">
+            <path d="M 101.68 137.52 C 101.68 137.52 97.08 139.79 92.8 137.9" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+        </g>
+        <g id="Group_183">
+          <g id="Line_185">
+            <path d="M 102.08 111.8 C 102.08 111.8 97.48 114.07 93.2 112.17" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+          <g id="Line_184">
+            <path d="M 102.06 114.9 C 102.06 114.9 97.46 117.16 93.19 115.27" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+        </g>
+        <g id="Graphic_182">
+          <path d="M 200.58 218.87 C 198.16 221.11 186.77 220.65 180.9 219.17 C 175.03 217.68 163.49 211.81 159.81 215.66 C 156.12 219.51 158.36 221.59 158.36 221.59 C 158.36 221.59 155.41 221.32 156.78 209.29 C 157.25 202.47 159.26 194.41 159.26 194.41 L 207.69 205.26 C 207.69 205.26 203.01 216.63 200.58 218.87 Z" fill="#ffffff"/>
+          <path d="M 200.58 218.87 C 198.16 221.11 186.77 220.65 180.9 219.17 C 175.03 217.68 163.49 211.81 159.81 215.66 C 156.12 219.51 158.36 221.59 158.36 221.59 C 158.36 221.59 155.41 221.32 156.78 209.29 C 157.25 202.47 159.26 194.41 159.26 194.41 L 207.69 205.26 C 207.69 205.26 203.01 216.63 200.58 218.87 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_181">
+          <path d="M 100.79 204.07 C 100.79 204.07 110.12 198.17 109.71 191.78 C 109.31 185.39 101.23 181.45 101.23 181.45 C 101.23 181.45 110.97 176.19 111.52 170.15 C 112.07 164.11 101.34 159.28 101.34 159.28 C 101.34 159.28 112.46 154.02 111.84 146.74 C 111.22 139.47 101.33 136.33 101.33 136.33 C 101.33 136.33 112.8 130.63 112.62 123.67 C 112.43 116.71 102.56 113.58 102.56 113.58 C 102.56 113.58 112.98 110.72 112.85 102.29 C 112.73 93.85 103.01 90.96 103.01 90.96 C 103.01 90.96 143.48 80.97 161.6 82.08 C 179.72 83.19 207.97 83.02 214.17 98.72 C 220.38 114.43 211.46 190.61 210.01 202.07 C 208.55 213.53 200.58 218.87 200.58 218.87 C 200.58 218.87 205.54 212.04 199.17 207.41 C 192.8 202.78 178.09 200.14 155 199.75 C 131.9 199.36 100.79 204.07 100.79 204.07 Z" fill="#ffffff"/>
+          <path d="M 100.79 204.07 C 100.79 204.07 110.12 198.17 109.71 191.78 C 109.31 185.39 101.23 181.45 101.23 181.45 C 101.23 181.45 110.97 176.19 111.52 170.15 C 112.07 164.11 101.34 159.28 101.34 159.28 C 101.34 159.28 112.46 154.02 111.84 146.74 C 111.22 139.47 101.33 136.33 101.33 136.33 C 101.33 136.33 112.8 130.63 112.62 123.67 C 112.43 116.71 102.56 113.58 102.56 113.58 C 102.56 113.58 112.98 110.72 112.85 102.29 C 112.73 93.85 103.01 90.96 103.01 90.96 C 103.01 90.96 143.48 80.97 161.6 82.08 C 179.72 83.19 207.97 83.02 214.17 98.72 C 220.38 114.43 211.46 190.61 210.01 202.07 C 208.55 213.53 200.58 218.87 200.58 218.87 C 200.58 218.87 205.54 212.04 199.17 207.41 C 192.8 202.78 178.09 200.14 155 199.75 C 131.9 199.36 100.79 204.07 100.79 204.07 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Group_177">
+          <g id="Line_180">
+            <path d="M 193.55 216.91 C 193.55 216.91 195.98 217.21 198.39 216.57 C 200.81 215.93 202.07 214.64 202.07 214.64" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+          <g id="Line_179">
+            <path d="M 194.77 213.43 C 194.77 213.43 197.13 213.49 199.13 212.93 C 201.13 212.37 201.84 211.46 201.84 211.46" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+          <g id="Line_178">
+            <path d="M 195.98 209.95 C 195.98 209.95 197.18 210.09 198.51 209.83 C 199.85 209.56 200.69 209.01 200.69 209.01" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+        </g>
+        <g id="Group_173">
+          <g id="Line_176">
+            <path d="M 164.92 221.45 C 164.92 221.45 162.4 220.81 160.71 219.68 C 159.03 218.55 158.97 217.46 158.97 217.46" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+          <g id="Line_175">
+            <path d="M 165.32 219.17 C 165.32 219.17 163.65 218.71 162.33 217.7 C 161.02 216.7 160.67 215.61 160.67 215.61" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+          <g id="Line_174">
+            <path d="M 165.66 216.62 C 165.66 216.62 164.71 216.42 163.75 215.86 C 162.79 215.3 162.29 214.65 162.29 214.65" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+        </g>
+        <g id="Group_199">
+          <g id="Line_201">
+            <path d="M 102.47 89.59 C 102.47 89.59 97.76 91.61 93.59 89.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+          <g id="Line_200">
+            <path d="M 102.3 92.68 C 102.3 92.68 97.58 94.7 93.42 92.59" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
