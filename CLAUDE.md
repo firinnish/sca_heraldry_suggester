@@ -36,6 +36,10 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   - `core/generate.js`: random shields within constraints. It guesses and asks
     `rules.js`, so it can never disagree with the rules; add rules there, not here.
   - `core/art.js`, `core/csv.js`: the charge library and its pictures.
+    `loadLibrary()` gives `pictures` (ready to draw: our own; the random
+    generator picks from these) and `all` (every picture known, including
+    the hundreds from Traceable Heraldic Art, which are fetched only when
+    wanted: `loadPicture(row.file)` before drawing one).
 - The shield is the SCA standard escutcheon (traced from Traceable Heraldic
   Art's "Plain" device form, with the maintainer's permission for this use).
   All shapes follow THA's device forms: fess point (50, 50), every diagonal
@@ -130,15 +134,20 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   orle the field is NOT made smaller (it runs under the orle to the edge),
   but an ordinary is, and is drawn through a mask so it stops just short of
   the orle. `layoutShield` returns `frame` (for the field), `within` and
-  `edge` (for that mask). An ordinary through the middle with an orle is
-  still a `house` hold until the maintainer has seen it.
-- PALY SUITS ITS CHARGES: `layoutShield` also returns `variant`, the number
-  of pieces a paly field is drawn with (six, eight or four: `fieldVariant`
-  in `layout.js`), chosen so each charge lies across a line or on the
-  tincture it contrasts with. Drawing and the rules both use it. The
-  maintainer asked for the stripes to be slid sideways; that gives seven
-  pieces, which is not paly, hence the count instead (question in ROADMAP).
-  Extend this to other patterns under ROADMAP item 11.
+  `edge` (for that mask). The maintainer has confirmed that an ordinary
+  stopping where it meets an orle looks right, so it is offered.
+- A PATTERN SUITS ITS CHARGES: `layoutShield` also returns `variant`, the
+  way a patterned field is drawn (`fieldVariant` in `layout.js`, from
+  `DIVISION_VARIANTS` in `geometry.js`: paly, barry, bendy, bendy sinister,
+  chevronelly, checky and lozengy, each the usual way or with more or fewer
+  pieces), chosen so each charge lies across a line or on the tincture it
+  contrasts with. The usual way wins when it does well enough, and is
+  always kept when an ordinary other than a chief, bordure or orle is on
+  the field (it is the one the ordinary covers exactly). Drawing and the
+  rules both use the variant. Stripes are never slid sideways instead: that
+  leaves an odd number of pieces, which is not paly. The default drawing of
+  every pattern must stay byte-identical (`tests/snapshot.html`). Still to
+  do under ROADMAP item 11: Traceable Heraldic Art's own drawings.
 - A bordure or orle follows `framePath`: beside a chief it runs along under
   the chief. The maintainer sketched this and three placements (four around
   a bend, two around a cross, four around a chevron inverted) in November
@@ -161,8 +170,10 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   in option pictures and suggestions, within the rules. Random pictures are
   seeded from what they depend on, so they only change when that changes.
 - Question 1 "colours used in the shield" is a palette (a subset may be used;
-  with only one ticked it must appear but others may too). Question 2
-  "colours used in the background" means exactly those.
+  with only one ticked it must appear but others may too). "Colours used in
+  the background" means exactly those; it now comes AFTER "How is the
+  background divided?" (the maintainer, November 2026: picking the colours
+  afterwards feels more natural).
 - An option the rules forbid is shown greyed with the reason, never hidden
   ("misses a chance for education"). Option groups are limited to about 18.
 - The shield top right assumes a colour when the shield's colours leave only
@@ -174,8 +185,29 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
 - Each question card sets one thing. "select this shield" on a suggestion
   copies everything into the questions; "pin suggestion" keeps it.
 - "What charges are on the field?" (the maintainer's words) takes up to
-  three kinds of charge; picking one again takes it off. Each has its own
-  "How many?" and colour. People must not need the words primary, secondary
+  three kinds of charge; picking one again takes it off. It follows the
+  maintainer's sketch of November 2026 (all its words are theirs):
+  - a menu on the left ("default view", "see all", then "topic", "type" and
+    "artistic need", from the labels in charges.csv and data/taxonomy.csv),
+    a box to search by name (which looks through everything), and the
+    pictures in a box that scrolls. The DEFAULT VIEW shows only what can
+    still be chosen: ordinaries, then charges whose picture is labelled
+    easy to draw, then the rest, each alphabetically. Other views show
+    greyed options with the reason, as everywhere else.
+  - There are hundreds of charges, so a card is only worked out when it
+    scrolls into view (`gridJobs` and an IntersectionObserver in
+    `renderChargePanel`), and its picture is fetched first. Never draw a
+    shield with a Traceable Heraldic Art picture before `loadPicture` has
+    finished: it would come out as a blob and be remembered that way.
+  - a switch: "Suggestions include any of my selections" / "Must include
+    ALL of my selections" (`state.any`; it changes only the suggestions).
+  - a card per charge chosen: "you selected: lion", its picture, "number:"
+    as stops on a line from 1 to semy, "colour:" as a menu with a strip of
+    small squares under it, and the one line saying why any are greyed.
+  - under the shield top right, "Artist credits:" for every Traceable
+    Heraldic Art picture on it, and a link to the licence. Required by the
+    licence: do not remove it.
+  People must not need the words primary, secondary
   or tertiary: "How are they arranged?" shows every way the chosen charges
   can go together as a picture, forbidden ways greyed with the reason. "I'm
   a herald" adds a menu per charge to say which is which directly.
@@ -208,7 +240,8 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
 - The maintainer cannot easily run a local server (python is not on their
   terminal's PATH). To let them try unmerged work, commit it to a branch and
   put a copy in a `preview/` folder on `main` (core, apps/search, charges,
-  tests), which GitHub Pages serves at `.../preview/apps/search/`. Delete
+  tests, and data/taxonomy.csv), which GitHub Pages serves at
+  `.../preview/apps/search/`. Delete
   the folder when the branch is merged.
 
 ## How the O&A indexes things (verified, do not guess)
@@ -255,10 +288,16 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   overwrite their edits.
 
 ## Never commit (kept on the maintainer's machine only, see .gitignore)
-- `SVG/` (Traceable Heraldic Art). Not to be published or used in anything
-  public until the maintainer has talked to its creator and labelled it
-  properly. Until then charges are drawn as blobs; the maintainer will supply
-  charge art gradually. The charge picker only shows pictures locally.
+- `SVG/` (the whole Book of Traceable Heraldic Art as downloaded: 9,000
+  files, 466 MB). Never commit the folder itself. What IS published, since
+  the maintainer asked for it in November 2026, is `charges/tha/`: a slimmed
+  copy of the one picture chosen for each labelled charge, with every
+  artist credited in `charges/tha.csv` and under any shield that uses one.
+  The collection is shared under Creative Commons CC-BY-SA
+  (https://heraldicart.org/credits), which allows this as long as the
+  credits stay and the copies are shared the same way
+  (`charges/tha/README.md`). Never add a picture there by hand, and never
+  one that cannot be credited: run `tools/import_tha.py`.
 - `data/oanda.db` (SCA copyright). Only `tests/` needs it; nothing users see
   may depend on it being present.
 - The repository is public (GitHub Pages on a free account needs that) and
@@ -276,6 +315,16 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   `charges/charges.csv` (one row per charge), `charges/art.csv` (one row per
   picture), `charges/art/*.png`. Rules for pictures are in CONTRIBUTING.md:
   black lines, white fill, transparent background, 1000px+, facing dexter.
+- Beside our own pictures there are the ones from Traceable Heraldic Art:
+  `charges/tha.csv` and `charges/tha/*.svg`, both GENERATED by
+  `python tools/import_tha.py <entries.json>` (entries.json is the
+  collection's list of credits, from https://heraldicart.org/json) out of
+  the labels in `data/charges.csv` and the local `SVG/` folder. Their
+  insides are a pale grey in the original, made white on the way in. A
+  charge with a picture of our own does not get one from there. The script
+  says what it left out and why. `tests/tha.html` draws every one: look at
+  it after importing. `art.csv` has a `complexity` column ("Easy to Draw" /
+  "Complex", the maintainer's label), which the default view sorts by.
 - Run `python tools/check_charges.py` after any change to it; it must report
   no PROBLEMS before committing. `oanda_category` is always looked up in
   my.cat (`charges/oanda_categories.csv`), never guessed.

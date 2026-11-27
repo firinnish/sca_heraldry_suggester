@@ -26,7 +26,8 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 CHARGE_COLUMNS = ['id', 'name', 'plural', 'plain_name', 'oanda_category', 'type',
                   'themes', 'region_culture', 'exclude', 'notes']
 ART_COLUMNS = ['file', 'charge_id', 'posture', 'variant', 'default', 'artist',
-               'source', 'permission', 'notes']
+               'source', 'permission', 'notes', 'complexity']
+COMPLEXITY = ('', 'Easy to Draw', 'Complex')   # how hard the picture is to draw (the maintainer's label)
 
 MIN_LONGEST_SIDE = 1000     # pixels: what we ask for (smaller gets a warning)
 TOO_SMALL = 500             # pixels: below this the image is refused
@@ -204,6 +205,8 @@ def main():
             problems.append(f'{where}: default must be TRUE or empty')
         if flag == 'TRUE':
             defaults[cid] = defaults.get(cid, 0) + 1
+        if (row.get('complexity') or '').strip() not in COMPLEXITY:
+            problems.append(f'{where}: complexity must be "Easy to Draw", "Complex" or empty')
         for needed in ('artist', 'permission'):
             if not (row.get(needed) or '').strip():
                 problems.append(f'{where}: {needed} is empty')

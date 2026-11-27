@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="40.5 99 283.5 279" width="283.5" height="279">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 40.5 99 L 324 99 L 324 378 L 40.5 378 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Keystone_(1)" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Keystone (1)</title>
+    <g id="Keystone_(1)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_53">
+        <g id="Graphic_64">
+          <path d="M 46.02 107.19 C 51.06 102.14 146.93 105.5 182.26 105.5 C 217.58 105.5 313.45 102.14 318.5 107.19 C 323.54 112.23 308.41 182.88 298.31 238.38 C 288.22 293.89 278.13 364.53 273.08 369.58 C 268.04 374.62 202.44 371.82 177.21 371.82 C 151.98 371.82 95.93 374.62 90.88 369.58 C 85.84 364.53 67.5 279 61.15 238.38 C 54.81 197.76 40.97 112.23 46.02 107.19 Z" fill="#ffffff"/>
+          <path d="M 46.02 107.19 C 51.06 102.14 146.93 105.5 182.26 105.5 C 217.58 105.5 313.45 102.14 318.5 107.19 C 323.54 112.23 308.41 182.88 298.31 238.38 C 288.22 293.89 278.13 364.53 273.08 369.58 C 268.04 374.62 202.44 371.82 177.21 371.82 C 151.98 371.82 95.93 374.62 90.88 369.58 C 85.84 364.53 67.5 279 61.15 238.38 C 54.81 197.76 40.97 112.23 46.02 107.19 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_63">
+          <path d="M 56.11 127.37 C 61.15 117.28 71.25 112.23 76.29 112.23" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_62">
+          <path d="M 106.57 127.37 C 106.57 127.37 107.96 122.18 121.71 122.32" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_61">
+          <path d="M 192.35 157.65 C 197.39 152.6 194.1 149.63 202.44 147.55" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_60">
+          <path d="M 202.44 268.66 C 217.58 253.52 227.67 253.52 227.67 253.52" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_59">
+          <path d="M 177.21 344.91 C 177.21 344.91 192.43 325.32 212.53 319.68" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_58">
+          <path d="M 242.81 349.39 C 247.85 334.25 257.48 330.41 257.95 329.21" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_57">
+          <path d="M 121.71 334.25 C 126.75 319.12 137.59 320.44 136.84 319.12" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_56">
+          <path d="M 111.61 258.56 C 121.71 248.47 143 248.35 146.93 243.43" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_55">
+          <path d="M 124.36 202.5 C 129.41 192.41 138.74 190.97 139.5 192.41" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_54">
+          <path d="M 250.36 184.5 C 265.5 179.45 264.14 175.22 265.5 174.41" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

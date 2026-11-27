@@ -72,9 +72,41 @@
   .why { color: var(--warn); font-size: 0.68rem; font-style: normal; font-weight: normal; text-align: center; line-height: 1.2; }
 
   /* One block per charge chosen: its name, how many, what colour. */
-  .slot { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; margin: 0 0 14px; }
-  .slot-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; font-size: 0.95rem; }
-  .slot .row-label:first-child { margin-top: 0; }
+  .selected-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 12px; }
+  .slot { border: 1.5px solid var(--ink); border-radius: 6px; padding: 8px 10px; min-width: 0; }
+  .slot-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 10px; font-size: 0.9rem; font-weight: bold; }
+  .slot > svg { display: block; width: 72px; height: auto; margin: 6px auto; }
+  .pick-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.85rem; }
+  .pick-label { font-weight: bold; flex: none; }
+  .pick-row select { flex: 1; min-width: 0; padding: 3px 6px; }
+  /* How many: stops along a line, like a slider that can show what is not allowed. */
+  .track { flex: 1; display: flex; justify-content: space-between; position: relative; min-width: 0; }
+  .track::before { content: ''; position: absolute; left: 6px; right: 6px; top: 7px; border-top: 2px solid var(--ink); }
+  .stop { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; padding: 0 1px; font-size: 0.72rem; min-width: 14px; }
+  .stop i { width: 2px; height: 12px; margin-top: 2px; background: var(--ink); border-radius: 1px; }
+  .stop[aria-pressed="true"] { background: none; }
+  .stop[aria-pressed="true"] i { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+  .stop.greyed i { background: var(--line); }
+  /* What colour: the menu above, and every colour as a small square to click. */
+  .strip { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 6px; }
+  .sq { background: none; border: 2px solid transparent; border-radius: 5px; padding: 0; line-height: 0; }
+  .sq svg { width: 20px; height: 20px; }
+  .sq[aria-pressed="true"] { border-color: var(--accent); }
+
+  /* The list of charges: a menu on the left, the pictures on the right. */
+  .picker { display: grid; grid-template-columns: 132px minmax(0, 1fr); border: 1.5px solid var(--ink); border-radius: 6px; height: 440px; overflow: hidden; }
+  .views { overflow-y: auto; background: #e9e1cf; padding: 6px 4px; display: flex; flex-direction: column; }
+  .view { background: none; border: 2px solid transparent; border-radius: 5px; padding: 2px 6px; text-align: left; font-size: 0.82rem; font-weight: bold; }
+  .view.sub { padding-left: 20px; font-weight: normal; }
+  .view-head { font-size: 0.82rem; font-weight: bold; padding: 6px 6px 1px; }
+  .picker-grid { overflow-y: auto; padding: 8px; }
+  @media (max-width: 560px) { .picker { grid-template-columns: 1fr; height: auto; } .views { max-height: 130px; } .picker-grid { max-height: 420px; } }
+  .mode-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 12px; font-size: 0.88rem; font-weight: bold; }
+  .switch { width: 46px; height: 22px; border-radius: 12px; border: 1.5px solid var(--ink); background: #e9e1cf; padding: 1px; display: flex; justify-content: flex-start; }
+  .switch i { width: 17px; height: 17px; border-radius: 50%; background: var(--ink); }
+  .switch[aria-checked="true"] { justify-content: flex-end; }
+  .credits { font-size: 0.82rem; margin: 10px 0 0; }
+  .credits a { color: var(--accent); }
   .roles { display: grid; gap: 8px; margin-top: 14px; }
   .roles label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.9rem; }
 
@@ -127,8 +159,8 @@
   <div class="top">
     <div class="questions">
       <section class="panel" id="shieldColoursPanel"></section>
-      <section class="panel" id="fieldColoursPanel"></section>
       <section class="panel" id="divisionPanel"></section>
+      <section class="panel" id="fieldColoursPanel"></section>
       <section class="panel" id="chargePanel"></section>
       <section class="panel" id="arrangePanel"></section>
     </div>
@@ -145,7 +177,8 @@ import { plain, divided, isComplete, isNested, leafTinctures, shieldTinctures, b
 import { shieldSVG, swatchSVG, counterchangedSwatchSVG } from '../../core/draw.js';
 import { shieldPNG } from '../../core/export.js';
 import { shieldPatterns, complexSearchURL } from '../../core/oanda.js';
-import { loadLibrary } from '../../core/art.js';
+import { loadLibrary, loadPicture, loadPictures, getPicture } from '../../core/art.js';
+import { fetchCSV } from '../../core/csv.js';
 import { PALETTES, DEFAULT_PALETTE, usePalette, paletteById } from '../../core/palettes.js';
 import { checkShield, checkArrangement, paletteLacks } from '../../core/rules.js';
 import { randomShield, randomShields, whyNot, whichWork, randomFrom, shuffled } from '../../core/generate.js';
@@ -185,8 +218,30 @@ const TEXT = {
   chargeHelp: 'Pick up to three. Pick one again to take it off.',       // DRAFT
   chargeFull: 'Three charges are chosen already',                       // DRAFT
   chargeRemove: 'remove',                                               // DRAFT
-  chargeNumber: 'How many?',                                            // DRAFT
-  chargeColour: 'What colour is it?',                                   // DRAFT
+  // The list of charges and the cards under it. These are the words of the
+  // maintainer's sketch (November 2026) unless marked DRAFT.
+  chargeBelow: 'See below to adjust colours, numbers and arrangements',
+  viewsLabel: 'Which charges to show',                                  // DRAFT (read out by screen readers only)
+  viewDefault: 'default view',
+  viewAll: 'see all',
+  viewTopic: 'topic',
+  viewType: 'type',
+  viewOrdinaries: 'ordinaries',
+  viewNeed: 'artistic need',
+  viewEasy: 'easy to draw',
+  viewCompact: 'compact',
+  viewLong: 'long and thin',
+  chargeNoneLeft: 'No other charge can be added with the choices made so far. "see all" shows them with the reason.', // DRAFT
+  modeAny: 'Mode: Suggestions include any of my selections',
+  modeAll: 'Must include ALL of my selections',
+  youSelected: name => `you selected: ${name}`,
+  noneSelected: 'no charge selected yet',                               // DRAFT
+  numberLabel: 'number:',
+  colourLabel: 'colour:',
+  // Under the shield: who drew the pictures in it.
+  credits: 'Artist credits:',
+  creditBy: (charge, artist) => `${charge} by ${artist}`,
+  licence: 'Creative Commons licence',
   semy: 'semy',
   // "How are they arranged?": shown once two or more charges are chosen.
   arrangeHeading: 'How are they arranged?',                             // DRAFT
@@ -213,8 +268,6 @@ const TEXT = {
   counterchanged: 'counterchanged',
   chargeSearch: 'Type to find a charge',                                // DRAFT
   chargeNone: 'no charge',                                              // DRAFT
-  chargeOrdinaries: 'Ordinaries',                                       // DRAFT
-  chargePictures: 'Charges',                                            // DRAFT
   chargeNoPicture: 'Charges we have no picture of yet (shown as a blob)', // DRAFT
   chargeMore: n => `…and ${n} more. Type to narrow the list.`,          // DRAFT
   chargeNoMatch: 'No charge matches that.',                             // DRAFT
@@ -321,6 +374,8 @@ const state = {
   arrangement: null,     // how the chosen charges go together (core/arrange.js), or null
   arrangementUnspecified: false,   // "don't specify" ticked for the arrangement
   chargeFilter: '',
+  view: 'default',       // which charges the list shows: 'default' | 'all' | 'type:...' | 'theme:...' | 'need:...'
+  any: false,            // suggestions may use any of the charges chosen (true) or must use all of them (false)
   pinned: [],            // suggestions the user has pinned
   epoch: 0,
   palette: DEFAULT_PALETTE, // the colour scheme shields are drawn in
@@ -328,7 +383,7 @@ const state = {
   fieldUnspecified: false,  // "don't specify" ticked for the background's colours
   collapsed: new Set(),     // ids of question sections the user has collapsed      // is the list of other palettes open?              // goes up when the user asks for different suggestions
 };
-let library = { charges: [], pictures: [] };   // filled in once charges/ has loaded
+let library = { charges: [], pictures: [], all: [] };   // filled in once charges/ has loaded (core/art.js)
 let shown = [];                                // the suggestions on screen, by position
 let shownArrangements = [];                    // the arrangement pictures on screen, by position
 
@@ -383,8 +438,7 @@ function groupFor(choice, tincture, number, arranged = null) {
   if (choice.kind === 'ordinary') return ordinaryGroup(choice.id, tincture);
   const charge = library.charges.find(c => c.id === choice.id);
   if (!charge) return null;
-  const picture = choice.file ? library.pictures.find(p => p.file === choice.file) : null;
-  return chargeGroupFromLibrary(charge, picture || null, { tincture, number, arranged: arranged === 'usual' ? null : arranged || null });
+  return chargeGroupFromLibrary(charge, pictureRow(choice.file), { tincture, number, arranged: arranged === 'usual' ? null : arranged || null });
 }
 
 // The charges chosen so far that can be drawn (a charge from the library has
@@ -502,7 +556,7 @@ function constraints() {
 // depends on, and remembered, so pictures only change when a relevant choice does.
 const remembered = new Map();
 function remember(key, make) {
-  if (remembered.size > 4000) remembered.clear();
+  if (remembered.size > 20000) remembered.clear();
   if (!remembered.has(key)) remembered.set(key, make());
   return remembered.get(key);
 }
@@ -637,13 +691,16 @@ function renderColourPanels() {
 }
 
 // `waiting`: the card's picture is still being worked out (see lazyCard); it
-// is shown as an empty shield for now.
+// is shown as an empty shield for now (the same one every time: the list of
+// charges has hundreds of them).
+let blank = null;
+const blankShield = () => blank || (blank = shieldSVG(null));
 function card({ attrs, shield, label, on, problems = [], why = null, waiting = null }) {
   const reason = why || (problems.length ? ruleText(problems[0]) : '');
   const greyed = reason ? ` greyed" aria-disabled="${!state.herald}` : '';
   const title = shield ? blazon(shield.field, shield.groups, words) : '';
   return `<button class="card${waiting ? ' waiting' : ''}${greyed}" type="button" ${attrs}${waiting ? ` data-waiting="${waiting}"` : ''} aria-pressed="${!!on}">` +
-    (shield ? shieldSVG(shield.field, { charges: shield.groups, title }) : waiting ? shieldSVG(null) : '') +
+    (shield ? shieldSVG(shield.field, { charges: shield.groups, title }) : waiting ? blankShield() : '') +
     `<span>${esc(label)}</span>${reason ? `<span class="why">${esc(reason)}</span>` : ''}</button>`;
 }
 
@@ -773,20 +830,111 @@ function renderBuilder() {
 // ---- "What charges are on the field?" ------------------------------------------
 const sameCharge = (a, b) => !!a && !!b && a.kind === b.kind && a.id === b.id;
 const samePicture = (a, b) => sameCharge(a, b) && (a.file || '') === (b.file || '');
+// A picture's row in the library (ours, or one from Traceable Heraldic Art).
+const pictureRow = file => (file ? library.all.find(p => p.file === file) || null : null);
 // A charge's name in plain words, for labels: "lion rampant", "chevron".
 function choiceName(choice, plural = false) {
   if (choice.kind === 'ordinary') return ORDINARIES[choice.id].name + (plural ? 's' : '');
   const charge = library.charges.find(c => c.id === choice.id);
-  const picture = choice.file ? library.pictures.find(p => p.file === choice.file) : null;
+  const picture = pictureRow(choice.file);
   const name = charge ? (plural ? (charge.plural || charge.name + 's') : charge.name).toLowerCase() : choice.id;
   return [name, picture && picture.posture].filter(Boolean).join(' ');
 }
 
-// One chosen charge's block: its name, how many, how they are set out, and
-// what colour. A number or colour is greyed if no shield fitting the other
-// choices could have it. Finding that out takes a moment, so it is done
-// after the click has been answered (see "Pictures that take a moment");
-// until then the block shows what was greyed before.
+// ---- The list of charges to pick from ---------------------------------------------
+// Everything that can be picked, each as { choice, label, ... }: the
+// ordinaries, then one entry per picture of ours and one per charge whose
+// picture comes from Traceable Heraldic Art, then the charges with no picture.
+function everyChoice() {
+  return remember(`choices|${library.all.length}|${library.charges.length}`, () => {
+    const byName = (a, b) => a.label.localeCompare(b.label);
+    const ordinaries = Object.entries(ORDINARIES).map(([id, o]) => ({ choice: { kind: 'ordinary', id, file: null }, label: o.name, ordinary: true }));
+    const pictures = library.all.map(p => ({
+      choice: { kind: 'charge', id: p.charge_id, file: p.file }, charge: p.charge, picture: p,
+      label: [p.charge.name.toLowerCase(), p.posture].filter(Boolean).join(' '), easy: p.complexity === 'Easy to Draw',
+    })).sort(byName);
+    const drawn = new Set(library.all.map(p => p.charge_id));
+    const ordinaryNames = new Set(Object.values(ORDINARIES).map(o => o.name));
+    const names = library.charges.filter(ch => !drawn.has(ch.id) && !ordinaryNames.has(ch.name.toLowerCase()))
+      .map(ch => ({ choice: { kind: 'charge', id: ch.id, file: null }, charge: ch, label: ch.name.toLowerCase(), blob: true })).sort(byName);
+    return { ordinaries, pictures, names };
+  });
+}
+
+// The maintainer's labels (data/taxonomy.csv): a type and the type it
+// belongs under ("Mammal" is under "Animal"), and the topics.
+let taxonomy = [];
+const parentOf = type => (taxonomy.find(t => t.mode === 'type' && t.value === type) || {}).parent || '';
+const topType = type => { let t = type; for (let i = 0; i < 4 && parentOf(t); i++) t = parentOf(t); return t; };
+const splitList = text => String(text || '').split(/[;,]/).map(s => s.trim()).filter(Boolean);
+// The headings of the list on the left: what there is to filter by.
+function viewLists() {
+  return remember(`views|${library.charges.length}|${taxonomy.length}`, () => {
+    const inOrder = (mode, found) => {
+      const listed = taxonomy.filter(t => t.mode === mode && !t.parent).map(t => t.value).filter(v => found.has(v));
+      return [...listed, ...[...found].filter(v => !listed.includes(v)).sort()];
+    };
+    return {
+      types: inOrder('type', new Set(library.charges.flatMap(ch => splitList(ch.type).map(topType)))),
+      topics: inOrder('theme', new Set(library.charges.flatMap(ch => splitList(ch.themes)))),
+    };
+  });
+}
+
+// Is a picture compact, or long and thin? From its width against its height.
+const COMPACT = 1.35, LONG_AND_THIN = 2.4;
+const proportion = p => { const s = p && (p.shape || (getPicture(p.file) || {}).aspect); return s ? Math.max(s, 1 / s) : null; };
+
+// The entries shown for a view (state.view), in order. The "default view"
+// is everything that can still be chosen: ordinaries first, then the charges
+// that are easy to draw, then the rest, each lot in alphabetical order (the
+// maintainer, November 2026).
+function choicesFor(view) {
+  const { ordinaries, pictures, names } = everyChoice();
+  if (view === 'default') return [...ordinaries, ...pictures.filter(x => x.easy), ...pictures.filter(x => !x.easy)];
+  if (view === 'all') return [...ordinaries, ...pictures, ...names];
+  const [kind, value] = [view.slice(0, view.indexOf(':')), view.slice(view.indexOf(':') + 1)];
+  if (kind === 'type') return value === 'ordinary' ? ordinaries : [...pictures, ...names].filter(x => splitList(x.charge.type).some(t => topType(t) === value));
+  if (kind === 'theme') return [...pictures, ...names].filter(x => splitList(x.charge.themes).includes(value));
+  if (view === 'need:easy') return pictures.filter(x => x.easy);
+  if (view === 'need:compact') return pictures.filter(x => { const s = proportion(x.picture); return s !== null && s <= COMPACT; });
+  if (view === 'need:long') return pictures.filter(x => { const s = proportion(x.picture); return s !== null && s >= LONG_AND_THIN; });
+  return [];
+}
+
+function viewMenu() {
+  const { types, topics } = viewLists();
+  const item = (view, label, sub = false) =>
+    `<button class="view${sub ? ' sub' : ''}" type="button" data-view="${esc(view)}" aria-pressed="${state.view === view}">${esc(label)}</button>`;
+  const head = label => `<div class="view-head">${esc(label)}</div>`;
+  return `<nav class="views" aria-label="${esc(TEXT.viewsLabel)}">` + item('default', TEXT.viewDefault) + item('all', TEXT.viewAll) +
+    head(TEXT.viewTopic) + topics.map(t => item('theme:' + t, t.toLowerCase(), true)).join('') +
+    head(TEXT.viewType) + item('type:ordinary', TEXT.viewOrdinaries, true) + types.map(t => item('type:' + t, t.toLowerCase(), true)).join('') +
+    head(TEXT.viewNeed) + item('need:easy', TEXT.viewEasy, true) + item('need:compact', TEXT.viewCompact, true) + item('need:long', TEXT.viewLong, true) +
+    `</nav>`;
+}
+
+// ---- One chosen charge: its number and colour --------------------------------------
+// The line under a colour menu: why some colours are greyed. `greyed` is a
+// list of [name, problems]; colours greyed for the same reason share a sentence.
+function whyLine(greyed) {
+  const reasons = new Map();
+  for (const [name, faults] of greyed) {
+    const because = becauseText(faults[0]);
+    reasons.set(because, [...(reasons.get(because) || []), name]);
+  }
+  const listed = names => cap(names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0]);
+  const line = [...reasons].map(([because, names]) => TEXT.notAvailable(listed(names), names.length > 1, because)).join('. ');
+  return line ? `<p class="why-line">${esc(line)}</p>` : '';
+}
+
+// One chosen charge's card (the maintainer's sketch, November 2026): "you
+// selected: lion", a picture of it, its number on a line of stops from 1 to
+// semy, and its colour as a menu with a strip of small squares underneath.
+// A number or colour is greyed if no shield fitting the other choices could
+// have it. Finding that out takes a moment, so it is done after the click
+// has been answered (see "Pictures that take a moment"); until then the card
+// shows what was greyed before.
 const lastTried = new Map();
 function slotBlock(slot, c) {
   const item = state.items[slot];
@@ -802,98 +950,175 @@ function slotBlock(slot, c) {
     if (remembered.has(memo)) work(); else jobs.push(work);
     return lastTried.get(`${slot}|${key}`) || new Map();
   };
-  const numbers = tried('number', NUMBERS), colours = tried('tincture', [...offered(), COUNTERCHANGED]);
+  const offer = [...offered(), COUNTERCHANGED];
+  const numbers = tried('number', NUMBERS), colours = tried('tincture', offer);
   if (jobs.length) {
     later.push({ panel: 'charge', run: () => {
       jobs.forEach(job => job());
       const block = document.querySelector(`[data-block="${slot}"]`);
       if (!block) return;
-      // redraw the block, keeping the keyboard's place in it
-      const focused = [...block.querySelectorAll('button')].indexOf(document.activeElement);
+      // redraw the card, keeping the keyboard's place in it
+      const controls = 'button, select';
+      const focused = [...block.querySelectorAll(controls)].indexOf(document.activeElement);
       block.innerHTML = slotBlock(slot, c);
-      if (focused >= 0) block.querySelectorAll('button')[focused]?.focus({ preventScroll: true });
+      if (focused >= 0) block.querySelectorAll(controls)[focused]?.focus({ preventScroll: true });
     } });
   }
-  const numberButton = n => {
-    const faults = numbers.get(n), why = faults ? ruleText(faults[0]) : '';
-    return `<button class="name-btn${why ? ` greyed" aria-disabled="${!state.herald}" title="${esc(why)}` : ''}" type="button" ` +
-      `data-number="${n}" data-slot="${slot}" aria-pressed="${item.number === n}">${n === SEMY ? esc(TEXT.semy) : n}</button>`;
-  };
-  let html = '';
-  if (item.choice) {
-    html += `<div class="slot-head"><strong>${esc(choiceName(item.choice))}</strong>` +
-      `<button class="link-btn" type="button" data-remove="${slot}">${esc(TEXT.chargeRemove)}</button></div>`;
-  }
+  const greyedAttr = why => (why ? ` greyed" aria-disabled="${!state.herald}" title="${esc(why)}` : '');
+  const tinctureName = id => (id === COUNTERCHANGED ? TEXT.counterchanged : TINCTURES[id].name);
+
+  // The picture: this charge on its own, as chosen so far.
+  const group = item.choice ? groupFor(item.choice, tinctureOf(item), item.number, item.arranged) : null;
+  let html = `<div class="slot-head">${item.choice
+    ? `<span>${esc(TEXT.youSelected(choiceName(item.choice)))}</span><button class="link-btn" type="button" data-remove="${slot}">${esc(TEXT.chargeRemove)}</button>`
+    : `<span>${esc(TEXT.noneSelected)}</span>`}</div>` +
+    shieldSVG(currentField(), { charges: group ? [group] : [] });
+
   if (!item.choice || item.choice.kind === 'charge') {
-    html += `<div class="row-label">${esc(TEXT.chargeNumber)}</div><div class="row">${NUMBERS.map(numberButton).join('')}</div>`;
+    const stop = n => {
+      const faults = numbers.get(n);
+      return `<button class="stop${greyedAttr(faults ? ruleText(faults[0]) : '')}" type="button" data-number="${n}" data-slot="${slot}" ` +
+        `aria-pressed="${item.number === n}"><i></i><span>${n === SEMY ? esc(TEXT.semy) : n}</span></button>`;
+    };
+    html += `<div class="pick-row"><span class="pick-label">${esc(TEXT.numberLabel)}</span><div class="track">${NUMBERS.map(stop).join('')}</div></div>`;
   }
-  return html + `<div class="row-label">${esc(TEXT.chargeColour)}</div>` +
-    slimSets(offered(), {
-      attr: `data-slot="${slot}" data-charge-tincture`, on: id => item.tincture === id, why: id => colours.get(id), counterchanged: true,
-      also: `<button class="name-btn" type="button" data-slot="${slot}" data-charge-tincture="${UNSPECIFIED}" aria-pressed="${item.tincture === UNSPECIFIED}">${esc(TEXT.dontSpecify)}</button>`,
-    });
+
+  const option = (value, label, faults) =>
+    `<option value="${value}"${item.tincture === value ? ' selected' : ''}${faults && !state.herald && item.tincture !== value ? ' disabled' : ''}>${esc(label)}</option>`;
+  const square = id => `<button class="sq${greyedAttr(colours.get(id) ? ruleText(colours.get(id)[0]) : '')}" type="button" data-slot="${slot}" ` +
+    `data-charge-tincture="${id}" aria-pressed="${item.tincture === id}" aria-label="${esc(tinctureName(id))}"` +
+    `${colours.get(id) ? '' : ` title="${esc(tinctureName(id))}"`}>${id === COUNTERCHANGED ? counterchangedSwatchSVG() : swatchSVG(id)}</button>`;
+  const inOrder = [...COLOUR_ORDER, ...METAL_ORDER, ...FUR_ORDER].filter(id => offer.includes(id));
+  html += `<div class="pick-row"><label class="pick-label" for="colour${slot}">${esc(TEXT.colourLabel)}</label>` +
+    `<select id="colour${slot}" data-colour-select="${slot}"><option value="">${esc(TEXT.roleUnset)}</option>` +
+    inOrder.map(id => option(id, TINCTURES[id].name, colours.get(id))).join('') +
+    option(COUNTERCHANGED, TEXT.counterchanged, colours.get(COUNTERCHANGED)) + option(UNSPECIFIED, TEXT.dontSpecify, null) + `</select></div>` +
+    `<div class="strip">${[...inOrder, COUNTERCHANGED].map(square).join('')}</div>`;
+  return html + whyLine(offer.filter(id => colours.get(id)).map(id => [tinctureName(id), colours.get(id)]));
 }
 
+// ---- "What charges are on the field?" -----------------------------------------------
+// A list to pick from, with a menu on its left to narrow it down and a box
+// to search it by name (the maintainer's sketch, November 2026). There are
+// hundreds of charges, so a card is only worked out when it is scrolled into
+// view, and a picture from Traceable Heraldic Art is only fetched then.
+let gridJobs = new Map();     // a waiting card's name -> what works it out
+let gridWatcher = null;
+let gridShowing = '';         // the view and search the list was last drawn for
 function renderChargePanel() {
   forgetLater('charge');
+  gridJobs = new Map();
+  if (gridWatcher) gridWatcher.disconnect();
   const c = constraints();
   const q = state.chargeFilter.trim().toLowerCase();
-  const matches = name => !q || name.toLowerCase().includes(q);
   const first = state.items[0];
   const count = state.items.filter(item => item.choice).length;
   const isPicked = choice => state.items.some(item => samePicture(item.choice, choice));
 
+  // The default view leaves out what cannot be chosen any more. Whether a
+  // charge can is only known once its card has been worked out, so first one
+  // charge with no picture is tried: if that cannot be chosen, nor can the rest.
+  const hiding = state.view === 'default' && !q;
+  const itemsWith = choice => {
+    const mine = state.items.findIndex(item => sameCharge(item.choice, choice));
+    if (mine >= 0) return { mine, items: wantedItems({ slot: mine, set: { charge: choice } }) };   // chosen (perhaps as another picture)
+    if (!first.choice) return { mine, items: [{ charge: choice, number: choice.kind === 'ordinary' ? null : (first.number || 1), tincture: tinctureOf(first) }] };
+    if (count >= MAX_ITEMS) return { mine, items: null };
+    return { mine, items: [...(wantedItems() || []), { charge: choice, number: null, tincture: null }] };
+  };
+  const about = (choice, { mine, items }) => ({ ...c, items, arrangement: mine >= 0 ? c.arrangement : chosenArrangement(items.length - 1) });
+  const greyed = found => found === null || (found && found.problems.length > 0);
+  let anyCharge = true;
+  if (hiding && library.charges.length) {
+    const probe = { kind: 'charge', id: library.charges[0].id, file: null };
+    const made = itemsWith(probe);
+    anyCharge = !!made.items && !greyed(option('charge', about(probe, made)));
+  }
+
   // Each option is drawn on a shield that fits everything else chosen so far:
   // with the charges already chosen, if it would be added to them.
-  const chargeCard = (choice, label) => {
+  const chargeCard = ({ choice, label, ordinary }) => {
     const attrs = `data-charge="${choice.kind}:${esc(choice.id)}:${esc(choice.file || '')}"`;
-    const mine = state.items.findIndex(item => sameCharge(item.choice, choice));
-    let items;
-    if (mine >= 0) items = wantedItems({ slot: mine, set: { charge: choice } });      // chosen (perhaps as another picture)
-    else if (!first.choice) items = [{ charge: choice, number: choice.kind === 'ordinary' ? null : (first.number || 1), tincture: tinctureOf(first) }];
-    else if (count >= MAX_ITEMS) return card({ attrs, shield: null, label, on: false, why: TEXT.chargeFull });
-    else items = [...(wantedItems() || []), { charge: choice, number: null, tincture: null }];
-    return lazyCard('charge', 'charge', { ...c, items, arrangement: mine >= 0 ? c.arrangement : chosenArrangement(items.length - 1) },
-      found => ({ attrs, shield: found && found.shield, label, on: isPicked(choice), problems: found ? found.problems : [],
-                  why: found === null ? TEXT.rules['not-possible'] : null }));
+    const picked = isPicked(choice);
+    const made = itemsWith(choice);
+    if (!made.items) return hiding ? '' : card({ attrs, shield: null, label, on: false, why: TEXT.chargeFull });
+    if (hiding && !ordinary && !anyCharge && !picked) return '';
+    const what = about(choice, made), key = optionKey('charge', what);
+    const args = found => ({ attrs, shield: found && found.shield, label, on: picked, problems: found ? found.problems : [],
+                             why: found === null ? TEXT.rules['not-possible'] : null });
+    const hidden = found => hiding && !picked && greyed(found);
+    if (remembered.has(key) && (!choice.file || getPicture(choice.file))) {
+      const found = remembered.get(key);
+      return hidden(found) ? '' : card(args(found));
+    }
+    const id = `w${waitingCards++}`;
+    gridJobs.set(id, async () => {
+      if (choice.file) await loadPicture(choice.file).catch(() => null);
+      const waiting = document.querySelector(`[data-waiting="${id}"]`);
+      if (!waiting) return;
+      const found = option('charge', what);
+      if (hidden(found)) { waiting.remove(); return; }
+      const holder = document.createElement('div');
+      holder.innerHTML = card(args(found));
+      const fresh = holder.firstElementChild, focused = document.activeElement === waiting;
+      waiting.replaceWith(fresh);
+      if (focused) fresh.focus({ preventScroll: true });
+    });
+    return card({ ...args(undefined), waiting: id });
   };
 
-  const ordinaries = Object.entries(ORDINARIES).filter(([, o]) => matches(o.name))
-    .map(([id, o]) => chargeCard({ kind: 'ordinary', id }, o.name));
-  const withPicture = new Set(library.pictures.map(p => p.charge_id));
-  const pictures = library.pictures
-    .map(p => ({ p, label: [p.charge.name.toLowerCase(), p.posture].filter(Boolean).join(' ') }))
-    .filter(x => matches(x.label));
-  const pictureCards = pictures.slice(0, MAX_CARDS)
-    .map(x => chargeCard({ kind: 'charge', id: x.p.charge_id, file: x.p.file }, x.label));
-  const ordinaryNames = new Set(Object.values(ORDINARIES).map(o => o.name));
-  const names = library.charges.filter(ch =>
-    !withPicture.has(ch.id) && !ordinaryNames.has(ch.name.toLowerCase()) && matches(ch.name));
+  const every = everyChoice();
+  const matching = list => list.filter(x => x.label.toLowerCase().includes(q));
+  // Searching by name looks through everything, whatever the menu is set to.
+  const list = q ? matching([...every.ordinaries, ...every.pictures, ...every.names]) : choicesFor(state.view);
+  const cards = list.filter(x => !x.blob).map(chargeCard).join('');
+  const names = list.filter(x => x.blob);
   const namesShown = names.slice(0, MAX_NAMES_SHOWN);
 
-  let html = `<h2>${esc(TEXT.chargeHeading)}</h2><p class="help">${esc(TEXT.chargeHelp)}</p>`;
-
-  // For each charge chosen: how many, and what colour. Asked first so they
-  // are not missed below the list (and, for the first, before any is chosen).
-  if (!state.noCharge) {
-    state.items.forEach((item, slot) => { html += `<div class="slot" data-block="${slot}">${slotBlock(slot, c)}</div>`; });
-  }
-
+  let html = `<h2>${esc(TEXT.chargeHeading)}</h2><p class="help">${esc(TEXT.chargeHelp)} <strong>${esc(TEXT.chargeBelow)}</strong></p>`;
   html += `<input type="search" id="chargeFilter" value="${esc(state.chargeFilter)}" placeholder="${esc(TEXT.chargeSearch)}" aria-label="${esc(TEXT.chargeSearch)}">`;
-  html += `<div class="row"><button class="card text-card" type="button" data-charge="none" aria-pressed="${state.noCharge}">${esc(TEXT.chargeNone)}</button></div>`;
-  if (ordinaries.length) html += `<div class="row-label">${esc(TEXT.chargeOrdinaries)}</div><div class="row">${ordinaries.join('')}</div>`;
-  if (pictureCards.length) {
-    html += `<div class="row-label">${esc(TEXT.chargePictures)}</div><div class="row">${pictureCards.join('')}</div>`;
-    if (pictures.length > MAX_CARDS) html += `<p class="note">${esc(TEXT.chargeMore(pictures.length - MAX_CARDS))}</p>`;
-  }
+  let grid = `<div class="row">` +
+    `<button class="card text-card" type="button" data-charge="none" aria-pressed="${state.noCharge}">${esc(TEXT.chargeNone)}</button>${cards}</div>`;
+  if (hiding && !anyCharge) grid += `<p class="note">${esc(TEXT.chargeNoneLeft)}</p>`;
   if (namesShown.length) {
-    html += `<div class="row-label">${esc(TEXT.chargeNoPicture)}</div><div class="row">` +
-      namesShown.map(ch => `<button class="name-btn" type="button" data-charge="charge:${esc(ch.id)}:" ` +
-        `aria-pressed="${isPicked({ kind: 'charge', id: ch.id })}">${esc(ch.name.toLowerCase())}</button>`).join('') + `</div>`;
-    if (names.length > namesShown.length) html += `<p class="note">${esc(TEXT.chargeMore(names.length - namesShown.length))}</p>`;
+    grid += `<div class="row-label">${esc(TEXT.chargeNoPicture)}</div><div class="row">` +
+      namesShown.map(x => `<button class="name-btn" type="button" data-charge="charge:${esc(x.choice.id)}:" ` +
+        `aria-pressed="${isPicked(x.choice)}">${esc(x.label)}</button>`).join('') + `</div>`;
+    if (names.length > namesShown.length) grid += `<p class="note">${esc(TEXT.chargeMore(names.length - namesShown.length))}</p>`;
   }
-  if (!ordinaries.length && !pictureCards.length && !namesShown.length) html += `<p class="note">${esc(TEXT.chargeNoMatch)}</p>`;
+  if (!list.length) grid += `<p class="note">${esc(TEXT.chargeNoMatch)}</p>`;
+  html += `<div class="picker">${viewMenu()}<div class="picker-grid" id="chargeGrid">${grid}</div></div>`;
+
+  // "Suggestions include any of my selections" or "Must include ALL".
+  html += `<div class="mode-row"><span>${esc(TEXT.modeAny)}</span>` +
+    `<button class="switch" type="button" role="switch" data-mode aria-checked="${!state.any}" aria-label="${esc(TEXT.modeAll)}"><i></i></button>` +
+    `<span>${esc(TEXT.modeAll)}</span></div>`;
+
+  // A card for each charge chosen: its number and colour. (The first is there
+  // before any charge is chosen, so those can be answered first.)
+  if (!state.noCharge) {
+    html += `<div class="selected-row">` +
+      state.items.map((item, slot) => `<div class="slot" data-block="${slot}">${slotBlock(slot, c)}</div>`).join('') + `</div>`;
+  }
+
+  // Keep the list where it was scrolled to, unless it is now a different list.
+  const showing = `${state.view}|${q}`, was = $('chargeGrid');
+  const top = was && showing === gridShowing ? was.scrollTop : 0;
+  gridShowing = showing;
   $('chargePanel').innerHTML = html;
+  const box = $('chargeGrid');
+  box.scrollTop = top;
+  // Work out each waiting card when it comes into view.
+  gridWatcher = new IntersectionObserver(seen => {
+    for (const one of seen) {
+      if (!one.isIntersecting) continue;
+      gridWatcher.unobserve(one.target);
+      const job = gridJobs.get(one.target.dataset.waiting);
+      if (job) later.push({ panel: 'charge', run: job });
+    }
+    fillLater();
+  }, { root: box, rootMargin: '250px' });
+  box.querySelectorAll('[data-waiting]').forEach(el => gridWatcher.observe(el));
 }
 
 // ---- "How are they arranged?" ----------------------------------------------------
@@ -1009,6 +1234,24 @@ function renderArrangePanel() {
 }
 
 // ---- The shield being built (top right) ----------------------------------------
+// Who drew the pictures on the shield. The pictures from the Book of
+// Traceable Heraldic Art are shared under a Creative Commons licence that
+// asks for the artist to be named (charges/tha/README.md).
+const LICENCE_URL = 'https://heraldicart.org/credits';
+function creditsLine(groups) {
+  const credits = new Map();
+  for (const g of groups.flatMap(g => (g.charged ? [g, g.charged] : [g]))) {
+    const row = g.kind === 'charge' ? pictureRow(g.art) : null;
+    if (!row || row.from !== 'tha' || !row.artist) continue;
+    const name = esc(row.charge.name.toLowerCase());
+    const text = TEXT.creditBy('\u0000', row.artist).split('\u0000');
+    credits.set(row.file, esc(text[0]) + (row.link ? `<a href="${esc(row.link)}" target="_blank" rel="noopener">${name}</a>` : name) + esc(text[1] || ''));
+  }
+  if (!credits.size) return '';
+  return `<p class="credits"><strong>${esc(TEXT.credits)}</strong> ${[...credits.values()].join(', ')}<br>` +
+    `<a href="${LICENCE_URL}" target="_blank" rel="noopener">${esc(TEXT.licence)}</a></p>`;
+}
+
 function renderCurrent() {
   const shield = shownShield();
   const text = blazon(shield.field, shield.groups, words);
@@ -1024,7 +1267,7 @@ function renderCurrent() {
     (patterns.length ? `<a class="search-link" href="${esc(complexSearchURL(patterns))}" target="_blank" rel="noopener">${esc(TEXT.searchLink)} →</a>` : '') +
     `<div class="save-row"><button class="plain-btn" type="button" data-save="colour">${esc(TEXT.savePng)}</button>` +
     `<button class="plain-btn" type="button" data-save="outlines">${esc(TEXT.saveOutlines)}</button></div>` +
-    `<p class="note" id="saveNote" role="status" hidden></p>` +
+    `<p class="note" id="saveNote" role="status" hidden></p>` + creditsLine(shield.groups) +
     (noTinctures ? `<p class="note">${esc(TEXT.tincturesNotIndexed)}</p>` : '') +
     (patterns.length ? `<details><summary>${esc(TEXT.patternsSummary)}</summary><code>${esc(patterns.join('\n'))}</code></details>` : '');
 }
@@ -1034,13 +1277,36 @@ function renderSuggestions() {
   // Suggestions may add a charge or two that was not asked for (a bordure,
   // charges around an ordinary...): they are ideas, not only what was chosen.
   const c = { ...constraints(), extras: true };
-  const key = `${SEED}|suggest|${state.epoch}|${library.pictures.length}|${JSON.stringify(c)}`;
+  // "Suggestions include any of my selections": each suggestion has some of
+  // the charges chosen (one, or two, or all), in turn; "Must include ALL of
+  // my selections": every suggestion has them all.
+  const picks = Array.isArray(c.items) ? c.items.filter(x => x.charge) : [];
+  const anyOf = state.any && picks.length >= 2;
+  const key = `${SEED}|suggest|${anyOf}|${state.epoch}|${library.pictures.length}|${JSON.stringify(c)}`;
+  const wanted = SUGGESTION_COUNT + state.pinned.length;
+  const make = () => {
+    if (!anyOf) return randomShields(c, key, library, wanted);
+    const some = [];
+    for (let bits = 1; bits < (1 << picks.length); bits++) some.push(picks.filter((x, i) => bits & (1 << i)));
+    some.sort((a, b) => a.length - b.length);
+    const each = Math.ceil(wanted / some.length) + 1;
+    const lists = some.map((items, i) => randomShields(
+      { ...c, items, arrangement: items.length === picks.length ? c.arrangement : null }, `${key}|${i}`, library, each));
+    const found = [], seen = new Set();
+    for (let turn = 0; turn < each && found.length < wanted; turn++) {
+      for (const list of lists) {
+        const s = list[turn], text = s && blazon(s.field, s.groups);
+        if (s && !seen.has(text) && found.length < wanted) { seen.add(text); found.push(s); }
+      }
+    }
+    return found;
+  };
   // New suggestions are worked out a moment later (see "Pictures that take a
   // moment"); until then the ones on screen stay, dimmed.
   forgetLater('suggestions');
   if (!remembered.has(key)) {
     later.push({ panel: 'suggestions', run: () => {
-      remember(key, () => randomShields(c, key, library, SUGGESTION_COUNT + state.pinned.length));
+      remember(key, make);
       renderSuggestions();
       addCollapseButtons();
     } });
@@ -1200,6 +1466,12 @@ document.addEventListener('click', e => {
   if ('clear' in d) {
     clearAll();
     refocus = '[data-clear]';
+  } else if (d.view) {
+    state.view = d.view;
+    refocus = `[data-view="${d.view}"]`;
+  } else if ('mode' in d) {
+    state.any = !state.any;
+    refocus = '[data-mode]';
   } else if (d.q1) {
     const removing = state.shieldColours.includes(d.q1);
     state.shieldColours = toggle(state.shieldColours, d.q1);
@@ -1317,6 +1589,15 @@ document.addEventListener('change', e => {
     document.querySelector(`select[data-role="${i}"]`)?.focus({ preventScroll: true });
     return;
   }
+  // A chosen charge's colour, from the menu on its card.
+  const colour = e.target.closest('select[data-colour-select]');
+  if (colour) {
+    state.items[Number(colour.dataset.colourSelect)].tincture = colour.value || null;
+    tidy();
+    render();
+    document.querySelector(`select[data-colour-select="${colour.dataset.colourSelect}"]`)?.focus({ preventScroll: true });
+    return;
+  }
   const sel = e.target.closest('select[data-b]');
   if (!sel) return;
   const b = state.builder, i = Number(sel.dataset.i);
@@ -1360,7 +1641,27 @@ render();
 
 // The charge library loads in the background; the page works before it arrives
 // (ordinaries need no pictures) and fills in the rest when it does.
-loadLibrary().then(loaded => { library = loaded; render(); }).catch(err => console.error(err));
+// The suggestions draw on our own pictures and a few of the commonest
+// easy-to-draw ones from Traceable Heraldic Art (charges/priority.csv has
+// the charges in order of how often blazons name them); every other picture
+// is fetched when its card comes into view or it is chosen.
+const STARTER_PICTURES = 12;
+async function starterPictures(loaded) {
+  const ranked = await fetchCSV(new URL('../../charges/priority.csv', import.meta.url).href).catch(() => []);
+  const rank = new Map(ranked.map(r => [r.id, Number(r.rank)]));
+  const easy = loaded.all.filter(p => p.from === 'tha' && p.complexity === 'Easy to Draw' && rank.has(p.charge_id))
+    .sort((a, b) => rank.get(a.charge_id) - rank.get(b.charge_id));
+  return loadPictures(easy.slice(0, STARTER_PICTURES));
+}
+loadLibrary().then(async loaded => {
+  const [starter, labels] = await Promise.all([
+    starterPictures(loaded).catch(() => []),
+    fetchCSV(new URL('../../data/taxonomy.csv', import.meta.url).href).catch(() => []),
+  ]);
+  taxonomy = labels;
+  library = { ...loaded, pictures: [...loaded.pictures, ...starter] };
+  render();
+}).catch(err => console.error(err));
 </script>
 </body>
 </html>

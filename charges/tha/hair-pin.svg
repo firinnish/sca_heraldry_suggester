@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="90 63 45 351" width="45" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 90 63 L 135 63 L 135 414 L 90 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Hair_Pin" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Hair Pin</title>
+    <g id="Hair_Pin_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_822">
+        <g id="Graphic_821">
+          <path d="M 127.4 70.8 C 119.18 63.4 105.85 63.4 97.63 70.8 C 89.41 78.2 88.54 89.17 97.63 95.38 C 106.72 101.59 118.4 101.13 127.4 95.38 C 136.4 89.63 135.62 78.2 127.4 70.8 Z M 122.28 76.67 C 127.66 80.99 126.98 87.53 122.28 90.12 C 117.58 92.71 107.76 92.51 102.78 90.12 C 97.8 87.73 97.4 80.99 102.78 76.67 C 108.17 72.34 116.89 72.34 122.28 76.67 Z" fill="#ffffff"/>
+          <path d="M 127.4 70.8 C 119.18 63.4 105.85 63.4 97.63 70.8 C 89.41 78.2 88.54 89.17 97.63 95.38 C 106.72 101.59 118.4 101.13 127.4 95.38 C 136.4 89.63 135.62 78.2 127.4 70.8 Z M 122.28 76.67 C 127.66 80.99 126.98 87.53 122.28 90.12 C 117.58 92.71 107.76 92.51 102.78 90.12 C 97.8 87.73 97.4 80.99 102.78 76.67 C 108.17 72.34 116.89 72.34 122.28 76.67 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_820">
+          <path d="M 118.83 110.24 L 121.38 105.14 L 121.38 89.63 L 103.65 89.63 L 103.65 105.14 L 106.2 110.24 C 106.05 110.47 105.96 110.75 105.96 111.05 C 105.96 111.06 105.96 111.06 105.96 111.07 L 105.96 111.07 L 105.96 111.07 L 105.96 111.07 L 111.04 410.3 C 111.05 411.11 111.73 411.76 112.54 411.75 C 113.34 411.74 113.98 411.09 113.99 410.3 L 119.07 111.07 C 119.08 110.77 118.99 110.48 118.83 110.24 Z" fill="#ffffff"/>
+          <path d="M 118.83 110.24 L 121.38 105.14 L 121.38 89.63 L 103.65 89.63 L 103.65 105.14 L 106.2 110.24 C 106.05 110.47 105.96 110.75 105.96 111.05 C 105.96 111.06 105.96 111.06 105.96 111.07 L 105.96 111.07 L 105.96 111.07 L 105.96 111.07 L 111.04 410.3 C 111.05 411.11 111.73 411.76 112.54 411.75 C 113.34 411.74 113.98 411.09 113.99 410.3 L 119.07 111.07 C 119.08 110.77 118.99 110.48 118.83 110.24 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_819">
+          <line x1="112.52" y1="111.79" x2="112.52" y2="404.3" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+        <g id="Line_818">
+          <path d="M 107.59 110.12 C 113.19 109.54 117.44 110.26 117.44 110.12" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+        <g id="Graphic_817">
+          <path d="M 112.71 91.76 L 106.19 99.51 L 112.71 107.27 L 119.23 99.51 Z M 112.71 93.94 L 117.4 99.51 L 112.71 105.09 L 108.03 99.51 Z" fill="#e1e1e1"/>
+          <path d="M 112.71 91.76 L 106.19 99.51 L 112.71 107.27 L 119.23 99.51 Z M 112.71 93.94 L 117.4 99.51 L 112.71 105.09 L 108.03 99.51 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -133,6 +133,10 @@ function draw() {
     shield2(divided('paly', [plain('azure'), plain('or')]), [main({ number: 3, tincture: 'gules', arranged: 'fess' })]),
     shield2(divided('paly', [plain('azure'), plain('or')]), [main({ number: 4, tincture: 'gules', arranged: 'fess' })]),
     shield2(divided('paly', [plain('azure'), plain('or')]), [main({ number: 3, tincture: 'gules' }), ordinaryGroup('bordure', 'argent')])]);
+  html += section('The other patterns do the same (the usual drawing whenever it does well enough): barry, bendy, bendy sinister, chevronelly, checky, lozengy',
+    ['barry', 'bendy', 'bendySinister', 'chevronelly', 'checky', 'lozengy'].flatMap(d => [1, 3].flatMap(number => [
+      shield2(divided(d, [plain('azure'), plain('or')]), [main({ number, tincture: 'gules' })]),
+      shield2(divided(d, [plain('azure'), plain('or')]), [main({ number, tincture: 'argent' })])])));
   html += section('The field and an ordinary are drawn to fit inside a bordure (and an ordinary stops short of an orle)', [
     shield2(divided('perChevron', [plain('azure'), plain('or')]), [ordinaryGroup('bordure', 'gules')]),
     shield2(divided('checky', [plain('azure'), plain('argent')]), [ordinaryGroup('bordure', 'gules')]),

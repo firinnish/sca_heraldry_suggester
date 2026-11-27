@@ -22,7 +22,8 @@
 
 import { getPicture } from './art.js';
 import { SAMPLES, insideShield, pointInPolygon, samplesInBox, ordinarySamples, ordinaryShapes, suitsDivision, partMap,
-         frameCentre, frameName, frameScale, CHIEF_BOTTOM, BASE_TOP, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, ARM_HALF } from './geometry.js';
+         frameCentre, frameName, frameScale, CHIEF_BOTTOM, BASE_TOP, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, ARM_HALF,
+         DIVISION_VARIANTS } from './geometry.js';
 import { TINCTURES, ARRANGEMENTS, SEMY, familyOf, baseTincture } from './catalog.js';
 import { roles } from './shield.js';
 import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, centroid, heights, sides, cuts,
@@ -831,23 +832,28 @@ export function layoutShield(field, groups) {
 // contrast with (see nudge above). Instead the PATTERN is chosen to suit the
 // charges (the maintainer, November 2026): three swords on paly of six each
 // stand in the middle of a stripe, but on paly of eight each stands on a
-// line between two stripes, as it should. So paly is drawn in six pieces,
-// or eight, or four, whichever leaves every charge either across a line or on
-// the tincture it contrasts with. (Sliding the stripes half a stripe along
-// would do it too, but would leave an odd number of pieces, which is not
-// paly.) Only paly so far; ROADMAP item 11 is the same idea for the rest.
-const PALY_PIECES = [6, 8, 4];
+// line between two stripes, as it should. So paly, barry, bendy, bendy
+// sinister, chevronelly, checky and lozengy are each drawn the usual way,
+// or with more pieces, or fewer (DIVISION_VARIANTS in geometry.js), whichever
+// leaves every charge either across a line or on the tincture it contrasts
+// with. The usual way wins whenever it does well enough.
+// With an ordinary on the field the usual way is kept, because that is the
+// one whose pieces the ordinary covers exactly (tests/alignment.html); a
+// chief, bordure or orle is no trouble, since the field is fitted to them.
+const FITTED_TO = new Set(['chief', 'bordure', 'orle']);
 function fieldVariant(field, groups, layout) {
-  if (!field || field.type !== 'divided' || field.division !== 'paly' ||
-      field.parts.some(p => p.type !== 'plain' || p.tincture === null)) return null;
+  const options = field && field.type === 'divided' ? DIVISION_VARIANTS[field.division] : null;
+  if (!options || field.parts.some(p => p.type !== 'plain' || p.tincture === null)) return null;
+  if (groups.some(g => g.kind === 'ordinary' && !FITTED_TO.has(g.ordinary))) return null;
   const tone = t => TINCTURES[t].tone;
   const charges = groups.map((g, i) => ({ g, e: layout.entries[i] }))
     .filter(x => x.g.kind === 'charge' && x.e.ok && x.g.number !== SEMY && x.g.tincture && TINCTURES[x.g.tincture]);
   if (!charges.length) return null;
+  const usual = options[0];
   // How well the worst-placed charge sits: 1 = wholly on the tincture it
   // contrasts with, or evenly across a line; 0 = wholly on the wrong one.
   const worst = pieces => {
-    const map = partMap('paly', layout.frame, pieces === 6 ? null : pieces);
+    const map = partMap(field.division, layout.frame, pieces === usual ? null : pieces);
     let least = 1;
     for (const { g, e } of charges) {
       const right = field.parts.findIndex(p => tone(p.tincture) !== tone(g.tincture) && baseTincture(p.tincture) !== baseTincture(g.tincture));
@@ -862,13 +868,13 @@ function fieldVariant(field, groups, layout) {
   };
   // The first that does well enough, in that order of preference; failing
   // that, whichever does best.
-  let best = 6, bestScore = -1;
-  for (const pieces of PALY_PIECES) {
+  let best = usual, bestScore = -1;
+  for (const pieces of options) {
     const score = worst(pieces);
-    if (score >= 0.6) return pieces === 6 ? null : pieces;
+    if (score >= 0.6) return pieces === usual ? null : pieces;
     if (score > bestScore + 0.1) { best = pieces; bestScore = score; }
   }
-  return best === 6 ? null : best;
+  return best === usual ? null : best;
 }
 
 function placeAll(field, groups) {

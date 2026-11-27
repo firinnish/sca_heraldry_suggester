@@ -183,10 +183,13 @@ function randomChoice(rng, library, { ordinary = 4, peripheral = 0, charge = 6 }
 }
 
 // A library's charges by id and pictures by file name (looked up constantly).
+// (`all` includes the pictures that are only loaded when wanted, art.js: a
+// charge somebody chose may have one of those. Random picks use `pictures`.)
 const indexes = new WeakMap();
 function indexOf(library) {
   if (!indexes.has(library)) {
-    indexes.set(library, { charges: new Map(library.charges.map(x => [x.id, x])), pictures: new Map(library.pictures.map(p => [p.file, p])) });
+    indexes.set(library, { charges: new Map(library.charges.map(x => [x.id, x])),
+                           pictures: new Map((library.all || library.pictures).map(p => [p.file, p])) });
   }
   return indexes.get(library);
 }

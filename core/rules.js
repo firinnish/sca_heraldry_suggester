@@ -328,13 +328,9 @@ function checkGroups(field, groups, problems) {
   // The rest depends on the arrangement, so waits until it has been chosen.
   if (!r.every(x => x.chosen)) return layout;
 
-  // An ordinary through the middle of the shield together with an orle: the
-  // tools draw the ordinary stopping just short of the orle (draw.js), which
-  // the maintainer has not yet said is how it should look, so they do not
-  // offer it (ROADMAP.md, questions).
-  if (primary && isCentralOrdinary(primary) && groups.some(g => g.kind === 'ordinary' && g.ordinary === 'orle')) {
-    problems.push({ id: 'arrangement-unsupported', sena: null, level: 'house' });
-  }
+  // (An ordinary through the middle of the shield together with an orle is
+  // offered: it is drawn stopping where it meets the orle, which the
+  // maintainer has confirmed is how it should look, November 2026.)
 
   // What the tools cannot draw (yet): an arrangement with no default (the
   // Glossary's Table 7 says "None, must be specified"), or one that leaves a

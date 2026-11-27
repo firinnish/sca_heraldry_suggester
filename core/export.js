@@ -24,18 +24,39 @@ import { shieldSVG } from './draw.js';
 export const PNG_WIDTH = 1000;   // dots across; the height follows the shield's shape
 const LINE_DARKEST = 17;         // draw.js draws lines in #111: that counts as full black
 
+// A picture that is itself an SVG (the ones from Traceable Heraldic Art) is
+// first turned into dots, this many along its longer side: browsers differ
+// over an SVG inside an SVG that is used as a picture, and none over a PNG.
+const SVG_DOTS = 1400;
+function svgAsPNG(blob) {
+  const url = URL.createObjectURL(blob);
+  return new Promise((done, fail) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = SVG_DOTS / Math.max(img.naturalWidth, img.naturalHeight, 1);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      done(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => fail(new Error('could not open a picture'));
+    img.src = url;
+  }).finally(() => URL.revokeObjectURL(url));
+}
+
 // A picture's address -> (a promise of) the picture as a "data:" address.
 const written = new Map();
 function dataURL(href) {
   if (!written.has(href)) {
     const made = fetch(href)
       .then(answer => { if (!answer.ok) throw new Error(`could not load ${href}`); return answer.blob(); })
-      .then(blob => new Promise((done, fail) => {
+      .then(blob => (/svg/i.test(blob.type) || /\.svg$/i.test(href) ? svgAsPNG(new Blob([blob], { type: 'image/svg+xml' })) : new Promise((done, fail) => {
         const reader = new FileReader();
         reader.onload = () => done(reader.result);
         reader.onerror = () => fail(reader.error);
         reader.readAsDataURL(blob);
-      }));
+      })));
     made.catch(() => written.delete(href));     // (so that it is tried again next time)
     written.set(href, made);
   }

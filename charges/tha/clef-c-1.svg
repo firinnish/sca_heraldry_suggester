@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg" viewBox="76.5 63 211.5 351" width="211.5" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 76.5 63 L 288 63 L 288 360 L 206.65 414 L 76.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Clef,_C_(1)" fill-opacity="1" fill="none" stroke="none" stroke-dasharray="none" stroke-opacity="1">
+    <title>Clef, C (1)</title>
+    <g id="Clef,_C_(1)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_53">
+        <path d="M 232.68 205.06 L 282.95 132.45 C 282.95 132.45 243.85 71 204.75 65.41 C 148.89 59.83 76.27 199.48 81.85 277.68 C 87.44 355.89 132.13 389.41 148.89 400.58 C 165.64 411.75 187.99 411.75 187.99 411.75 L 249.43 322.37 C 249.43 322.37 210.33 327.96 193.57 316.79 C 176.82 305.61 143.3 260.93 132.13 238.58 C 120.95 216.24 104.2 154.79 154.47 154.79 C 204.75 154.79 232.68 205.06 232.68 205.06 Z" fill="#ffffff"/>
+        <path d="M 232.68 205.06 L 282.95 132.45 C 282.95 132.45 243.85 71 204.75 65.41 C 148.89 59.83 76.27 199.48 81.85 277.68 C 87.44 355.89 132.13 389.41 148.89 400.58 C 165.64 411.75 187.99 411.75 187.99 411.75 L 249.43 322.37 C 249.43 322.37 210.33 327.96 193.57 316.79 C 176.82 305.61 143.3 260.93 132.13 238.58 C 120.95 216.24 104.2 154.79 154.47 154.79 C 204.75 154.79 232.68 205.06 232.68 205.06 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

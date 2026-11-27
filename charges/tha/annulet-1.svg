@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" viewBox="42 63 281 282" width="281" height="282">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 42 63 L 323 63 L 323 345 L 42 345 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Annulet_(1)" stroke-opacity="1" stroke="none" stroke-dasharray="none" fill="none" fill-opacity="1">
+    <title>Annulet (1)</title>
+    <g id="Annulet_(1)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Graphic_15">
+        <path d="M 281.14 105.36 C 226.66 50.88 138.34 50.88 83.86 105.36 C 29.38 159.84 29.38 248.16 83.86 302.64 C 138.34 357.12 226.66 357.12 281.14 302.64 C 335.62 248.16 335.62 159.84 281.14 105.36 M 260.83 125.67 C 304.09 168.93 304.09 239.07 260.83 282.33 C 217.57 325.59 147.43 325.59 104.17 282.33 C 60.91 239.07 60.91 168.93 104.17 125.67 C 147.43 82.41 217.57 82.41 260.83 125.67" fill="#ffffff"/>
+        <path d="M 281.14 105.36 C 226.66 50.88 138.34 50.88 83.86 105.36 C 29.38 159.84 29.38 248.16 83.86 302.64 C 138.34 357.12 226.66 357.12 281.14 302.64 C 335.62 248.16 335.62 159.84 281.14 105.36 M 260.83 125.67 C 304.09 168.93 304.09 239.07 260.83 282.33 C 217.57 325.59 147.43 325.59 104.17 282.33 C 60.91 239.07 60.91 168.93 104.17 125.67 C 147.43 82.41 217.57 82.41 260.83 125.67" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>
