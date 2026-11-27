@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="45 63 135 351" width="135" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 45 63 L 180 63 L 180 414 L 45 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Hook,_Tent" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Hook, Tent</title>
+    <g id="Hook,_Tent_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Graphic_767">
+        <path d="M 120.02 80.27 L 120.02 407.23 C 112.36 412.34 104.69 407.23 104.69 407.23 L 104.69 80.27 L 72.9 80.27 L 78.01 141.58 L 49.91 67.5 L 175.09 67.5 L 146.99 141.58 L 152.1 80.27 Z" fill="#ffffff"/>
+        <path d="M 120.02 80.27 L 120.02 407.23 C 112.36 412.34 104.69 407.23 104.69 407.23 L 104.69 80.27 L 72.9 80.27 L 78.01 141.58 L 49.91 67.5 L 175.09 67.5 L 146.99 141.58 L 152.1 80.27 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

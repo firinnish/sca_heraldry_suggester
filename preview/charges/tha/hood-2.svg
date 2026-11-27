@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="63 90 238.5 297" width="238.5" height="297">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 63 90 L 301.5 90 L 301.5 363.59 L 301.5 387 L 63 387 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Hood_(2)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Hood (2)</title>
+    <g id="Hood_(2)_Content" clip-path="url(#artboard_clip_path)">
+      <title>Content</title>
+      <g id="Group_1074">
+        <g id="Graphic_1079">
+          <path d="M 292.03 123.36 C 314.77 177.37 252.24 242.74 249.4 299.58 C 246.56 356.42 283.51 367.79 283.51 367.79 C 283.51 367.79 269.29 390.53 175.5 382 C 81.71 373.48 70.34 347.9 70.34 347.9 C 70.34 347.9 84.55 342.21 107.29 325.16 C 130.03 308.11 130.03 274 115.82 268.32 C 101.61 262.63 93.08 271.16 84.55 268.32 C 76.03 265.47 67.5 228.53 67.5 188.74 C 67.5 148.94 76.03 117.68 81.71 112 C 87.4 106.31 112.97 109.15 152.77 106.31 C 192.56 103.47 269.29 69.36 292.03 123.36 Z" fill="#ffffff"/>
+          <path d="M 292.03 123.36 C 314.77 177.37 252.24 242.74 249.4 299.58 C 246.56 356.42 283.51 367.79 283.51 367.79 C 283.51 367.79 269.29 390.53 175.5 382 C 81.71 373.48 70.34 347.9 70.34 347.9 C 70.34 347.9 84.55 342.21 107.29 325.16 C 130.03 308.11 130.03 274 115.82 268.32 C 101.61 262.63 93.08 271.16 84.55 268.32 C 76.03 265.47 67.5 228.53 67.5 188.74 C 67.5 148.94 76.03 117.68 81.71 112 C 87.4 106.31 112.97 109.15 152.77 106.31 C 192.56 103.47 269.29 69.36 292.03 123.36 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Group_1080">
+          <g id="Graphic_1078">
+            <circle cx="186.98" cy="129.27" r="2.84" fill="#e1e1e1"/>
+            <circle cx="186.98" cy="129.27" r="2.84" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+          <g id="Graphic_1077">
+            <circle cx="206.77" cy="127.19" r="2.84" fill="#e1e1e1"/>
+            <circle cx="206.77" cy="127.19" r="2.84" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+          <g id="Graphic_1076">
+            <circle cx="226.55" cy="125.11" r="2.84" fill="#e1e1e1"/>
+            <circle cx="226.55" cy="125.11" r="2.84" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+          </g>
+        </g>
+        <g id="Line_1075">
+          <path d="M 82.04 127.68 C 94.49 104.53 109 130.2 112.46 157.06 C 115.92 183.92 114.26 208.88 108.59 226.93 C 102.92 244.98 91.48 275.09 82.2 257.3" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

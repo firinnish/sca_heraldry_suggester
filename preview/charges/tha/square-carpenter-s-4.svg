@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="67.5 67.5 229.5 283.5" width="229.5" height="283.5">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 67.5 67.5 L 297 67.5 L 297 340.26 L 283.96 351 L 67.5 351 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Square,_Carpenter_s_(4)" stroke-opacity="1" stroke="none" fill="none" fill-opacity="1" stroke-dasharray="none">
+    <title>Square, Carpenter&apos;s (4)</title>
+    <g id="Square,_Carpenter_s_(4)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_113">
+        <path d="M 74.92 84.97 L 74.92 76.5 L 289.58 76.5 L 289.58 342 L 281.11 342 C 281.12 331.21 277.58 320.42 270.49 312.16 C 263.31 303.8 253.85 299.62 244.39 299.63 L 244.39 121.69 L 117.29 121.69 C 117.29 112.29 113.15 102.9 104.88 95.73 C 96.61 88.56 85.76 84.97 74.92 84.97 Z" fill="#ffffff"/>
+        <path d="M 74.92 84.97 L 74.92 76.5 L 289.58 76.5 L 289.58 342 L 281.11 342 C 281.12 331.21 277.58 320.42 270.49 312.16 C 263.31 303.8 253.85 299.62 244.39 299.63 L 244.39 121.69 L 117.29 121.69 C 117.29 112.29 113.15 102.9 104.88 95.73 C 96.61 88.56 85.76 84.97 74.92 84.97 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

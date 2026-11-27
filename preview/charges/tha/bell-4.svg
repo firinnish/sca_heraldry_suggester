@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg" viewBox="33.75 60.75 297 245.25" width="297" height="245.25">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 33.75 60.75 L 330.75 60.75 L 330.75 306 L 255.32 306 L 33.75 306 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Bell_(4)" fill-opacity="1" fill="none" stroke="none" stroke-dasharray="none" stroke-opacity="1">
+    <title>Bell (4)</title>
+    <g id="Bell_(4)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Graphic_9">
+        <circle cx="182.25" cy="282.57" r="21.17" fill="#ffffff"/>
+        <circle cx="182.25" cy="282.57" r="21.17" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+      <g id="Graphic_8">
+        <path d="M 45.8 258.41 L 318.7 258.41 C 324.11 258.41 328.5 262.8 328.5 268.21 L 328.5 268.21 C 328.5 273.62 324.11 278.01 318.7 278.01 L 45.8 278.01 C 40.39 278.01 36 273.62 36 268.21 L 36 268.21 C 36 262.8 40.39 258.41 45.8 258.41 Z" fill="#ffffff"/>
+        <path d="M 45.8 258.41 L 318.7 258.41 C 324.11 258.41 328.5 262.8 328.5 268.21 L 328.5 268.21 C 328.5 273.62 324.11 278.01 318.7 278.01 L 45.8 278.01 C 40.39 278.01 36 273.62 36 268.21 L 36 268.21 C 36 262.8 40.39 258.41 45.8 258.41 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+      <g id="Graphic_7">
+        <path d="M 109.32 169.65 L 255.18 169.65 C 260.59 169.65 264.98 174.04 264.98 179.45 L 264.98 179.45 C 264.98 184.86 260.59 189.25 255.18 189.25 L 109.32 189.25 C 103.91 189.25 99.52 184.86 99.52 179.45 L 99.52 179.45 C 99.52 174.04 103.91 169.65 109.32 169.65 Z" fill="#ffffff"/>
+        <path d="M 109.32 169.65 L 255.18 169.65 C 260.59 169.65 264.98 174.04 264.98 179.45 L 264.98 179.45 C 264.98 184.86 260.59 189.25 255.18 189.25 L 109.32 189.25 C 103.91 189.25 99.52 184.86 99.52 179.45 L 99.52 179.45 C 99.52 174.04 103.91 169.65 109.32 169.65 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+      <g id="Graphic_24">
+        <path d="M 114.42 169.65 L 250.08 169.65 C 250.08 110.75 219.71 63 182.25 63 C 144.79 63 114.42 110.75 114.42 169.65 M 158.72 93.58 C 158.72 84.49 169.26 77.12 182.25 77.12 C 195.24 77.12 205.78 84.49 205.78 93.58 L 158.72 93.58" fill="#ffffff"/>
+        <path d="M 114.42 169.65 L 250.08 169.65 C 250.08 110.75 219.71 63 182.25 63 C 144.79 63 114.42 110.75 114.42 169.65 M 158.72 93.58 C 158.72 84.49 169.26 77.12 182.25 77.12 C 195.24 77.12 205.78 84.49 205.78 93.58 L 158.72 93.58" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+      <g id="Graphic_4">
+        <path d="M 306.93 258.08 C 308.11 258.81 57.56 258.08 57.56 258.08 C 57.56 215.94 113.63 213.82 114.02 189.25 L 251.65 189.25 C 251.99 216.49 306.93 214.97 306.93 258.08 Z" fill="#ffffff"/>
+        <path d="M 306.93 258.08 C 308.11 258.81 57.56 258.08 57.56 258.08 C 57.56 215.94 113.63 213.82 114.02 189.25 L 251.65 189.25 C 251.99 216.49 306.93 214.97 306.93 258.08 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

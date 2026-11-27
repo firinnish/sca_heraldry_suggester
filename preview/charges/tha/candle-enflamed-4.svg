@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="90 63 45 351" width="45" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 90 63 L 135 63 L 135 414 L 90 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Candle_Enflamed_(4)" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Candle Enflamed (4)</title>
+    <g id="Candle_Enflamed_(4)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_776">
+        <g id="Graphic_775">
+          <path d="M 119.47 96.05 L 119.47 96.05 C 120.5 92.22 124.94 78.67 103.49 66.76 C 111.91 81.33 106.62 88.5 105.6 92.33 C 104.57 96.17 106.84 100.1 110.67 101.13 C 114.5 102.16 118.44 99.88 119.47 96.05 Z" fill="#e1e1e1"/>
+          <path d="M 119.47 96.05 L 119.47 96.05 C 120.5 92.22 124.94 78.67 103.49 66.76 C 111.91 81.33 106.62 88.5 105.6 92.33 C 104.57 96.17 106.84 100.1 110.67 101.13 C 114.5 102.16 118.44 99.88 119.47 96.05 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.32"/>
+        </g>
+        <g id="Graphic_772">
+          <path d="M 108.49 99.49 C 106.8 101.6 105.6 105.23 105.6 110.36 C 105.6 127.46 96.5 393.82 96.15 404.08 L 96.15 404.08 C 96.14 404.17 96.14 404.26 96.14 404.35 C 96.14 404.37 96.14 404.38 96.14 404.38 L 96.14 404.38 C 96.21 405.87 97.8 407.36 100.93 408.5 C 107.32 410.82 117.68 410.82 124.07 408.5 C 127.2 407.36 128.79 405.87 128.86 404.38 L 128.86 404.38 C 128.86 404.38 128.86 404.37 128.86 404.35 C 128.86 404.26 128.86 404.17 128.85 404.08 C 128.5 393.82 119.4 127.42 119.4 110.33 C 119.4 105.19 118.2 101.57 116.51 99.47 C 114.08 99.88 110.94 99.89 108.49 99.49 Z" fill="#ffffff"/>
+          <path d="M 108.49 99.49 C 106.8 101.6 105.6 105.23 105.6 110.36 C 105.6 127.46 96.5 393.82 96.15 404.08 L 96.15 404.08 C 96.14 404.17 96.14 404.26 96.14 404.35 C 96.14 404.37 96.14 404.38 96.14 404.38 L 96.14 404.38 C 96.21 405.87 97.8 407.36 100.93 408.5 C 107.32 410.82 117.68 410.82 124.07 408.5 C 127.2 407.36 128.79 405.87 128.86 404.38 L 128.86 404.38 C 128.86 404.38 128.86 404.37 128.86 404.35 C 128.86 404.26 128.86 404.17 128.85 404.08 C 128.5 393.82 119.4 127.42 119.4 110.33 C 119.4 105.19 118.2 101.57 116.51 99.47 C 114.08 99.88 110.94 99.89 108.49 99.49 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.32"/>
+        </g>
+        <g id="Line_771">
+          <path d="M 114.86 100.53 C 114.86 100.53 118.17 409.94 118.37 409.17" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".660976"/>
+        </g>
+        <g id="Line_770">
+          <path d="M 110.14 100.53 C 110.14 100.53 106.83 409.94 106.63 409.17" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".660976"/>
+        </g>
+        <g id="Graphic_769">
+          <ellipse cx="112.5" cy="100" rx="4.46" ry="1.16" fill="#e1e1e1"/>
+          <ellipse cx="112.5" cy="100" rx="4.46" ry="1.16" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.32"/>
+        </g>
+        <g id="Line_768">
+          <path d="M 113.1 78.88 C 117.71 86.46 111.2 91.29 112.49 99.66" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.32"/>
+        </g>
+        <g id="Line_767">
+          <path d="M 96.81 381.98 C 96.81 381.98 97.5 387.07 112.85 387.14 C 127.33 387.14 128.06 381.98 128.06 381.98" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".660976"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

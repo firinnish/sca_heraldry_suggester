@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="40.5 63 144 351" width="144" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 40.5 63 L 184.5 63 L 184.5 414 L 40.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Goutte_(8)" stroke-opacity="1" stroke="none" fill="none" fill-opacity="1" stroke-dasharray="none">
+    <title>Goutte (8)</title>
+    <g id="Goutte_(8)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_766">
+        <path d="M 180 339.75 C 180 286.48 120.81 228.31 112.5 69.75 C 103.97 228.16 45 287.55 45 339.75 C 45 377.03 75.22 407.25 112.5 407.25 C 149.78 407.25 180 376.15 180 339.75 Z" fill="#ffffff"/>
+        <path d="M 180 339.75 C 180 286.48 120.81 228.31 112.5 69.75 C 103.97 228.16 45 287.55 45 339.75 C 45 377.03 75.22 407.25 112.5 407.25 C 149.78 407.25 180 376.15 180 339.75 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" viewBox="39 62 286 286" width="286" height="286">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 39 62 L 325 62 L 325 348 L 39 348 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Heart_(1)" stroke-opacity="1" stroke="none" stroke-dasharray="none" fill="none" fill-opacity="1">
+    <title>Heart (1)</title>
+    <g id="Heart_(1)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Graphic_15">
+        <path d="M 182.25 104.79 C 179.12 99.08 175.34 93.7 170.92 88.76 C 140.59 54.86 91.42 54.86 61.09 88.76 C 30.76 122.65 35.33 177.61 65.66 211.51 C 95.99 245.41 150.14 273.48 181.66 346.58 C 216.74 274.4 268.51 245.41 298.84 211.51 C 329.17 177.61 333.74 122.65 303.41 88.76 C 273.08 54.86 223.91 54.86 193.58 88.76 C 189.16 93.7 185.38 99.08 182.25 104.79 Z" fill="#ffffff"/>
+        <path d="M 182.25 104.79 C 179.12 99.08 175.34 93.7 170.92 88.76 C 140.59 54.86 91.42 54.86 61.09 88.76 C 30.76 122.65 35.33 177.61 65.66 211.51 C 95.99 245.41 150.14 273.48 181.66 346.58 C 216.74 274.4 268.51 245.41 298.84 211.51 C 329.17 177.61 333.74 122.65 303.41 88.76 C 273.08 54.86 223.91 54.86 193.58 88.76 C 189.16 93.7 185.38 99.08 182.25 104.79 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

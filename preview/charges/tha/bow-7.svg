@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="67.5 63 90 351" width="90" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 67.5 63 L 157.5 63 L 157.5 414 L 67.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Bow_(7)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Bow (7)</title>
+    <g id="Bow_(7)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_775">
+        <g id="Graphic_774">
+          <path d="M 123.34 409.11 C 123.34 409.11 151.67 420.47 153.92 380.81 C 156.18 341.14 99.39 326.83 97.52 303.12 C 95.65 279.41 121.2 271.27 121.5 239.96 C 121.8 208.65 102.02 195.49 104.49 172.19 C 106.95 148.88 153.35 117.97 153.15 87.87 C 152.95 57.76 135.4 68.09 135.4 68.09 C 135.4 68.09 143.11 70.32 141.71 86 C 140.32 101.68 76.65 154.7 76.96 187.12 C 77.27 219.55 91.77 216.97 94.92 238.74 C 98.06 260.51 64.33 275.12 72.21 308.61 C 80.09 342.1 139.47 354.57 141.44 378.92 C 143.42 403.27 123.34 409.11 123.34 409.11 Z" fill="#ffffff"/>
+          <path d="M 123.34 409.11 C 123.34 409.11 151.67 420.47 153.92 380.81 C 156.18 341.14 99.39 326.83 97.52 303.12 C 95.65 279.41 121.2 271.27 121.5 239.96 C 121.8 208.65 102.02 195.49 104.49 172.19 C 106.95 148.88 153.35 117.97 153.15 87.87 C 152.95 57.76 135.4 68.09 135.4 68.09 C 135.4 68.09 143.11 70.32 141.71 86 C 140.32 101.68 76.65 154.7 76.96 187.12 C 77.27 219.55 91.77 216.97 94.92 238.74 C 98.06 260.51 64.33 275.12 72.21 308.61 C 80.09 342.1 139.47 354.57 141.44 378.92 C 143.42 403.27 123.34 409.11 123.34 409.11 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_771">
+          <line x1="153.06" y1="83.93" x2="153.92" y2="381.45" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_770">
+          <line x1="153.84" y1="381.41" x2="141.59" y2="384.36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_769">
+          <line x1="153.69" y1="383.11" x2="141.44" y2="386.06" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_768">
+          <line x1="141.91" y1="81.66" x2="152.59" y2="79.32" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_767">
+          <line x1="141.88" y1="83.28" x2="152.55" y2="80.94" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
