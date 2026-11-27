@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="34.5 61 279 264" width="279" height="264">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 34.5 61 L 313.5 61 L 313.5 325 L 34.5 325 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Crescent_(1)" stroke-opacity="1" stroke="none" fill="none" fill-opacity="1" stroke-dasharray="none">
+    <title>Crescent (1)</title>
+    <g id="Crescent_(1)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_42">
+        <g id="Graphic_44">
+          <path d="M 238.05 62.71 C 238.31 62.97 238.57 63.22 238.82 63.48 C 274.6 99.26 274.6 157.27 238.82 193.05 C 203.05 228.82 145.04 228.82 109.26 193.05 C 73.48 157.27 73.48 99.26 109.26 63.48 C 109.52 63.22 109.78 62.97 110.04 62.71 C 97.94 69.04 86.59 77.29 76.43 87.45 C 22.52 141.36 22.52 228.76 76.43 282.67 C 130.34 336.58 217.74 336.58 271.65 282.67 C 325.56 228.76 325.56 141.36 271.65 87.45 C 261.49 77.29 250.14 69.04 238.05 62.71 Z" fill="#ffffff"/>
+          <path d="M 238.05 62.71 C 238.31 62.97 238.57 63.22 238.82 63.48 C 274.6 99.26 274.6 157.27 238.82 193.05 C 203.05 228.82 145.04 228.82 109.26 193.05 C 73.48 157.27 73.48 99.26 109.26 63.48 C 109.52 63.22 109.78 62.97 110.04 62.71 C 97.94 69.04 86.59 77.29 76.43 87.45 C 22.52 141.36 22.52 228.76 76.43 282.67 C 130.34 336.58 217.74 336.58 271.65 282.67 C 325.56 228.76 325.56 141.36 271.65 87.45 C 261.49 77.29 250.14 69.04 238.05 62.71 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_43">
+          <path d="M 106.61 65.71 C 43.75 113.34 57.7 179.62 61.07 192.61 C 64.43 205.6 95.58 276.24 173.52 277.52 C 251.46 278.8 281.9 209.93 286.23 192.61 C 290.56 175.29 303.55 114.34 242.93 66.71" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

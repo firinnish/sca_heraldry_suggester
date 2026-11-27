@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="72 81 220.5 256.5" width="220.5" height="256.5">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 72 81 L 292.5 81 L 292.5 327.78 L 279.97 337.5 L 72 337.5 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Millrind_(6)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Millrind (6)</title>
+    <g id="Millrind_(6)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_113">
+        <g id="Graphic_118">
+          <path d="M 182.25 166.95 L 139.95 209.25 L 182.25 251.55 L 224.55 209.25 Z M 182.25 192.33 L 199.17 209.25 L 182.25 226.17 L 165.33 209.25 Z" fill="#ffffff"/>
+          <path d="M 182.25 166.95 L 139.95 209.25 L 182.25 251.55 L 224.55 209.25 Z M 182.25 192.33 L 199.17 209.25 L 182.25 226.17 L 165.33 209.25 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_117">
+          <path d="M 76.5 334.04 L 127.26 334.04 C 127.26 334.04 127.26 285.39 172.32 241.62 L 149.88 219.18 C 94.25 265.07 76.5 334.04 76.5 334.04 Z" fill="#ffffff"/>
+          <path d="M 76.5 334.04 L 127.26 334.04 C 127.26 334.04 127.26 285.39 172.32 241.62 L 149.88 219.18 C 94.25 265.07 76.5 334.04 76.5 334.04 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_116">
+          <path d="M 288 334.04 L 237.24 334.04 C 237.24 334.04 237.24 285.39 192.18 241.62 L 214.62 219.18 C 270.25 265.07 288 334.04 288 334.04 Z" fill="#ffffff"/>
+          <path d="M 288 334.04 L 237.24 334.04 C 237.24 334.04 237.24 285.39 192.18 241.62 L 214.62 219.18 C 270.25 265.07 288 334.04 288 334.04 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_115">
+          <path d="M 76.5 84.47 L 127.26 84.47 C 127.26 84.47 127.26 133.11 172.32 176.88 L 149.88 199.32 C 94.25 153.43 76.5 84.47 76.5 84.47 Z" fill="#ffffff"/>
+          <path d="M 76.5 84.47 L 127.26 84.47 C 127.26 84.47 127.26 133.11 172.32 176.88 L 149.88 199.32 C 94.25 153.43 76.5 84.47 76.5 84.47 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_114">
+          <path d="M 288 84.47 L 237.24 84.47 C 237.24 84.47 237.24 133.11 192.18 176.88 L 214.62 199.32 C 270.25 153.43 288 84.47 288 84.47 Z" fill="#ffffff"/>
+          <path d="M 288 84.47 L 237.24 84.47 C 237.24 84.47 237.24 133.11 192.18 176.88 L 214.62 199.32 C 270.25 153.43 288 84.47 288 84.47 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

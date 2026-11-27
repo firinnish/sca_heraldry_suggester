@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="99 63 27 351" width="27" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 99 63 L 126 63 L 126 414 L 99 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Lance_(5)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Lance (5)</title>
+    <g id="Lance_(5)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_774">
+        <g id="Graphic_773">
+          <path d="M 117.72 306.37 C 117.72 289.66 114.91 85.01 114.91 85.01 L 112.56 85.01 L 110.21 85.01 C 110.21 85.01 107.39 289.66 107.39 306.37 C 107.39 323.08 103.16 348.14 103.16 348.14 C 103.16 348.14 109.16 352.31 109.16 358.58 C 109.16 364.84 103.16 366.93 103.16 366.93 C 103.16 366.93 105.51 412.88 112.56 412.88 C 119.6 412.88 121.95 366.93 121.95 366.93 C 121.95 366.93 115.95 364.84 115.95 358.58 C 115.95 352.31 121.95 348.14 121.95 348.14 C 121.95 348.14 117.72 323.08 117.72 306.37 Z" fill="#ffffff"/>
+          <path d="M 117.72 306.37 C 117.72 289.66 114.91 85.01 114.91 85.01 L 112.56 85.01 L 110.21 85.01 C 110.21 85.01 107.39 289.66 107.39 306.37 C 107.39 323.08 103.16 348.14 103.16 348.14 C 103.16 348.14 109.16 352.31 109.16 358.58 C 109.16 364.84 103.16 366.93 103.16 366.93 C 103.16 366.93 105.51 412.88 112.56 412.88 C 119.6 412.88 121.95 366.93 121.95 366.93 C 121.95 366.93 115.95 364.84 115.95 358.58 C 115.95 352.31 121.95 348.14 121.95 348.14 C 121.95 348.14 117.72 323.08 117.72 306.37 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25"/>
+        </g>
+        <g id="Line_772">
+          <path d="M 103.16 366.93 C 103.16 366.93 104.09 369.02 112.44 369.02 C 120.79 369.02 122.09 367.16 121.95 366.93" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+        <g id="Line_771">
+          <path d="M 103.16 348.14 C 103.16 348.14 104.09 350.23 112.44 350.23 C 120.79 350.23 122.09 348.37 121.95 348.14" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+        <g id="Graphic_770">
+          <path d="M 110.47 85.01 L 114.64 85.01 L 116.73 74.57 L 112.56 64.12 L 108.38 74.57 Z" fill="#ffffff"/>
+          <path d="M 110.47 85.01 L 114.64 85.01 L 116.73 74.57 L 112.56 64.12 L 108.38 74.57 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25"/>
+        </g>
+        <g id="Line_769">
+          <path d="M 111.51 85.01 C 111.51 80.83 111.51 80.83 111.51 80.83" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+        <g id="Line_768">
+          <path d="M 113.6 85.01 C 113.6 80.83 113.6 80.83 113.6 80.83" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+        <g id="Line_767">
+          <path d="M 112.61 85.01 C 112.61 80.83 112.61 76.65 112.61 76.65" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

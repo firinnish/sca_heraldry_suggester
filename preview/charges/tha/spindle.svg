@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="40.5 63 144 351" width="144" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 40.5 63 L 184.5 63 L 184.5 414 L 40.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Spindle" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Spindle</title>
+    <g id="Spindle_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_766">
+        <g id="Graphic_777">
+          <path d="M 89.12 411.75 L 135.88 411.75 C 114.63 354.35 131.63 126.9 112.5 65.25 C 93.37 126.9 110.37 354.35 89.12 411.75 Z" fill="#ffffff"/>
+          <path d="M 89.12 411.75 L 135.88 411.75 C 114.63 354.35 131.63 126.9 112.5 65.25 C 93.37 126.9 110.37 354.35 89.12 411.75 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+        </g>
+        <g id="Line_776">
+          <line x1="111.45" y1="340" x2="114.63" y2="388.37" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_775">
+          <line x1="116.75" y1="341.6" x2="121" y2="392.62" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_774">
+          <line x1="121" y1="339.47" x2="127.38" y2="405.37" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_773">
+          <line x1="117.81" y1="137.53" x2="113.64" y2="82.26" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Graphic_772">
+          <path d="M 99.15 337.22 C 87.79 333.34 76.98 324.44 68.16 310.52 C 43.67 271.92 43.67 209.33 68.16 170.73 C 78.25 154.82 90.94 145.46 104.07 142.67 C 104.5 142.76 105.06 142.85 105.74 142.93 C 109.47 143.37 115.53 143.37 119.26 142.93 C 119.94 142.85 120.5 142.76 120.93 142.67 C 134.06 145.46 146.75 154.82 156.84 170.73 C 181.33 209.33 181.33 271.92 156.84 310.52 C 148.02 324.44 137.21 333.34 125.85 337.22 C 125.25 337.04 124.06 336.88 122.27 336.74 C 116.87 336.33 108.13 336.33 102.73 336.74 C 100.94 336.88 99.75 337.04 99.15 337.22 Z" fill="#ffffff" id="path"/>
+          <clipPath id="clip_path">
+            <use xl:href="#path"/>
+          </clipPath>
+          <g clip-path="url(#clip_path)">
+            <image xl:href="image782.pdf" width="268" height="408" transform="matrix(.4679862 0 0 .47683843 49.79 142.67)"/>
+          </g>
+          <path d="M 99.15 337.22 C 87.79 333.34 76.98 324.44 68.16 310.52 C 43.67 271.92 43.67 209.33 68.16 170.73 C 78.25 154.82 90.94 145.46 104.07 142.67 C 104.5 142.76 105.06 142.85 105.74 142.93 C 109.47 143.37 115.53 143.37 119.26 142.93 C 119.94 142.85 120.5 142.76 120.93 142.67 C 134.06 145.46 146.75 154.82 156.84 170.73 C 181.33 209.33 181.33 271.92 156.84 310.52 C 148.02 324.44 137.21 333.34 125.85 337.22 C 125.25 337.04 124.06 336.88 122.27 336.74 C 116.87 336.33 108.13 336.33 102.73 336.74 C 100.94 336.88 99.75 337.04 99.15 337.22 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+        </g>
+        <g id="Line_771">
+          <path d="M 62.54 277.83 C 62.54 277.83 58.29 239.56 62.54 214.05 C 66.8 188.54 88.05 160.91 88.05 160.91" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_770">
+          <path d="M 149.7 307.59 C 149.7 307.59 162.46 265.07 162.46 228.93 C 162.46 192.8 136.95 155.6 136.95 155.6" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_769">
+          <path d="M 141.2 299.08 C 141.2 299.08 153.95 258.19 153.95 233.19 C 153.95 194.92 132.69 165.16 132.69 165.16" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_768">
+          <path d="M 136.95 279.95 C 136.95 279.95 145.45 250.19 145.45 231.06 C 145.45 199.17 130.57 175.79 130.57 175.79" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+        <g id="Line_767">
+          <path d="M 128.44 269.32 C 128.44 269.32 134.82 248.07 134.82 231.06 C 134.82 199.17 119.94 175.79 119.94 175.79" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

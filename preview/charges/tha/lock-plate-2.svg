@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="40.5 67.5 229.5 229.5" width="229.5" height="229.5">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 40.5 67.5 L 270 67.5 L 270 297 L 40.5 297 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Lock_Plate_(2)" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Lock Plate (2)</title>
+    <g id="Lock_Plate_(2)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_69">
+        <g id="Graphic_76">
+          <title>rect826</title>
+          <rect x="45" y="72" width="220.5" height="220.5" fill="#ffffff"/>
+          <rect x="45" y="72" width="220.5" height="220.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_75">
+          <title>rect828</title>
+          <rect x="104.27" y="131.27" width="101.97" height="101.97" fill="#ffffff"/>
+          <rect x="104.27" y="131.27" width="101.97" height="101.97" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_74">
+          <title>path830</title>
+          <line x1="45" y1="72" x2="104.27" y2="131.27" fill="#ffffff"/>
+          <line x1="45" y1="72" x2="104.27" y2="131.27" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_73">
+          <title>path832</title>
+          <line x1="265.5" y1="72" x2="206.23" y2="131.27" fill="#ffffff"/>
+          <line x1="265.5" y1="72" x2="206.23" y2="131.27" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_72">
+          <title>path834</title>
+          <line x1="265.5" y1="292.5" x2="206.23" y2="233.23" fill="#ffffff"/>
+          <line x1="265.5" y1="292.5" x2="206.23" y2="233.23" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_71">
+          <title>path836</title>
+          <line x1="45" y1="292.5" x2="104.27" y2="233.23" fill="#ffffff"/>
+          <line x1="45" y1="292.5" x2="104.27" y2="233.23" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_70">
+          <title>path852</title>
+          <path d="M 155.25 152.77 C 152.59 152.77 150.03 153.83 148.15 155.71 C 146.27 157.6 145.21 160.15 145.21 162.81 C 145.21 167.53 148.5 171.61 153.11 172.62 L 151.01 214.96 L 159.49 214.96 L 157.39 172.61 C 162 171.6 165.28 167.53 165.29 162.81 C 165.29 160.15 164.23 157.6 162.35 155.71 C 160.47 153.83 157.91 152.77 155.25 152.77 Z" fill="#e1e1e1"/>
+          <path d="M 155.25 152.77 C 152.59 152.77 150.03 153.83 148.15 155.71 C 146.27 157.6 145.21 160.15 145.21 162.81 C 145.21 167.53 148.5 171.61 153.11 172.62 L 151.01 214.96 L 159.49 214.96 L 157.39 172.61 C 162 171.6 165.28 167.53 165.29 162.81 C 165.29 160.15 164.23 157.6 162.35 155.71 C 160.47 153.83 157.91 152.77 155.25 152.77 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

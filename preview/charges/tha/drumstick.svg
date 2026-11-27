@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg" viewBox="92.25 67.5 48.69 342" width="48.69" height="342">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 92.25 67.5 L 140.94 67.5 L 140.94 409.5 L 92.25 409.5 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Drumstick" fill-opacity="1" fill="none" stroke="none" stroke-dasharray="none" stroke-opacity="1">
+    <title>Drumstick</title>
+    <g id="Drumstick_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_3">
+        <g id="Graphic_7">
+          <path d="M 96.63 388.43 C 96.36 394.08 96.86 399.15 102.46 403.12 C 110.24 408.63 122.85 408.63 130.62 403.12 C 136.23 399.15 137.05 393.56 136.46 388.43 L 123.18 96.8 L 109.9 96.8 Z" fill="#ffffff"/>
+          <path d="M 96.63 388.43 C 96.36 394.08 96.86 399.15 102.46 403.12 C 110.24 408.63 122.85 408.63 130.62 403.12 C 136.23 399.15 137.05 393.56 136.46 388.43 L 123.18 96.8 L 109.9 96.8 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_6">
+          <ellipse cx="116.6" cy="86.23" rx="16.6" ry="16.48" fill="#ffffff"/>
+          <ellipse cx="116.6" cy="86.23" rx="16.6" ry="16.48" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_5">
+          <line x1="118.69" y1="115.06" x2="131.63" y2="401.81" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_4">
+          <path d="M 116.49 86.12 L 126.2 79.36 C 129.96 84.69 128.66 92.04 123.29 95.77 C 120.18 97.94 116.22 98.49 112.63 97.26 L 116.49 86.12 Z" fill="#ffffff"/>
+          <path d="M 116.49 86.12 L 126.2 79.36 C 129.96 84.69 128.66 92.04 123.29 95.77 C 120.18 97.94 116.22 98.49 112.63 97.26 L 116.49 86.12 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

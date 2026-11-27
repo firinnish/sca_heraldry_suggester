@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" viewBox="33.75 60.75 297 297" width="297" height="297">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 33.75 60.75 L 330.75 60.75 L 330.75 346.5 L 313.88 357.75 L 33.75 357.75 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Escarbuncle_(8)" stroke-opacity="1" stroke="none" stroke-dasharray="none" fill="none" fill-opacity="1">
+    <title>Escarbuncle (8)</title>
+    <g id="Escarbuncle_(8)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_113">
+        <title>escarbuncle</title>
+        <g id="Group_154">
+          <title>limb_top</title>
+          <g id="Graphic_158">
+            <title>limb_main</title>
+            <path d="M 182.25 65.25 C 170.73 76.77 170.73 79.65 176.49 94.05 C 170.73 76.77 147.69 88.29 159.21 99.81 C 159.21 82.53 176.49 99.81 176.49 108.45 L 176.49 209.25 L 188.01 209.25 L 188.01 108.45 C 188.01 99.81 205.29 82.53 205.29 99.81 C 216.81 88.29 193.77 76.77 188.01 94.05 C 193.77 79.65 193.77 76.77 182.25 65.25 Z" fill="#ffffff"/>
+            <path d="M 182.25 65.25 C 170.73 76.77 170.73 79.65 176.49 94.05 C 170.73 76.77 147.69 88.29 159.21 99.81 C 159.21 82.53 176.49 99.81 176.49 108.45 L 176.49 209.25 L 188.01 209.25 L 188.01 108.45 C 188.01 99.81 205.29 82.53 205.29 99.81 C 216.81 88.29 193.77 76.77 188.01 94.05 C 193.77 79.65 193.77 76.77 182.25 65.25 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+          </g>
+          <g id="Graphic_157">
+            <title>upper_lump</title>
+            <path d="M 176.49 128.61 C 170.73 131.49 170.73 137.25 176.49 140.13 L 188.01 140.13 C 193.77 137.25 193.77 131.49 188.01 128.61 Z" fill="#ffffff"/>
+            <path d="M 176.49 128.61 C 170.73 131.49 170.73 137.25 176.49 140.13 L 188.01 140.13 C 193.77 137.25 193.77 131.49 188.01 128.61 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+          </g>
+          <g id="Graphic_156">
+            <title>upper_lump</title>
+            <path d="M 176.49 157.41 C 170.73 160.29 170.73 166.05 176.49 168.93 L 188.01 168.93 C 193.77 166.05 193.77 160.29 188.01 157.41 Z" fill="#ffffff"/>
+            <path d="M 176.49 157.41 C 170.73 160.29 170.73 166.05 176.49 168.93 L 188.01 168.93 C 193.77 166.05 193.77 160.29 188.01 157.41 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+          </g>
+          <g id="Graphic_155">
+            <title>fleur_base</title>
+            <path d="M 176.49 105.57 C 173.61 108.45 176.49 111.33 176.49 111.33 L 188.01 111.33 C 188.01 111.33 190.89 108.45 188.01 105.57 Z" fill="#ffffff"/>
+            <path d="M 176.49 105.57 C 173.61 108.45 176.49 111.33 176.49 111.33 L 188.01 111.33 C 188.01 111.33 190.89 108.45 188.01 105.57 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+          </g>
+        </g>
+        <g id="Group_118">
+          <title>limbs_rotated</title>
+          <g id="Group_149">
+            <title>limb_top</title>
+            <g id="Graphic_153">
+              <title>limb_main</title>
+              <path d="M 284.07 107.43 C 267.78 107.43 265.75 109.46 259.64 123.72 C 267.78 107.43 243.34 99.28 243.34 115.57 C 255.56 103.35 255.56 127.79 249.45 133.9 L 178.18 205.18 L 186.32 213.32 L 257.6 142.05 C 263.71 135.94 288.15 135.94 275.93 148.16 C 292.22 148.16 284.07 123.72 267.78 131.86 C 282.04 125.75 284.07 123.72 284.07 107.43 Z" fill="#ffffff"/>
+              <path d="M 284.07 107.43 C 267.78 107.43 265.75 109.46 259.64 123.72 C 267.78 107.43 243.34 99.28 243.34 115.57 C 255.56 103.35 255.56 127.79 249.45 133.9 L 178.18 205.18 L 186.32 213.32 L 257.6 142.05 C 263.71 135.94 288.15 135.94 275.93 148.16 C 292.22 148.16 284.07 123.72 267.78 131.86 C 282.04 125.75 284.07 123.72 284.07 107.43 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_152">
+              <title>upper_lump</title>
+              <path d="M 235.2 148.16 C 229.09 146.12 225.02 150.19 227.05 156.3 L 235.2 164.45 C 241.31 166.48 245.38 162.41 243.34 156.3 Z" fill="#ffffff"/>
+              <path d="M 235.2 148.16 C 229.09 146.12 225.02 150.19 227.05 156.3 L 235.2 164.45 C 241.31 166.48 245.38 162.41 243.34 156.3 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_151">
+              <title>upper_lump</title>
+              <path d="M 214.83 168.52 C 208.72 166.48 204.65 170.56 206.69 176.67 L 214.83 184.81 C 220.94 186.85 225.02 182.78 222.98 176.67 Z" fill="#ffffff"/>
+              <path d="M 214.83 168.52 C 208.72 166.48 204.65 170.56 206.69 176.67 L 214.83 184.81 C 220.94 186.85 225.02 182.78 222.98 176.67 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_150">
+              <title>fleur_base</title>
+              <path d="M 251.49 131.86 C 247.42 131.86 247.42 135.94 247.42 135.94 L 255.56 144.08 C 255.56 144.08 259.64 144.08 259.64 140.01 Z" fill="#ffffff"/>
+              <path d="M 251.49 131.86 C 247.42 131.86 247.42 135.94 247.42 135.94 L 255.56 144.08 C 255.56 144.08 259.64 144.08 259.64 140.01 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+          </g>
+          <g id="Group_144">
+            <title>limb_top</title>
+            <g id="Graphic_148">
+              <title>limb_main</title>
+              <path d="M 326.25 209.25 C 314.73 197.73 311.85 197.73 297.45 203.49 C 314.73 197.73 303.21 174.69 291.69 186.21 C 308.97 186.21 291.69 203.49 283.05 203.49 L 182.25 203.49 L 182.25 215.01 L 283.05 215.01 C 291.69 215.01 308.97 232.29 291.69 232.29 C 303.21 243.81 314.73 220.77 297.45 215.01 C 311.85 220.77 314.73 220.77 326.25 209.25 Z" fill="#ffffff"/>
+              <path d="M 326.25 209.25 C 314.73 197.73 311.85 197.73 297.45 203.49 C 314.73 197.73 303.21 174.69 291.69 186.21 C 308.97 186.21 291.69 203.49 283.05 203.49 L 182.25 203.49 L 182.25 215.01 L 283.05 215.01 C 291.69 215.01 308.97 232.29 291.69 232.29 C 303.21 243.81 314.73 220.77 297.45 215.01 C 311.85 220.77 314.73 220.77 326.25 209.25 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_147">
+              <title>upper_lump</title>
+              <path d="M 262.89 203.49 C 260.01 197.73 254.25 197.73 251.37 203.49 L 251.37 215.01 C 254.25 220.77 260.01 220.77 262.89 215.01 Z" fill="#ffffff"/>
+              <path d="M 262.89 203.49 C 260.01 197.73 254.25 197.73 251.37 203.49 L 251.37 215.01 C 254.25 220.77 260.01 220.77 262.89 215.01 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_146">
+              <title>upper_lump</title>
+              <path d="M 234.09 203.49 C 231.21 197.73 225.45 197.73 222.57 203.49 L 222.57 215.01 C 225.45 220.77 231.21 220.77 234.09 215.01 Z" fill="#ffffff"/>
+              <path d="M 234.09 203.49 C 231.21 197.73 225.45 197.73 222.57 203.49 L 222.57 215.01 C 225.45 220.77 231.21 220.77 234.09 215.01 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_145">
+              <title>fleur_base</title>
+              <path d="M 285.93 203.49 C 283.05 200.61 280.17 203.49 280.17 203.49 L 280.17 215.01 C 280.17 215.01 283.05 217.89 285.93 215.01 Z" fill="#ffffff"/>
+              <path d="M 285.93 203.49 C 283.05 200.61 280.17 203.49 280.17 203.49 L 280.17 215.01 C 280.17 215.01 283.05 217.89 285.93 215.01 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+          </g>
+          <g id="Group_139">
+            <title>limb_top</title>
+            <g id="Graphic_143">
+              <title>limb_main</title>
+              <path d="M 284.07 311.07 C 284.07 294.78 282.04 292.75 267.78 286.64 C 284.07 294.78 292.22 270.34 275.93 270.34 C 288.15 282.56 263.71 282.56 257.6 276.45 L 186.32 205.18 L 178.18 213.32 L 249.45 284.6 C 255.56 290.71 255.56 315.15 243.34 302.93 C 243.34 319.22 267.78 311.07 259.64 294.78 C 265.75 309.04 267.78 311.07 284.07 311.07 Z" fill="#ffffff"/>
+              <path d="M 284.07 311.07 C 284.07 294.78 282.04 292.75 267.78 286.64 C 284.07 294.78 292.22 270.34 275.93 270.34 C 288.15 282.56 263.71 282.56 257.6 276.45 L 186.32 205.18 L 178.18 213.32 L 249.45 284.6 C 255.56 290.71 255.56 315.15 243.34 302.93 C 243.34 319.22 267.78 311.07 259.64 294.78 C 265.75 309.04 267.78 311.07 284.07 311.07 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_142">
+              <title>upper_lump</title>
+              <path d="M 243.34 262.2 C 245.38 256.09 241.31 252.02 235.2 254.05 L 227.05 262.2 C 225.02 268.31 229.09 272.38 235.2 270.34 Z" fill="#ffffff"/>
+              <path d="M 243.34 262.2 C 245.38 256.09 241.31 252.02 235.2 254.05 L 227.05 262.2 C 225.02 268.31 229.09 272.38 235.2 270.34 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_141">
+              <title>upper_lump</title>
+              <path d="M 222.98 241.83 C 225.02 235.72 220.94 231.65 214.83 233.69 L 206.69 241.83 C 204.65 247.94 208.72 252.02 214.83 249.98 Z" fill="#ffffff"/>
+              <path d="M 222.98 241.83 C 225.02 235.72 220.94 231.65 214.83 233.69 L 206.69 241.83 C 204.65 247.94 208.72 252.02 214.83 249.98 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_140">
+              <title>fleur_base</title>
+              <path d="M 259.64 278.49 C 259.64 274.42 255.56 274.42 255.56 274.42 L 247.42 282.56 C 247.42 282.56 247.42 286.64 251.49 286.64 Z" fill="#ffffff"/>
+              <path d="M 259.64 278.49 C 259.64 274.42 255.56 274.42 255.56 274.42 L 247.42 282.56 C 247.42 282.56 247.42 286.64 251.49 286.64 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+          </g>
+          <g id="Group_134">
+            <title>limb_top</title>
+            <g id="Graphic_138">
+              <title>limb_main</title>
+              <path d="M 182.25 353.25 C 193.77 341.73 193.77 338.85 188.01 324.45 C 193.77 341.73 216.81 330.21 205.29 318.69 C 205.29 335.97 188.01 318.69 188.01 310.05 L 188.01 209.25 L 176.49 209.25 L 176.49 310.05 C 176.49 318.69 159.21 335.97 159.21 318.69 C 147.69 330.21 170.73 341.73 176.49 324.45 C 170.73 338.85 170.73 341.73 182.25 353.25 Z" fill="#ffffff"/>
+              <path d="M 182.25 353.25 C 193.77 341.73 193.77 338.85 188.01 324.45 C 193.77 341.73 216.81 330.21 205.29 318.69 C 205.29 335.97 188.01 318.69 188.01 310.05 L 188.01 209.25 L 176.49 209.25 L 176.49 310.05 C 176.49 318.69 159.21 335.97 159.21 318.69 C 147.69 330.21 170.73 341.73 176.49 324.45 C 170.73 338.85 170.73 341.73 182.25 353.25 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_137">
+              <title>upper_lump</title>
+              <path d="M 188.01 289.89 C 193.77 287.01 193.77 281.25 188.01 278.37 L 176.49 278.37 C 170.73 281.25 170.73 287.01 176.49 289.89 Z" fill="#ffffff"/>
+              <path d="M 188.01 289.89 C 193.77 287.01 193.77 281.25 188.01 278.37 L 176.49 278.37 C 170.73 281.25 170.73 287.01 176.49 289.89 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_136">
+              <title>upper_lump</title>
+              <path d="M 188.01 261.09 C 193.77 258.21 193.77 252.45 188.01 249.57 L 176.49 249.57 C 170.73 252.45 170.73 258.21 176.49 261.09 Z" fill="#ffffff"/>
+              <path d="M 188.01 261.09 C 193.77 258.21 193.77 252.45 188.01 249.57 L 176.49 249.57 C 170.73 252.45 170.73 258.21 176.49 261.09 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_135">
+              <title>fleur_base</title>
+              <path d="M 188.01 312.93 C 190.89 310.05 188.01 307.17 188.01 307.17 L 176.49 307.17 C 176.49 307.17 173.61 310.05 176.49 312.93 Z" fill="#ffffff"/>
+              <path d="M 188.01 312.93 C 190.89 310.05 188.01 307.17 188.01 307.17 L 176.49 307.17 C 176.49 307.17 173.61 310.05 176.49 312.93 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+          </g>
+          <g id="Group_129">
+            <title>limb_top</title>
+            <g id="Graphic_133">
+              <title>limb_main</title>
+              <path d="M 80.43 311.07 C 96.72 311.07 98.75 309.04 104.86 294.78 C 96.72 311.07 121.16 319.22 121.16 302.93 C 108.94 315.15 108.94 290.71 115.05 284.6 L 186.32 213.32 L 178.18 205.18 L 106.9 276.45 C 100.79 282.56 76.35 282.56 88.57 270.34 C 72.28 270.34 80.43 294.78 96.72 286.64 C 82.46 292.75 80.43 294.78 80.43 311.07 Z" fill="#ffffff"/>
+              <path d="M 80.43 311.07 C 96.72 311.07 98.75 309.04 104.86 294.78 C 96.72 311.07 121.16 319.22 121.16 302.93 C 108.94 315.15 108.94 290.71 115.05 284.6 L 186.32 213.32 L 178.18 205.18 L 106.9 276.45 C 100.79 282.56 76.35 282.56 88.57 270.34 C 72.28 270.34 80.43 294.78 96.72 286.64 C 82.46 292.75 80.43 294.78 80.43 311.07 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_132">
+              <title>upper_lump</title>
+              <path d="M 129.3 270.34 C 135.41 272.38 139.48 268.31 137.45 262.2 L 129.3 254.05 C 123.19 252.02 119.12 256.09 121.16 262.2 Z" fill="#ffffff"/>
+              <path d="M 129.3 270.34 C 135.41 272.38 139.48 268.31 137.45 262.2 L 129.3 254.05 C 123.19 252.02 119.12 256.09 121.16 262.2 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_131">
+              <title>upper_lump</title>
+              <path d="M 149.67 249.98 C 155.78 252.02 159.85 247.94 157.81 241.83 L 149.67 233.69 C 143.56 231.65 139.48 235.72 141.52 241.83 Z" fill="#ffffff"/>
+              <path d="M 149.67 249.98 C 155.78 252.02 159.85 247.94 157.81 241.83 L 149.67 233.69 C 143.56 231.65 139.48 235.72 141.52 241.83 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_130">
+              <title>fleur_base</title>
+              <path d="M 113.01 286.64 C 117.08 286.64 117.08 282.56 117.08 282.56 L 108.94 274.42 C 108.94 274.42 104.86 274.42 104.86 278.49 Z" fill="#ffffff"/>
+              <path d="M 113.01 286.64 C 117.08 286.64 117.08 282.56 117.08 282.56 L 108.94 274.42 C 108.94 274.42 104.86 274.42 104.86 278.49 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+          </g>
+          <g id="Group_124">
+            <title>limb_top</title>
+            <g id="Graphic_128">
+              <title>limb_main</title>
+              <path d="M 38.25 209.25 C 49.77 220.77 52.65 220.77 67.05 215.01 C 49.77 220.77 61.29 243.81 72.81 232.29 C 55.53 232.29 72.81 215.01 81.45 215.01 L 182.25 215.01 L 182.25 203.49 L 81.45 203.49 C 72.81 203.49 55.53 186.21 72.81 186.21 C 61.29 174.69 49.77 197.73 67.05 203.49 C 52.65 197.73 49.77 197.73 38.25 209.25 Z" fill="#ffffff"/>
+              <path d="M 38.25 209.25 C 49.77 220.77 52.65 220.77 67.05 215.01 C 49.77 220.77 61.29 243.81 72.81 232.29 C 55.53 232.29 72.81 215.01 81.45 215.01 L 182.25 215.01 L 182.25 203.49 L 81.45 203.49 C 72.81 203.49 55.53 186.21 72.81 186.21 C 61.29 174.69 49.77 197.73 67.05 203.49 C 52.65 197.73 49.77 197.73 38.25 209.25 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_127">
+              <title>upper_lump</title>
+              <path d="M 101.61 215.01 C 104.49 220.77 110.25 220.77 113.13 215.01 L 113.13 203.49 C 110.25 197.73 104.49 197.73 101.61 203.49 Z" fill="#ffffff"/>
+              <path d="M 101.61 215.01 C 104.49 220.77 110.25 220.77 113.13 215.01 L 113.13 203.49 C 110.25 197.73 104.49 197.73 101.61 203.49 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_126">
+              <title>upper_lump</title>
+              <path d="M 130.41 215.01 C 133.29 220.77 139.05 220.77 141.93 215.01 L 141.93 203.49 C 139.05 197.73 133.29 197.73 130.41 203.49 Z" fill="#ffffff"/>
+              <path d="M 130.41 215.01 C 133.29 220.77 139.05 220.77 141.93 215.01 L 141.93 203.49 C 139.05 197.73 133.29 197.73 130.41 203.49 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_125">
+              <title>fleur_base</title>
+              <path d="M 78.57 215.01 C 81.45 217.89 84.33 215.01 84.33 215.01 L 84.33 203.49 C 84.33 203.49 81.45 200.61 78.57 203.49 Z" fill="#ffffff"/>
+              <path d="M 78.57 215.01 C 81.45 217.89 84.33 215.01 84.33 215.01 L 84.33 203.49 C 84.33 203.49 81.45 200.61 78.57 203.49 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+          </g>
+          <g id="Group_119">
+            <title>limb_top</title>
+            <g id="Graphic_123">
+              <title>limb_main</title>
+              <path d="M 80.43 107.43 C 80.43 123.72 82.46 125.75 96.72 131.86 C 80.43 123.72 72.28 148.16 88.57 148.16 C 76.35 135.94 100.79 135.94 106.9 142.05 L 178.18 213.32 L 186.32 205.18 L 115.05 133.9 C 108.94 127.79 108.94 103.35 121.16 115.57 C 121.16 99.28 96.72 107.43 104.86 123.72 C 98.75 109.46 96.72 107.43 80.43 107.43 Z" fill="#ffffff"/>
+              <path d="M 80.43 107.43 C 80.43 123.72 82.46 125.75 96.72 131.86 C 80.43 123.72 72.28 148.16 88.57 148.16 C 76.35 135.94 100.79 135.94 106.9 142.05 L 178.18 213.32 L 186.32 205.18 L 115.05 133.9 C 108.94 127.79 108.94 103.35 121.16 115.57 C 121.16 99.28 96.72 107.43 104.86 123.72 C 98.75 109.46 96.72 107.43 80.43 107.43 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_122">
+              <title>upper_lump</title>
+              <path d="M 121.16 156.3 C 119.12 162.41 123.19 166.48 129.3 164.45 L 137.45 156.3 C 139.48 150.19 135.41 146.12 129.3 148.16 Z" fill="#ffffff"/>
+              <path d="M 121.16 156.3 C 119.12 162.41 123.19 166.48 129.3 164.45 L 137.45 156.3 C 139.48 150.19 135.41 146.12 129.3 148.16 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_121">
+              <title>upper_lump</title>
+              <path d="M 141.52 176.67 C 139.48 182.78 143.56 186.85 149.67 184.81 L 157.81 176.67 C 159.85 170.56 155.78 166.48 149.67 168.52 Z" fill="#ffffff"/>
+              <path d="M 141.52 176.67 C 139.48 182.78 143.56 186.85 149.67 184.81 L 157.81 176.67 C 159.85 170.56 155.78 166.48 149.67 168.52 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Graphic_120">
+              <title>fleur_base</title>
+              <path d="M 104.86 140.01 C 104.86 144.08 108.94 144.08 108.94 144.08 L 117.08 135.94 C 117.08 135.94 117.08 131.86 113.01 131.86 Z" fill="#ffffff"/>
+              <path d="M 104.86 140.01 C 104.86 144.08 108.94 144.08 108.94 144.08 L 117.08 135.94 C 117.08 135.94 117.08 131.86 113.01 131.86 Z" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+          </g>
+        </g>
+        <g id="Group_114">
+          <title>core</title>
+          <g id="Graphic_117">
+            <title>core_main</title>
+            <circle cx="182.25" cy="209.25" r="17.28" fill="#ffffff"/>
+            <circle cx="182.25" cy="209.25" r="17.28" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+          </g>
+          <g id="Graphic_116">
+            <title>core_outer_detail</title>
+            <circle cx="182.25" cy="209.25" r="11.52" fill="#ffffff"/>
+            <circle cx="182.25" cy="209.25" r="11.52" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+          </g>
+          <g id="Graphic_115">
+            <title>core_inner_detail</title>
+            <circle cx="182.25" cy="209.25" r="8.64" fill="#ffffff"/>
+            <circle cx="182.25" cy="209.25" r="8.64" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.5"/>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

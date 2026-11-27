@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="94.5 63 175.5 351" width="175.5" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 94.5 63 L 270 63 L 270 360 L 202.5 414 L 94.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Mirror,_Hand_(2)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Mirror, Hand (2)</title>
+    <g id="Mirror,_Hand_(2)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_53">
+        <g id="Graphic_55">
+          <path d="M 166.5 259.5 L 156 259.5 C 147.3 259.5 140.25 266.55 140.25 275.25 C 140.25 283.95 147.3 291 156 291 L 166.5 291 L 166.5 396 C 166.5 404.7 173.55 411.75 182.25 411.75 C 190.95 411.75 198 404.7 198 396 L 198 291 L 208.5 291 C 217.2 291 224.25 283.95 224.25 275.25 C 224.25 266.55 217.2 259.5 208.5 259.5 L 198 259.5 L 198 226.47 C 213.31 223.46 227.93 216.03 239.79 204.17 C 271.57 172.39 271.57 120.86 239.79 89.08 C 208.01 57.31 156.49 57.31 124.71 89.08 C 92.93 120.86 92.93 172.39 124.71 204.17 C 136.57 216.03 151.19 223.46 166.5 226.47 Z" fill="#e1e1e1"/>
+          <path d="M 166.5 259.5 L 156 259.5 C 147.3 259.5 140.25 266.55 140.25 275.25 C 140.25 283.95 147.3 291 156 291 L 166.5 291 L 166.5 396 C 166.5 404.7 173.55 411.75 182.25 411.75 C 190.95 411.75 198 404.7 198 396 L 198 291 L 208.5 291 C 217.2 291 224.25 283.95 224.25 275.25 C 224.25 266.55 217.2 259.5 208.5 259.5 L 198 259.5 L 198 226.47 C 213.31 223.46 227.93 216.03 239.79 204.17 C 271.57 172.39 271.57 120.86 239.79 89.08 C 208.01 57.31 156.49 57.31 124.71 89.08 C 92.93 120.86 92.93 172.39 124.71 204.17 C 136.57 216.03 151.19 223.46 166.5 226.47 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_54">
+          <circle cx="182.25" cy="146.63" r="55.13" fill="#ffffff"/>
+          <circle cx="182.25" cy="146.63" r="55.13" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

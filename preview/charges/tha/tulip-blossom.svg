@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="33.75 60.75 297 297" width="297" height="297">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 33.75 60.75 L 330.75 60.75 L 330.75 346.5 L 313.88 357.75 L 33.75 357.75 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Tulip_Blossom" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Tulip Blossom</title>
+    <g id="Tulip_Blossom_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_113">
+        <g id="Graphic_116">
+          <path d="M 109.92 214.84 C 109.92 139.3 185.05 62.73 185.05 62.73 C 185.05 62.73 262.03 136.82 262.03 208.08 C 262.03 279.33 109.92 290.37 109.92 214.84 Z" fill="#ffffff"/>
+          <path d="M 109.92 214.84 C 109.92 139.3 185.05 62.73 185.05 62.73 C 185.05 62.73 262.03 136.82 262.03 208.08 C 262.03 279.33 109.92 290.37 109.92 214.84 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_115">
+          <path d="M 220.78 341.81 C 230.92 328.29 212.51 257.71 160.56 172.9 C 108.6 88.08 38.25 76.25 38.25 76.25 C 38.25 76.25 75.53 281.01 118.75 325 C 161.97 368.99 210.64 355.33 220.78 341.81 Z" fill="#ffffff"/>
+          <path d="M 220.78 341.81 C 230.92 328.29 212.51 257.71 160.56 172.9 C 108.6 88.08 38.25 76.25 38.25 76.25 C 38.25 76.25 75.53 281.01 118.75 325 C 161.97 368.99 210.64 355.33 220.78 341.81 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_114">
+          <path d="M 143.72 343.28 C 133.58 329.76 151.99 257.71 203.94 172.9 C 255.9 88.08 326.25 76.25 326.25 76.25 C 326.25 76.25 288.97 281.01 245.75 325 C 202.53 368.99 153.86 356.8 143.72 343.28 Z" fill="#ffffff"/>
+          <path d="M 143.72 343.28 C 133.58 329.76 151.99 257.71 203.94 172.9 C 255.9 88.08 326.25 76.25 326.25 76.25 C 326.25 76.25 288.97 281.01 245.75 325 C 202.53 368.99 153.86 356.8 143.72 343.28 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

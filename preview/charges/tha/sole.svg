@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg" viewBox="112.5 63 139.5 351" width="139.5" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 112.5 63 L 252 63 L 252 414 L 112.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <metadata> Produced by OmniGraffle 7.11.5 
+    <dc:date>2020-05-26 06:21:48 +0000</dc:date>
+  </metadata>
+  <g id="Sole" stroke-opacity="1" stroke="none" fill-opacity="1" stroke-dasharray="none" fill="none">
+    <title>Sole</title>
+    <g id="Sole: Layer 2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_136">
+        <g id="Graphic_154">
+          <path d="M 180 67.5 C 180 67.5 247.5 99 247.5 171 C 247.5 243 225 261 225 288 C 225 315 229.5 310.5 229.5 355.5 C 229.5 400.5 193.5 409.5 175.5 409.5 C 157.5 409.5 130.5 391.5 130.5 355.5 C 130.5 319.5 144 315 144 288 C 144 261 117 243 117 166.5 C 117 90 180 67.5 180 67.5 Z" fill="#ffffff"/>
+          <path d="M 180 67.5 C 180 67.5 247.5 99 247.5 171 C 247.5 243 225 261 225 288 C 225 315 229.5 310.5 229.5 355.5 C 229.5 400.5 193.5 409.5 175.5 409.5 C 157.5 409.5 130.5 391.5 130.5 355.5 C 130.5 319.5 144 315 144 288 C 144 261 117 243 117 166.5 C 117 90 180 67.5 180 67.5 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_153">
+          <path d="M 206.75 401.01 C 219.14 393.43 229.5 379.65 229.5 355.5 C 229.5 310.5 225 315 225 288 C 225 261 247.5 243 247.5 171 C 247.5 114.91 206.53 83.4 188.43 72.21 C 182.15 74.62 126 98.07 126 168.39 C 126 242.88 153 260.41 153 286.7 C 153 312.99 139.5 317.37 139.5 352.42 C 139.5 387.47 166.5 405 184.5 405 C 190.56 405 198.67 404.01 206.75 401.01 Z" fill="#ffffff"/>
+          <path d="M 206.75 401.01 C 219.14 393.43 229.5 379.65 229.5 355.5 C 229.5 310.5 225 315 225 288 C 225 261 247.5 243 247.5 171 C 247.5 114.91 206.53 83.4 188.43 72.21 C 182.15 74.62 126 98.07 126 168.39 C 126 242.88 153 260.41 153 286.7 C 153 312.99 139.5 317.37 139.5 352.42 C 139.5 387.47 166.5 405 184.5 405 C 190.56 405 198.67 404.01 206.75 401.01 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_152">
+          <line x1="166.5" y1="121.5" x2="184.5" y2="139.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_151">
+          <line x1="157.5" y1="135" x2="175.5" y2="153" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_150">
+          <line x1="153" y1="144" x2="171" y2="162" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_149">
+          <line x1="171" y1="175.5" x2="189" y2="193.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_148">
+          <line x1="144" y1="148.5" x2="162" y2="166.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_147">
+          <line x1="144" y1="162" x2="162" y2="180" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_146">
+          <line x1="148.5" y1="180" x2="157.5" y2="189" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_145">
+          <line x1="171" y1="202.5" x2="189" y2="220.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_144">
+          <line x1="166.5" y1="211.5" x2="184.5" y2="229.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_143">
+          <line x1="148.5" y1="202.5" x2="166.5" y2="220.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_142">
+          <line x1="162" y1="229.5" x2="207" y2="283.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_141">
+          <line x1="171" y1="261" x2="216" y2="315" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_140">
+          <line x1="166.5" y1="297" x2="211.5" y2="351" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_139">
+          <line x1="174.86" y1="292.5" x2="207" y2="331.07" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_138">
+          <line x1="174.86" y1="280.93" x2="207" y2="319.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Line_137">
+          <line x1="166.5" y1="315" x2="198.64" y2="353.57" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

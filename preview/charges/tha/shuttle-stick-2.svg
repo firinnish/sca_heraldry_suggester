@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="36 108 351 54" width="351" height="54">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 36 108 L 387 108 L 387 162 L 36 162 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Shuttle,_Stick_(2)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Shuttle, Stick (2)</title>
+    <g id="Shuttle,_Stick_(2)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_385">
+        <path d="M 38.25 141.3 L 38.25 142.35 C 38.25 150.47 44.83 157.05 52.95 157.05 L 370.05 157.05 C 378.17 157.05 384.75 150.47 384.75 142.35 L 384.75 141.3 L 351.45 141.3 C 347.97 141.3 345.15 138.48 345.15 135 C 345.15 131.52 347.97 128.7 351.45 128.7 L 384.75 128.7 L 384.75 127.65 C 384.75 119.53 378.17 112.95 370.05 112.95 L 52.95 112.95 C 44.83 112.95 38.25 119.53 38.25 127.65 L 38.25 128.7 L 71.55 128.7 C 75.03 128.7 77.85 131.52 77.85 135 C 77.85 138.48 75.03 141.3 71.55 141.3 Z" fill="#ffffff"/>
+        <path d="M 38.25 141.3 L 38.25 142.35 C 38.25 150.47 44.83 157.05 52.95 157.05 L 370.05 157.05 C 378.17 157.05 384.75 150.47 384.75 142.35 L 384.75 141.3 L 351.45 141.3 C 347.97 141.3 345.15 138.48 345.15 135 C 345.15 131.52 347.97 128.7 351.45 128.7 L 384.75 128.7 L 384.75 127.65 C 384.75 119.53 378.17 112.95 370.05 112.95 L 52.95 112.95 C 44.83 112.95 38.25 119.53 38.25 127.65 L 38.25 128.7 L 71.55 128.7 C 75.03 128.7 77.85 131.52 77.85 135 C 77.85 138.48 75.03 141.3 71.55 141.3 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>
