@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="40.5 63 144 351" width="144" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 40.5 63 L 184.5 63 L 184.5 414 L 40.5 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Almond_(2)" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Almond (2)</title>
+    <g id="Almond_(2)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_766">
+        <title>Bézier</title>
+        <path d="M 166.46 231.79 C 178.7 269.05 191.53 356.04 161.73 388.12 C 131.94 420.2 93.08 420.2 63.28 388.12 C 33.49 356.04 46.25 266.64 58.65 231.41 C 71.05 196.18 112.51 64.82 112.51 64.82 C 112.51 64.82 154.22 194.52 166.46 231.79 Z" fill="#ffffff"/>
+        <path d="M 166.46 231.79 C 178.7 269.05 191.53 356.04 161.73 388.12 C 131.94 420.2 93.08 420.2 63.28 388.12 C 33.49 356.04 46.25 266.64 58.65 231.41 C 71.05 196.18 112.51 64.82 112.51 64.82 C 112.51 64.82 154.22 194.52 166.46 231.79 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

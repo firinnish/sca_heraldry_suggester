@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg" viewBox="63 63 99 351" width="99" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 63 63 L 162 63 L 162 414 L 63 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Trumpet_(3)" fill-opacity="1" fill="none" stroke="none" stroke-dasharray="none" stroke-opacity="1">
+    <title>Trumpet (3)</title>
+    <g id="Trumpet_(3)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_766">
+        <g id="Graphic_769">
+          <path d="M 66.28 82.41 C 66.28 72.93 86.98 65.25 112.5 65.25 C 138.02 65.25 158.72 72.93 158.72 82.41 C 158.72 82.41 138.76 107.26 133.51 129.67 C 128.25 152.08 96.97 152.15 91.49 129.67 C 86.01 107.19 66.28 82.41 66.28 82.41 Z" fill="#e1e1e1"/>
+          <path d="M 66.28 82.41 C 66.28 72.93 86.98 65.25 112.5 65.25 C 138.02 65.25 158.72 72.93 158.72 82.41 C 158.72 82.41 138.76 107.26 133.51 129.67 C 128.25 152.08 96.97 152.15 91.49 129.67 C 86.01 107.19 66.28 82.41 66.28 82.41 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_768">
+          <path d="M 133.51 129.67 C 133.51 129.64 133.51 129.71 133.51 129.68 C 133.51 129.67 133.51 129.67 133.51 129.67 C 133.51 129.67 133.51 129.67 133.5 129.67 C 133.34 125.42 124 121.99 112.5 121.99 C 101 121.99 91.65 125.42 91.49 129.67 C 91.49 129.67 91.56 129.78 91.56 129.78 C 102.7 157.68 105.5 409.11 105.5 409.11 L 119.5 409.11 C 119.5 409.11 122.3 157.68 133.44 129.78 Z" fill="#ffffff"/>
+          <path d="M 133.51 129.67 C 133.51 129.64 133.51 129.71 133.51 129.68 C 133.51 129.67 133.51 129.67 133.51 129.67 C 133.51 129.67 133.51 129.67 133.5 129.67 C 133.34 125.42 124 121.99 112.5 121.99 C 101 121.99 91.65 125.42 91.49 129.67 C 91.49 129.67 91.56 129.78 91.56 129.78 C 102.7 157.68 105.5 409.11 105.5 409.11 L 119.5 409.11 C 119.5 409.11 122.3 157.68 133.44 129.78 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_767">
+          <ellipse cx="112.5" cy="409.15" rx="7" ry="2.6" fill="#383838"/>
+          <ellipse cx="112.5" cy="409.15" rx="7" ry="2.6" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

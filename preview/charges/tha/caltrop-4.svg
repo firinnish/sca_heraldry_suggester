@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="54 94.5 256.5 229.5" width="256.5" height="229.5">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 54 94.5 L 310.5 94.5 L 310.5 324 L 54 324 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Caltrop_(4)" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Caltrop (4)</title>
+    <g id="Caltrop_(4)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Graphic_113">
+        <path d="M 159.26 231.91 L 180.72 101.21 C 180.83 100.56 181.34 100.04 181.99 99.94 C 182.84 99.8 183.63 100.37 183.77 101.21 L 205.23 231.9 L 307.68 315.84 C 308.34 316.38 308.44 317.36 307.9 318.02 C 307.48 318.53 306.78 318.72 306.16 318.48 L 182.25 271.73 L 58.34 318.48 C 57.72 318.72 57.02 318.53 56.6 318.02 C 56.06 317.36 56.16 316.39 56.82 315.84 Z" fill="#ffffff"/>
+        <path d="M 159.26 231.91 L 180.72 101.21 C 180.83 100.56 181.34 100.04 181.99 99.94 C 182.84 99.8 183.63 100.37 183.77 101.21 L 205.23 231.9 L 307.68 315.84 C 308.34 316.38 308.44 317.36 307.9 318.02 C 307.48 318.53 306.78 318.72 306.16 318.48 L 182.25 271.73 L 58.34 318.48 C 57.72 318.72 57.02 318.53 56.6 318.02 C 56.06 317.36 56.16 316.39 56.82 315.84 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

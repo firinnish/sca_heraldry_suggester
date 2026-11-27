@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="81 81 202.5 315" width="202.5" height="315">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 81 81 L 283.5 81 L 283.5 347.54 L 255.46 396 L 81 396 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Pear_(4)" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Pear (4)</title>
+    <g id="Pear_(4)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_53">
+        <g id="Graphic_60">
+          <path d="M 182.25 384.89 C 189.85 384.68 237.61 405.38 266.74 356.56 C 297.49 305.01 251.36 253.46 241.11 239.4 C 230.86 225.34 230.86 136.3 184.73 136.3 C 183.88 136.3 183.05 136.38 182.25 136.54 C 181.45 136.38 180.62 136.3 179.77 136.3 C 133.64 136.3 133.64 225.34 123.39 239.4 C 113.14 253.46 67.01 305.01 97.76 356.56 C 126.89 405.38 174.65 385.11 182.25 384.89 Z" fill="#ffffff"/>
+          <path d="M 182.25 384.89 C 189.85 384.68 237.61 405.38 266.74 356.56 C 297.49 305.01 251.36 253.46 241.11 239.4 C 230.86 225.34 230.86 136.3 184.73 136.3 C 183.88 136.3 183.05 136.38 182.25 136.54 C 181.45 136.38 180.62 136.3 179.77 136.3 C 133.64 136.3 133.64 225.34 123.39 239.4 C 113.14 253.46 67.01 305.01 97.76 356.56 C 126.89 405.38 174.65 385.11 182.25 384.89 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Group_56">
+          <g id="Line_59">
+            <path d="M 206.17 379 C 240.39 385.07 263.28 345.21 262.41 346.2" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+          <g id="Line_58">
+            <path d="M 203.2 370.12 C 238.41 379.14 267.99 324.98 267.11 325.97" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+          <g id="Line_57">
+            <path d="M 202.21 361.24 C 236.93 367.77 267.97 308.71 267.09 309.69" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+        </g>
+        <g id="Graphic_55">
+          <path d="M 187.97 138.14 C 187.97 117.72 196.58 109.03 205.1 101.29 C 206.63 99.89 207.94 96.49 205.87 93.55 C 203.8 90.61 199.21 89.09 197.6 90.64 C 186.78 101.03 174.95 113.33 174.95 138.14 C 174.95 141.74 180.14 141.63 181.46 141.63 C 182.79 141.63 187.97 141.74 187.97 138.14 Z" fill="#ffffff"/>
+          <path d="M 187.97 138.14 C 187.97 117.72 196.58 109.03 205.1 101.29 C 206.63 99.89 207.94 96.49 205.87 93.55 C 203.8 90.61 199.21 89.09 197.6 90.64 C 186.78 101.03 174.95 113.33 174.95 138.14 C 174.95 141.74 180.14 141.63 181.46 141.63 C 182.79 141.63 187.97 141.74 187.97 138.14 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_54">
+          <path d="M 200.93 89.83 C 203.71 90.61 206.58 93.49 207.36 96.26 C 208.13 99.04 206.5 100.67 203.72 99.9 C 200.95 99.12 198.07 96.25 197.29 93.47 C 196.52 90.69 198.15 89.06 200.93 89.83" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

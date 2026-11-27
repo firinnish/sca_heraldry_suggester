@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="81 63 202.5 351" width="202.5" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 81 63 L 283.5 63 L 283.5 360 L 255.46 414 L 81 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Olive" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Olive</title>
+    <g id="Olive_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_53">
+        <g id="Graphic_55">
+          <path d="M 192.32 142.74 C 189.79 119.97 192.85 103.34 199.18 91.74 C 200.72 88.92 202.31 86.69 203.82 85.01 C 204.28 84.5 204.67 84.11 204.98 83.83 C 205.06 83.75 205.02 83.78 204.85 83.91 L 214.68 73.43 L 184.34 67.48 C 181.48 70.65 178.71 74.54 176.17 79.19 C 167.21 95.61 163.17 117.63 166.28 145.63 L 167.73 158.66 L 193.77 155.76 Z" fill="#ffffff"/>
+          <path d="M 192.32 142.74 C 189.79 119.97 192.85 103.34 199.18 91.74 C 200.72 88.92 202.31 86.69 203.82 85.01 C 204.28 84.5 204.67 84.11 204.98 83.83 C 205.06 83.75 205.02 83.78 204.85 83.91 L 214.68 73.43 L 184.34 67.48 C 181.48 70.65 178.71 74.54 176.17 79.19 C 167.21 95.61 163.17 117.63 166.28 145.63 L 167.73 158.66 L 193.77 155.76 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_54">
+          <path d="M 256.94 178.01 C 294.93 230.97 277.25 316.84 239.25 369.8 C 201.26 422.76 163.24 422.76 125.25 369.8 C 87.25 316.84 69.57 230.97 107.56 178.01 C 145.55 125.05 218.95 125.05 256.94 178.01 Z" fill="#ffffff"/>
+          <path d="M 256.94 178.01 C 294.93 230.97 277.25 316.84 239.25 369.8 C 201.26 422.76 163.24 422.76 125.25 369.8 C 87.25 316.84 69.57 230.97 107.56 178.01 C 145.55 125.05 218.95 125.05 256.94 178.01 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

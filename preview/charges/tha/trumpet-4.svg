@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg" viewBox="63 63 99 351" width="99" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 63 63 L 162 63 L 162 414 L 63 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Trumpet_(4)" fill-opacity="1" fill="none" stroke="none" stroke-dasharray="none" stroke-opacity="1">
+    <title>Trumpet (4)</title>
+    <g id="Trumpet_(4)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_791">
+        <g id="Group_790">
+          <g id="Graphic_789">
+            <path d="M 107.25 379.93 C 107.2 393.08 106.87 392.96 103.62 396.94 L 103.62 396.94 C 102.88 397.17 102.18 397.43 101.52 397.72 C 95.46 400.41 95.46 404.78 101.52 407.48 C 107.58 410.17 117.42 410.17 123.48 407.48 C 129.54 404.78 129.54 400.41 123.48 397.72 C 122.82 397.43 122.12 397.17 121.38 396.94 C 118.13 392.96 117.8 393.08 117.75 379.93 C 117.75 379.93 117.68 370.23 117.68 362.56 C 117.68 326.33 117.68 165.87 131.48 129.64 C 145.28 93.41 155.63 94.79 155.63 83.05 C 155.63 77.84 133.73 75.25 111.99 75.29 C 90.6 75.33 69.37 77.92 69.37 83.05 C 69.37 94.79 79.72 93.41 93.52 129.64 C 107.32 165.87 107.32 326.33 107.32 362.56 C 107.32 370.23 107.25 379.93 107.25 379.93 Z" fill="#ffffff"/>
+            <path d="M 107.25 379.93 C 107.2 393.08 106.87 392.96 103.62 396.94 L 103.62 396.94 C 102.88 397.17 102.18 397.43 101.52 397.72 C 95.46 400.41 95.46 404.78 101.52 407.48 C 107.58 410.17 117.42 410.17 123.48 407.48 C 129.54 404.78 129.54 400.41 123.48 397.72 C 122.82 397.43 122.12 397.17 121.38 396.94 C 118.13 392.96 117.8 393.08 117.75 379.93 C 117.75 379.93 117.68 370.23 117.68 362.56 C 117.68 326.33 117.68 165.87 131.48 129.64 C 145.28 93.41 155.63 94.79 155.63 83.05 C 155.63 77.84 133.73 75.25 111.99 75.29 C 90.6 75.33 69.37 77.92 69.37 83.05 C 69.37 94.79 79.72 93.41 93.52 129.64 C 107.32 165.87 107.32 326.33 107.32 362.56 C 107.32 370.23 107.25 379.93 107.25 379.93 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+          </g>
+          <g id="Graphic_788">
+            <ellipse cx="112.5" cy="83.03" rx="43.13" ry="15.53" fill="#ffffff"/>
+            <ellipse cx="112.5" cy="83.03" rx="43.13" ry="15.53" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+          </g>
+          <g id="Graphic_787">
+            <ellipse cx="112.5" cy="83.03" rx="39.68" ry="13.23" fill="#ffffff"/>
+            <ellipse cx="112.5" cy="83.03" rx="39.68" ry="13.23" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+          </g>
+          <g id="Group_779">
+            <g id="Line_781">
+              <path d="M 124.58 401.26 C 124.58 401.26 121.43 397 121.43 397" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+            <g id="Line_780">
+              <path d="M 100.42 401.26 C 100.42 401.26 103.57 397 103.57 397" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+            </g>
+          </g>
+        </g>
+        <g id="Group_782">
+          <g id="Line_786">
+            <path d="M 114.23 73.29 C 78.56 73.29 73.23 84.18 73.23 84.18" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+          <g id="Line_785">
+            <path d="M 107.38 76.8 C 80.58 78.17 74.37 86.41 74.37 86.41" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+          <g id="Line_784">
+            <path d="M 100.54 81.12 C 81.87 82.49 76.33 88.16 76.33 88.16" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+          <g id="Line_783">
+            <path d="M 93.7 85.44 C 84.57 86.68 78.76 89.92 78.76 89.92" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".75"/>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
