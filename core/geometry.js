@@ -119,6 +119,19 @@ function stripes(make, first, last, step) {
   return parts;
 }
 
+// How far apart the lines of bendy are, measured straight up, when `pieces`
+// of them fit between the fess point and the corner (four: half a bend).
+const slant = pieces => (pieces === 4 ? DIAGONAL_HALF : 98 / pieces);
+
+// The ways each patterned division can be drawn, the usual one first (see
+// DIVISION_SHAPES below for what the numbers mean). They follow the Book of
+// Traceable Heraldic Art, which draws paly of 6, 8, 10, 12 and 16, barry of
+// 4 to 12, bendy of 4 to 10 and chevronelly of 6 to 10.
+export const DIVISION_VARIANTS = {
+  paly: [6, 8, 4, 10], barry: [6, 8, 4, 10], checky: [6, 8, 4], lozengy: [6, 4, 8],
+  bendy: [4, 5, 3, 6], bendySinister: [4, 5, 3, 6], chevronelly: [4, 5, 3, 6],
+};
+
 // Each entry returns one list of polygons per part, in blazon order.
 const DIVISION_SHAPES = {
   perPale: () => [[rect(-FAR, -FAR, FAR + C, 3 * FAR)], [rect(C, -FAR, FAR, 3 * FAR)]],
@@ -143,38 +156,44 @@ const DIVISION_SHAPES = {
     rim.forEach((p, i) => parts[i % 2].push([[C, C], p, rim[(i + 1) % rim.length]]));
     return parts;
   },
-  checky: () => {
-    const parts = [[], []];
-    for (let row = -1; row < 9; row++) {
-      for (let col = -1; col < 8; col++) parts[(row + col + 2) % 2].push(rect(1 + col * UNIT, 1 + row * UNIT, UNIT, UNIT));
+  // The patterns below can each be drawn several ways (DIVISION_VARIANTS):
+  // layout.js picks whichever suits the charges on the shield (the
+  // maintainer, November 2026). The number each takes is how many pieces go
+  // across the shield (paly, barry, checky, lozengy: six unless said), or
+  // how many go from the fess point to the corner (the slanting ones: four).
+  checky: (pieces = 6) => {
+    const cell = 98 / pieces, parts = [[], []];
+    for (let row = -1; row < Math.ceil(9 * pieces / 6); row++) {
+      for (let col = -1; col < pieces + 2; col++) parts[(row + col + 2) % 2].push(rect(1 + col * cell, 1 + row * cell, cell, cell));
     }
     return parts;
   },
   // Lozenges are squares turned 45 degrees, a sixth of the shield wide, with
   // one in the middle of the shield, so their sides line up with a bend.
-  lozengy: () => {
-    const parts = [[], []];
+  lozengy: (pieces = 6) => {
+    const cell = 98 / pieces, reach = Math.ceil(9 * pieces / 6), parts = [[], []];
     const at = (u, v) => [C + (u - v) / 2, C + (u + v) / 2];
-    for (let i = -9; i <= 9; i++) {
-      for (let j = -9; j <= 9; j++) {
-        const u0 = (i - 0.5) * UNIT, v0 = (j - 0.5) * UNIT, u1 = u0 + UNIT, v1 = v0 + UNIT;
+    for (let i = -reach; i <= reach; i++) {
+      for (let j = -reach; j <= reach; j++) {
+        const u0 = (i - 0.5) * cell, v0 = (j - 0.5) * cell, u1 = u0 + cell, v1 = v0 + cell;
         parts[Math.abs(i + j) % 2].push([at(u0, v0), at(u1, v0), at(u1, v1), at(u0, v1)]);
       }
     }
     return parts;
   },
-  // Paly is of six pieces unless a `variant` says eight or four: layout.js
-  // picks whichever suits the charges on it (the maintainer, November 2026).
-  // The number of pieces is always even, so the first tincture is at the
-  // dexter edge and the last at the sinister, as paly must be.
+  // Paly and barry always have an even number of pieces across the shield's
+  // width, so paly has its first tincture at the dexter edge and its last at
+  // the sinister, as it must. (Moving the stripes half a stripe along
+  // instead would leave an odd number, which is not paly.)
   paly: (pieces = 6) => stripes((a, b) => rect(a, -FAR, b - a, 3 * FAR), 1 - 2 * (98 / pieces), W + FAR, 98 / pieces),
-  barry: () => stripes((a, b) => rect(-FAR, a, 3 * FAR, b - a), 1 - 2 * UNIT, H + FAR, UNIT),
-  // Bendy: a bend covers exactly two pieces. The first piece is in the
-  // sinister chief corner.
-  bendy: () => stripes(bendStrip, -98 - 4 * DIAGONAL_HALF, 3 * FAR, DIAGONAL_HALF),
-  bendySinister: () => stripes(sinisterStrip, -98 - 4 * DIAGONAL_HALF, 3 * FAR, DIAGONAL_HALF),
-  // Chevronelly: a chevron covers exactly two pieces.
-  chevronelly: () => stripes(chevronStrip, CHEVRON_APEX - 4 * CHEVRON_HALF, 3 * FAR, CHEVRON_HALF),
+  barry: (pieces = 6) => stripes((a, b) => rect(-FAR, a, 3 * FAR, b - a), 1 - 2 * (98 / pieces), H + FAR, 98 / pieces),
+  // Bendy: a bend covers exactly two pieces (of the usual four to the
+  // corner). The first piece is in the sinister chief corner, and a line
+  // always runs through the fess point.
+  bendy: (pieces = 4) => stripes(bendStrip, -98 - 4 * slant(pieces), 3 * FAR, slant(pieces)),
+  bendySinister: (pieces = 4) => stripes(sinisterStrip, -98 - 4 * slant(pieces), 3 * FAR, slant(pieces)),
+  // Chevronelly: a chevron covers exactly two pieces (of the usual four).
+  chevronelly: (pieces = 4) => stripes(chevronStrip, CHEVRON_APEX - 4 * (CHEVRON_HALF * 4 / pieces), 3 * FAR, CHEVRON_HALF * 4 / pieces),
   perPall: () => [
     [[[-FAR, -FAR], [W + FAR, -FAR], [C, C]]],
     [[[-FAR, -FAR], [C, C], [C, H + FAR], [-FAR, H + FAR]]],

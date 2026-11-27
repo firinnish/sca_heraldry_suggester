@@ -109,6 +109,39 @@ here were made with the maintainer; add to it as things are decided.
   wherever a colour has not been chosen. Outlines only: black lines on
   nothing. 1000 dots across; the file is named after the blazon.
 
+- **Charges from the Book of Traceable Heraldic Art** (the maintainer,
+  November 2026). `tools/import_tha.py` copies the picture the maintainer
+  chose for each labelled charge (`data/charges.csv`) into `charges/tha/` and
+  lists it, with its artist, in `charges/tha.csv`: 533 pictures so far. They
+  are recoloured, sized and saved as PNG like our own pictures, and are
+  fetched only when needed. Left out, and listed when the script is run:
+  charges whose chosen picture is drawn filling a badge or shield (31:
+  ordinaries, cantons, flaunches, gores...), ones with no entry in the
+  collection's credits list (14), one with no white inside to paint, and the
+  five charges that already have a picture of our own.
+  `tests/tha.html` draws every one of them to look over.
+- **The list of charges** (the maintainer's sketch, November 2026): a menu
+  on its left ("default view", "see all", then by topic, type and artistic
+  need), a box to search by name, and the pictures in a box that scrolls.
+  The default view shows what can still be chosen: ordinaries, then charges
+  that are easy to draw, then the rest, alphabetically. Under it, a switch
+  between "Suggestions include any of my selections" and "Must include ALL
+  of my selections", and a card for each charge chosen ("you selected:
+  lion") with its number on a line of stops and its colour as a menu and a
+  strip of squares. Under the shield: "Artist credits" for the pictures in
+  it, and the licence.
+- **The other patterns suit their charges too** (item 11): barry, bendy,
+  bendy sinister, chevronelly, checky and lozengy are each drawn the usual
+  way, or with more or fewer pieces, whichever leaves every charge across a
+  line or on the tincture it contrasts with. With an ordinary on the field
+  the usual drawing is kept, since that is the one the ordinary covers
+  exactly.
+- **Smaller things, late November 2026:** "How is the background divided?"
+  now comes before "What colours are used in the background?"; ermine spots
+  are drawn (as outlines) in "save as png (outlines only)"; an ordinary
+  through the middle with an orle is offered, drawn stopping where it meets
+  the orle.
+
 ## Next, in the maintainer's words
 
 1. *(Built, see above.)* **Secondary and tertiary charges, kept friendly.**
@@ -159,7 +192,10 @@ here were made with the maintainer; add to it as things are decided.
    are in SENA A3; cotises are their own charge group in the O&A).
 10. **A base, like a chief,** should probably make the field be drawn in the
    space left above it (a chief does this already).
-11. **Choose the pattern to suit the charges** (the maintainer's idea,
+11. *(Built for the patterns the code draws; see above. Still to do: the
+   same choice among Traceable Heraldic Art's own drawings of each, and
+   moving a pattern so that a lozenge or a line is under the middle.)*
+   **Choose the pattern to suit the charges** (the maintainer's idea,
    November 2026, after three swords on lozengy looked wrong moved off
    centre; Makejoye's drawing has them centred on larger lozenges). Instead
    of moving charges to find contrast, keep the charges where they belong
@@ -174,7 +210,80 @@ here were made with the maintainer; add to it as things are decided.
    (cell size, offset) rather than the one fixed shape each has now in
    `geometry.js`.
 
+12. **Backgrounds still to come** (the maintainer, November 2026: "multiple
+   background divisions that counterchange over each other", and
+   counterchanging into different or more colours). The Field-Only Armory
+   Project's poster of 277 registered fields
+   (http://blog.wirelizard.ca/files/Field-Only-Armory-Project-Everything-11x17-Poster-2025-2.pdf)
+   was read through in November 2026: the tools can describe about 85 of
+   them. What the rest need, most common first:
+   - **Complex lines** (about 95): indented 20, wavy 18, embattled 14,
+     rayonny 8, dancetty 6, engrailed 5 and a dozen rarer ones, on every
+     division; "Quarterly per fess indented" (only the fess line); points
+     ending in fleurs-de-lys or mullets. This is item 6.
+   - **Two divisions, counterchanged** (23, every one in two tinctures):
+     barry and per pale, barry and per chevron throughout, bendy and per
+     pale, bendy and per bend sinister, bendy sinister and per bend, paly
+     and chevronelly inverted, paly counterchanged per saltire, per pale and
+     chevronelly (and inverted), per pale and per chevron (and throughout),
+     pily and per bend, checky of nine and bendy; five with a complex line.
+     *How to build it:* a field gets a second division laid over the first
+     (`over` in `shield.js`); a place on the shield takes the first tincture
+     if it is in the first part of both divisions or the second part of
+     both, otherwise the second. Drawing can reuse what draws a
+     counterchanged charge today: the first division, then the same with
+     its tinctures swapped, shown through the second division's far side.
+     The rules treat it as a field of many pieces. The O&A indexes one such
+     record under both divisions plus "FIELD:divided gridlike not checky";
+     check more records before coding the search.
+   - **Counterchanged into other colours:** none on the poster. The nearest
+     are fields whose halves are each divided ("Per chevron barry azure and
+     argent and barry argent and gules"), which nesting already describes.
+     If wanted, the second division's far side would name its own two
+     tinctures instead of swapping the first two.
+   - **Field treatments and other furs** (about 35): masoned 10, scaly 8,
+     mailly 5, papellony 1; "azure ermined Or" (9); vair, potent, vairy.
+     Items 4 and 5.
+   - **Other divisions:** pily and its kin (8), chapé, chaussé and vêtu (7,
+     mostly ployé), arrondi lines (14), party of six (4), chevronelly
+     inverted (3), barry bendy and lozengy barry (3), orly (1: shield shapes
+     one inside another), stepped and "wolves-cut" lines (10), gyronny of
+     three, six, ten.
+   - **A stated number of pieces** is rare ("Barry of six", "Bendy sinister
+     of four vert, argent, purpure and argent").
+   The roll of arms at https://op.atlantia.sca.org/roll_of_arms.php is the
+   next thing to go through, to flag shields the tools cannot draw.
+
 ## Questions waiting for the maintainer
+
+From the Traceable Heraldic Art work (November 2026):
+
+- **Sketch, read as:** the number line has stops 1 to 6 and semy, and
+  clicking the chosen stop again un-chooses it; an ordinary has no number
+  yet (item 8). The colour menu and the strip of squares under it do the
+  same thing. "Mode" changes only the suggestions; the shield top right
+  still shows everything chosen. The menu's types are the top level of
+  `data/taxonomy.csv` (human, animal, plant, artificial object, natural
+  object, abstract) rather than the sketch's person / animal / object /
+  celestial; "compact" is a picture no more than 1.35 times as long as it
+  is wide, "long and thin" at least 2.4 times. Say where any of this is not
+  what was meant.
+- **The maintainer's sentence under the background colours** still says
+  "use the question above to select colours", which now points at the
+  division question, not the shield's colours.
+- **Labels not in `data/taxonomy.csv`:** the topics Maritime and Sciences
+  and the type Symbolic are used by a few charges, so they show in the menu.
+- **Fleur-de-lys** has no "easy to draw" label (it is not in the old list
+  under that name), so it sorts with the rest.
+- **Credits:** our own tracings are not credited under the shield (they are
+  public domain). Pictures the collection credits to nobody are credited to
+  its editor, as its terms page says. Is "lion by Miss Helard" enough, or
+  should the collection be named too?
+- **Which picture of a charge:** only the one picture chosen for each charge
+  is in. Traceable Heraldic Art has 18 lions; choosing among them (and
+  postures) is the next step for the picker.
+- **"Orly and chevronelly":** orly is on the poster as a field of its own.
+  Was a registered "orly and chevronelly" meant, or two examples?
 
 - **Suggestions: how many, and how laid out?** Built as one row of 12 along
   the bottom that scrolls sideways (`SUGGESTION_COUNT`). The "3 rows of 6"
@@ -197,6 +306,9 @@ here were made with the maintainer; add to it as things are decided.
   "counterchanging over this many pieces needs period evidence", "that would
   be too many colours and charges", "no shield with the other choices can
   have it"), as is "Sorry, the picture could not be saved in this browser."
+  With the new list of charges: "no charge selected yet", and "No other
+  charge can be added with the choices made so far. "see all" shows them
+  with the reason."
 
 Raised by the work on several charges and arrangements (November 2026).
 Each is a herald's call; the code does the cautious thing until answered:
@@ -209,16 +321,8 @@ Each is a herald's call; the code does the cautious thing until answered:
   follow the maintainer's sketch.) How should they go?
 - **Three around a cross, two or three around a saltire, three around a
   pale or bend:** not drawn; the Glossary's Table 7 gives no arrangement.
-- **Paly: more or fewer pieces instead of moved stripes.** The maintainer
-  asked for the stripes to be moved sideways so that swords lie on the lines
-  between them or on their high-contrast colour. Moving six stripes half a
-  stripe sideways leaves seven pieces, with the same tincture down both
-  edges, which is no longer paly (it reads as three pallets). So the stripes
-  stay put and their number changes: six pieces as usual, or eight, or four,
-  whichever suits the charges. Is that acceptable, and is "paly of eight"
-  fine to draw without saying so in the blazon?
-- **Outlines of furs.** "save as png (outlines only)" draws an ermine field
-  or charge as plain, with no spots. Should the spots be drawn as outlines?
+- **A pattern drawn with more or fewer pieces** ("paly of eight", larger
+  lozenges) is not said in the blazon or the search. Should it be?
 - **What "clear all" leaves alone:** the palette, the herald tick, pinned
   suggestions and which sections are collapsed. Should it clear any of them?
 - **Semy:** always blazoned "semy of ..." (never "mullety", "crusilly",
@@ -229,16 +333,10 @@ Each is a herald's call; the code does the cautious thing until answered:
 - **Stripes under a chief** (barry, bendy, chevronelly) are still squeezed
   into the space below it; only checky and lozengy keep their shape. Inside
   a bordure nothing is squeezed: everything is made smaller evenly.
-- **Narrow charges on barry, bendy and the other striped fields** still sit
-  where they fall and are reported as low contrast when they lie wholly on
-  their own kind of tincture; only paly chooses its pieces so far (item 11).
 - **Six charges on a divided field** are set out three, two and one, which
   Table 7 gives only for an undivided field.
 - **"In chevron"** is offered although SENA Appendix K's list of standard
   arrangements does not have it (the O&A has a category for it).
-- **An ordinary through the middle with an orle** is still held back. It is
-  now drawn stopping just short of the orle ("a fess within an orle"): if
-  that is how it should look, the hold in `rules.js` can be taken off.
 - **A narrower chevron on a per chevron inverted field** leaves a small
   diamond of the upper colour under the chevron's point.
 - **Sizes to judge by eye** on `tests/groups.html`: an ordinary with charges
@@ -250,6 +348,14 @@ Each is a herald's call; the code does the cautious thing until answered:
   small to offer.
 
 Answered (kept for the record):
+
+- Patterned backgrounds choose among several drawings of themselves to suit
+  the charges, rather than having their stripes moved along (maintainer,
+  late November 2026: "pick between multiple versions of those backgrounds,
+  and automatically pick the one that gives the charges the best contrast").
+- Ermine spots are drawn in the outlines-only picture; an ordinary stopping
+  where it meets an orle looks correct; saving as PNG works in Firefox
+  (maintainer, late November 2026).
 
 - Unity of arrangement (SENA A3D2e): the reading built is right, namely that
   charges in a named arrangement with another charge above or below them

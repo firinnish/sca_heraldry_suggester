@@ -37,9 +37,10 @@ const newContext = (mode = 'colour', variant = null, unknown = 'none') =>
 
 // ---- Tinctures -------------------------------------------------------------
 
-// An ermine spot: three dots above a tail.
-function ermineSpot(x, y, fill) {
-  return `<g fill="${fill}">` +
+// An ermine spot: three dots above a tail. `outlined`: for the picture of
+// outlines alone, the spot is white with a line round it.
+function ermineSpot(x, y, fill, outlined = false) {
+  return `<g ${outlined ? `fill="#fff" stroke="${LINE}" stroke-width="0.4"` : `fill="${fill}"`}>` +
     `<circle cx="${x}" cy="${y}" r="0.9"/><circle cx="${x - 1.7}" cy="${y + 1.5}" r="0.9"/>` +
     `<circle cx="${x + 1.7}" cy="${y + 1.5}" r="0.9"/>` +
     `<path d="M${x} ${y + 1} L${x + 2} ${y + 8} L${x} ${y + 6.8} L${x - 2} ${y + 8} Z"/></g>`;
@@ -48,16 +49,16 @@ function ermineSpot(x, y, fill) {
 // What to paint a tincture with: a colour, or (for a fur) a pattern.
 function paintFor(tincture, ctx) {
   const t = TINCTURES[tincture];
-  if (ctx.mode === 'lines') return '#fff';
-  if (!t.fur) return t.hex;
+  const lines = ctx.mode === 'lines';
+  if (!t.fur) return lines ? '#fff' : t.hex;
   const id = `${ctx.id}-${tincture}`;
   if (!ctx.furs.has(tincture)) {
     ctx.furs.add(tincture);
     const spots = TINCTURES[t.fur.spots].hex;
     ctx.defs.push(
       `<pattern id="${id}" width="18" height="22" patternUnits="userSpaceOnUse">` +
-      `<rect width="18" height="22" fill="${TINCTURES[t.fur.field].hex}"/>` +
-      ermineSpot(4.5, 2, spots) + ermineSpot(13.5, 13, spots) + `</pattern>`);
+      `<rect width="18" height="22" fill="${lines ? '#fff' : TINCTURES[t.fur.field].hex}"/>` +
+      ermineSpot(4.5, 2, spots, lines) + ermineSpot(13.5, 13, spots, lines) + `</pattern>`);
   }
   return `url(#${id})`;
 }
@@ -69,11 +70,11 @@ function paintFor(tincture, ctx) {
 // whole inside it rather than cut by its edges.
 function drawField(field, ctx, regions = [], key = 'whole', frame = null) {
   const lines = ctx.mode === 'lines';
-  if (!lines && field && field.type === 'plain' && field.tincture !== null && TINCTURES[field.tincture].fur) {
+  if (field && field.type === 'plain' && field.tincture !== null && TINCTURES[field.tincture].fur) {
     const t = TINCTURES[field.tincture];
     const spots = TINCTURES[t.fur.spots].hex;
-    return `<rect width="${W}" height="${H}" fill="${TINCTURES[t.fur.field].hex}"/>` +
-      scatter(key, regions).map(([x, y]) => ermineSpot(x, y - 4, spots)).join('');
+    return `<rect width="${W}" height="${H}" fill="${lines ? '#fff' : TINCTURES[t.fur.field].hex}"/>` +
+      scatter(key, regions).map(([x, y]) => ermineSpot(x, y - 4, spots, lines)).join('');
   }
   if (!field || field.type === 'plain') {
     const paint = field && field.tincture !== null ? paintFor(field.tincture, ctx)

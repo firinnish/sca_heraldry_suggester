@@ -47,40 +47,74 @@ function measure(img) {
   return { aspect, outline, solid: { w, h, data } };
 }
 
+// Where a picture's file is. Our own pictures are PNGs in charges/art/; the
+// ones from the Book of Traceable Heraldic Art are SVGs in charges/tha/
+// (put there, with their credits in charges/tha.csv, by tools/import_tha.py).
+const hrefOf = key => LIBRARY_URL + (/\.svg$/i.test(key) ? 'tha/' : 'art/') + encodeURIComponent(key);
+
 // Load one picture and remember its shape. Safe to call more than once.
-export function loadPicture(key, href = LIBRARY_URL + 'art/' + encodeURIComponent(key)) {
+const loading = new Map();    // key -> the promise of a picture being loaded
+export function loadPicture(key, href = hrefOf(key)) {
   if (pictures.has(key)) return Promise.resolve(pictures.get(key));
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const info = { href, ...measure(img) };
-      pictures.set(key, info);
-      resolve(info);
-    };
-    img.onerror = () => reject(new Error('Could not load the picture ' + key));
-    img.src = href;
-  });
+  if (!loading.has(key)) {
+    loading.set(key, new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const info = { href, ...measure(img) };
+        pictures.set(key, info);
+        loading.delete(key);
+        resolve(info);
+      };
+      img.onerror = () => { loading.delete(key); reject(new Error('Could not load the picture ' + key)); };
+      img.src = href;
+    }));
+  }
+  return loading.get(key);
 }
 
 export const getPicture = key => pictures.get(key) || null;
 
-// Load the whole library: every charge, and every picture with its shape.
-// Returns { charges: [...], pictures: [...] } where each picture row also has
-// `charge` (its row from charges.csv) and `inverted` (drawn upside down).
+// Load several of the library's pictures (rows of `all`, below); gives back
+// the rows whose pictures loaded.
+export async function loadPictures(rows) {
+  await Promise.all(rows.map(row => loadPicture(row.file).catch(() => null)));
+  return rows.filter(row => getPicture(row.file));
+}
+
+// Load the library: every charge, and what is known about every picture.
+// Returns { charges, pictures, all }:
+//   pictures  the pictures that are READY TO DRAW, each a row of art.csv
+//             with `charge` (its row from charges.csv) and `inverted` (drawn
+//             upside down). To begin with these are our own pictures. The
+//             random generator picks from this list.
+//   all       every picture known, ready or not: ours, then the ones from
+//             Traceable Heraldic Art (rows of tha.csv; `from` is 'tha').
+//             There are hundreds of those, so they are loaded only when
+//             wanted: call loadPicture(row.file) before drawing one (a
+//             picture not loaded is drawn as a blob).
+// Every row has `shape` (its width divided by its height) when that is known
+// without opening the picture.
 export async function loadLibrary() {
-  const [charges, art] = await Promise.all([
+  const [charges, art, tha] = await Promise.all([
     fetchCSV(LIBRARY_URL + 'charges.csv'),
     fetchCSV(LIBRARY_URL + 'art.csv'),
+    fetchCSV(LIBRARY_URL + 'tha.csv').catch(() => []),
   ]);
   const byId = new Map(charges.map(c => [c.id, c]));
-  const rows = art.filter(a => byId.has(a.charge_id)).map(a => ({
-    ...a,
+  const usable = a => byId.has(a.charge_id) && byId.get(a.charge_id).exclude !== 'TRUE';
+  const row = (a, from) => ({
+    posture: '', variant: '', ...a, from,
     charge: byId.get(a.charge_id),
-    inverted: /\binverted\b/i.test(a.variant),
-  }));
-  await Promise.all(rows.map(a => loadPicture(a.file).catch(() => null)));
+    inverted: /\binverted\b/i.test(a.variant || ''),
+    shape: Number(a.width) > 0 && Number(a.height) > 0 ? Number(a.width) / Number(a.height) : null,
+  });
+  const own = art.filter(a => byId.has(a.charge_id)).map(a => row(a, 'own'));
+  await Promise.all(own.map(a => loadPicture(a.file).catch(() => null)));
+  const ready = own.filter(a => getPicture(a.file));
+  for (const a of ready) a.shape = getPicture(a.file).aspect;
   return {
     charges: charges.filter(c => c.exclude !== 'TRUE'),
-    pictures: rows.filter(a => getPicture(a.file)),
+    pictures: ready,
+    all: [...ready, ...tha.filter(usable).map(a => row(a, 'tha'))],
   };
 }

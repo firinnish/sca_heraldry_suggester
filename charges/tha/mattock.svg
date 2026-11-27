@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="63 63 238.5 342" width="238.5" height="342">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 63 63 L 301.5 63 L 301.5 405 L 63 405 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Mattock" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Mattock</title>
+    <g id="Mattock_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Graphic_12">
+        <rect x="296.57" y="398.4" width="76.75" height="92.1" id="path"/>
+        <clipPath id="clip_path">
+          <use xl:href="#path"/>
+        </clipPath>
+        <g clip-path="url(#clip_path)">
+          <image xl:href="image257.pdf" width="237" height="340" transform="translate(304.14 400.25) scale(.26)"/>
+        </g>
+      </g>
+      <g id="Group_3">
+        <g id="Graphic_5">
+          <path d="M 134.78 65.25 L 162.22 65.25 C 163.33 65.25 164.22 66.15 164.22 67.25 C 164.22 67.26 164.22 67.27 164.22 67.28 L 159.78 400.78 C 159.76 401.87 158.87 402.75 157.78 402.75 L 139.22 402.75 C 138.13 402.75 137.24 401.87 137.22 400.78 L 132.78 67.28 C 132.76 66.17 133.65 65.26 134.75 65.25 C 134.76 65.25 134.77 65.25 134.78 65.25 Z" fill="#ffffff"/>
+          <path d="M 134.78 65.25 L 162.22 65.25 C 163.33 65.25 164.22 66.15 164.22 67.25 C 164.22 67.26 164.22 67.27 164.22 67.28 L 159.78 400.78 C 159.76 401.87 158.87 402.75 157.78 402.75 L 139.22 402.75 C 138.13 402.75 137.24 401.87 137.22 400.78 L 132.78 67.28 C 132.76 66.17 133.65 65.26 134.75 65.25 C 134.76 65.25 134.77 65.25 134.78 65.25 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_4">
+          <path d="M 65.25 69.75 L 65.25 128.25 C 65.25 128.25 101.25 101.25 150.75 101.25 C 200.25 101.25 299.25 123.75 299.25 123.75 C 299.25 123.75 245.25 87.75 186.75 78.75 C 128.25 69.75 65.25 69.75 65.25 69.75 Z" fill="#ffffff"/>
+          <path d="M 65.25 69.75 L 65.25 128.25 C 65.25 128.25 101.25 101.25 150.75 101.25 C 200.25 101.25 299.25 123.75 299.25 123.75 C 299.25 123.75 245.25 87.75 186.75 78.75 C 128.25 69.75 65.25 69.75 65.25 69.75 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

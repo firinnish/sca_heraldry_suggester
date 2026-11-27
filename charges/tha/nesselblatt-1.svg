@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="36 63 292.5 351" width="292.5" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 36 63 L 328.5 63 L 328.5 310.5 L 207 414 L 153 414 L 36 306 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Nesselblatt_(1)" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Nesselblatt (1)</title>
+    <g id="Nesselblatt_(1)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Graphic_3">
+        <path d="M 192.25 152.64 L 182.26 72.51 L 172.07 154.12 L 170.91 162.88 L 136.71 89.34 L 152.06 179.22 L 109.37 99.3 L 43.79 78.49 L 48.02 148.99 L 134.4 195.54 L 42.34 204.84 L 130.77 227.62 L 44.46 276.73 L 143.21 254.69 L 79.99 328.65 L 170.22 266.04 L 170.21 267.22 L 169.44 269.09 L 130.96 355.64 L 182.22 411.19 L 233.54 355.73 L 196.01 271.32 L 194.29 267.13 L 194.28 265.95 L 284.51 328.56 L 221.29 254.6 L 320.04 276.64 L 233.73 227.54 L 322.16 204.75 L 230.1 195.45 L 316.48 148.91 L 320.71 78.4 L 255.13 99.21 L 212.44 179.13 L 227.79 89.25 L 193.59 162.79 Z" fill="#ffffff"/>
+        <path d="M 192.25 152.64 L 182.26 72.51 L 172.07 154.12 L 170.91 162.88 L 136.71 89.34 L 152.06 179.22 L 109.37 99.3 L 43.79 78.49 L 48.02 148.99 L 134.4 195.54 L 42.34 204.84 L 130.77 227.62 L 44.46 276.73 L 143.21 254.69 L 79.99 328.65 L 170.22 266.04 L 170.21 267.22 L 169.44 269.09 L 130.96 355.64 L 182.22 411.19 L 233.54 355.73 L 196.01 271.32 L 194.29 267.13 L 194.28 265.95 L 284.51 328.56 L 221.29 254.6 L 320.04 276.64 L 233.73 227.54 L 322.16 204.75 L 230.1 195.45 L 316.48 148.91 L 320.71 78.4 L 255.13 99.21 L 212.44 179.13 L 227.79 89.25 L 193.59 162.79 Z" stroke="black" stroke-linecap="round" stroke-linejoin="miter" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>
