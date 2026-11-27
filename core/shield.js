@@ -372,7 +372,12 @@ export function blazon(field, groups = [], words = PLACEHOLDER_WORDS) {
     : [];
   const rest = groups.filter(g => !strewn.includes(g));
   const next = rest.find((g, i) => roles(rest)[i].role === 'primary') || rest[0];
+  // (On a divided field the blazon says "all semy of": "Per pale argent and
+  // gules all semy of cinquefoils counterchanged" is the O&A's wording.
+  // Without "all" the charges read as strewn over the last-named part only:
+  // the maintainer, November 2026.)
+  const all = field && field.type === 'divided' ? ' all' : '';
   const fieldText = blazonField(field, words) + strewn.map(g =>
-    ' ' + groupWords(g, words) + (next && sameTincture(g, next) ? '' : ' ' + groupTincture(g, words))).join('');
+    all + ' ' + groupWords(g, words) + (next && sameTincture(g, next) ? '' : ' ' + groupTincture(g, words))).join('');
   return [fieldText, ...(rest.length ? [groupsWords(rest, words)] : [])].join(', ');
 }

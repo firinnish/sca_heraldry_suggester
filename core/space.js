@@ -105,6 +105,15 @@ export function heights(mask) {
 }
 
 // The furthest left and right a mask reaches: [left, right].
+// Where a space begins and ends along one level line: [left, right], or null
+// if it does not reach that height.
+export function sidesAt(mask, y) {
+  const row = Math.min(GH - 1, Math.max(0, Math.floor(y * PER_UNIT)));
+  let first = -1, last = -1;
+  for (let col = 0; col < GW; col++) if (mask[row * GW + col]) { if (first < 0) first = col; last = col; }
+  return first < 0 ? null : [first / PER_UNIT, (last + 1) / PER_UNIT];
+}
+
 export function sides(mask) {
   let first = GW, last = -1;
   for (let i = 0; i < CELLS; i++) if (mask[i]) { const col = i % GW; if (col < first) first = col; if (col > last) last = col; }

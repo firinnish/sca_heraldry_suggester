@@ -71,6 +71,8 @@ function madeFieldLine(tincture) {
     case 'ermined': return `FIELD TREATMENT-SEME (ERMINED):${a}:~and ${b}`;
     case 'masoned': return `FIELD TREATMENT-MASONED:${b}`;
     case 'scaly': return `FIELD TREATMENT-SCALY:${a}:~and ${b}`;
+    // "Purpure estencely Or, ..." has FIELD TREATMENT-SEME (ESTENCELY):or (only the sparks)
+    case 'estencely': return `FIELD TREATMENT-SEME (ESTENCELY):${b}`;
     default: return `FIELD TREATMENT-PAPELONNY:${a}:~and ${b}`;
   }
 }
@@ -222,7 +224,14 @@ function tinctureFeatures(group, field) {
 // kind of secondary), and not always given the number: "Sable semy of
 // trefoils, a garb Or" has FOIL-3:or:seme on field. So that line leaves the
 // number out.
-const numberWord = n => (n === SEMY ? 'seme' : String(n));
+// The number of charges in a group. For two, three or four the search asks
+// for "that many OR FEWER" (Měryem, November 2026): armory with two of the
+// charge and one of something else in the same arrangement is indexed as
+// two, and would still conflict with three. (Such mixed groups are not
+// registered now, but were.) The O&A's number words are in my.cat: "3" is
+// counted as "3 or fewer", and so are 2 and 1. There is no "5 or fewer", so
+// five and six are asked for exactly.
+const numberWord = n => (n === SEMY ? 'seme' : n >= 2 && n <= 4 ? `${n} or fewer` : String(n));
 
 // A charge's posture and the way it is turned, in the O&A's own words
 // (catalog.js: POSTURES and ORIENTATIONS, both checked against real records):

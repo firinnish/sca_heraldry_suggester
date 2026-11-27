@@ -47,6 +47,8 @@ function satisfies(desc, pattern) {
     (f === 'primary' && dFeat.some(x => /^(spn?a|g\d?pn?a|sole primary|group primary)$/.test(x))) ||
     // my.cat: group:second=secondary (the records say "second")
     (f === 'secondary' && dFeat.includes('second')) ||
+    // my.cat: number:3<...<3 or fewer (and 2, and 1): "3 or fewer" covers a record's 3, 2 or 1
+    (/^[234] or fewer$/.test(f) && dFeat.some(x => /^\d$/.test(x) && Number(x) <= Number(f[0]))) ||
     // a posture covers its "to dexter" / "to sinister" forms
     (POSTURES.includes(f) && dFeat.some(x => x.startsWith(f + ' to '))) ||
     (f === '~and fur' && FURS.some(x => dFeat.includes('~and ' + x))));
