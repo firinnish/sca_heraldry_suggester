@@ -253,24 +253,43 @@ function shapesOf(division, variant = null) {
 //             arc in the middle).
 //   upper:    on a fess, bend or chevron, only the upper edge is drawn this
 //             way ("a fess embattled").
-const TURN = 2 * Math.PI;
-const steps = n => Array.from({ length: n }, (_, i) => i / n);
-const zigzag = s => (s < 0.25 ? 4 * s : s < 0.75 ? 2 - 4 * s : 4 * s - 4);
+//
+// THE SHAPES ARE TRACED from the Book of Traceable Heraldic Art's drawings
+// of a shield divided "per fess" with each line (the maintainer, 27
+// November 2026), by tools/trace_lines.py, which prints them in this form:
+// run it again rather than editing the numbers. Each starts where the line
+// crosses its own middle level, and `out` runs from -1 to 1 about that
+// level, so an edge drawn with one stands half in front of the plain edge
+// and half behind it. Nearly all have five repeats across a shield.
+// Dancetty is ours (the collection draws none per fess): three large points.
 export const LINE_SHAPES = {
-  wavy:       { period: 19.6,  depth: 3.2, mirrored: false, centre: 0,     points: steps(12).map(s => [s, Math.sin(TURN * s)]) },
-  indented:   { period: 9.8,   depth: 2.6, mirrored: true,  centre: -0.25, points: [[0, 0], [0.25, 1], [0.75, -1]] },
-  dancetty:   { period: 32.67, depth: 7,   mirrored: false, centre: -0.25, points: [[0, 0], [0.25, 1], [0.75, -1]] },
-  embattled:  { period: 16.33, depth: 5,   mirrored: true,  centre: -0.25, points: [[0, 0], [0, 1], [0.5, 1], [0.5, 0]], upper: true },
+  wavy:       { period: 19.34, depth: 3.38, mirrored: false, centre: -0.25,
+                points: [[0, 0], [0.101, 0.76], [0.189, 0.97], [0.25, 1], [0.311, 0.97], [0.399, 0.76], [0.569, -0.6], [0.689, -0.97], [0.75, -1], [0.86, -0.89], [0.98, -0.21]] },
+  indented:   { period: 19.31, depth: 4.83, mirrored: true,  centre: -0.25, points: [[0, 0], [0.25, 1], [0.75, -1]] },
+  dancetty:   { period: 32.67, depth: 7,    mirrored: false, centre: -0.25, points: [[0, 0], [0.25, 1], [0.75, -1]] },
+  embattled:  { period: 19.37, depth: 4.24, mirrored: true,  centre: -0.25, upper: true, points: [[0, 0], [0, 1], [0.5, 1], [0.5, -1], [1, -1]] },
   // (engrailed: the points stand out and the arcs bite in; invected the other way)
-  engrailed:  { period: 12.25, depth: 3.4, mirrored: true,  centre: -0.5,  points: steps(8).map(s => [s, -Math.sin(Math.PI * s)]) },
-  invected:   { period: 12.25, depth: 3.4, mirrored: true,  centre: -0.5,  points: steps(8).map(s => [s, Math.sin(Math.PI * s)]) },
-  nebuly:     { period: 16.33, depth: 3.6, mirrored: false, centre: 0,     points: steps(16).map(s => [s - 0.11 * Math.sin(2 * TURN * s), Math.sin(TURN * s)]) },
-  dovetailed: { period: 16.33, depth: 5,   mirrored: true,  centre: -0.25, points: [[0, 0], [-0.1, 1], [0.6, 1], [0.5, 0]] },
-  raguly:     { period: 16.33, depth: 4.5, mirrored: true,  centre: -0.25, points: [[0, 0], [0.18, 1], [0.6, 1], [0.42, 0]] },
-  // (flames: a zigzag whose sides are bent into S-curves)
-  rayonny:    { period: 9.8,   depth: 4.5, mirrored: true,  centre: -0.25, points: steps(12).map(s => [s + 0.09 * Math.sin(2 * TURN * s), zigzag(s)]) },
+  engrailed:  { period: 19.31, depth: 4.72, mirrored: true,  centre: -0.56,
+                points: [[0, 0], [0.069, 1], [0.177, -0.23], [0.306, -0.7], [0.46, -0.95], [0.624, -0.99], [0.783, -0.81], [0.993, -0.05]] },
+  invected:   { period: 19.37, depth: 4.24, mirrored: true,  centre: -0.41,
+                points: [[0, 0], [0.2, 0.78], [0.304, 0.95], [0.413, 1], [0.576, 0.88], [0.723, 0.51], [0.853, -0.2], [0.91, -1], [0.998, -0.01]] },
+  nebuly:     { period: 18.89, depth: 7.26, mirrored: false, centre: -0.23,
+                points: [[0, 0], [-0.083, 0.5], [-0.017, 0.82], [0.083, 0.94], [0.232, 1], [0.381, 0.96], [0.486, 0.87], [0.565, 0.69], [0.581, 0.4], [0.436, -0.24],
+                         [0.422, -0.6], [0.514, -0.87], [0.619, -0.96], [0.75, -1], [0.952, -0.91], [1.065, -0.69], [1.074, -0.31]] },
+  dovetailed: { period: 19.37, depth: 4.84, mirrored: true,  centre: -0.25, points: [[0, 0], [-0.125, 1], [0.625, 1], [0.375, -1], [1.125, -1]] },
+  raguly:     { period: 19.1,  depth: 4.78, mirrored: true,  centre: -0.15, points: [[0, 0], [-0.104, 1], [0.396, 1], [0.604, -1], [1.104, -1]] },
+  rayonny:    { period: 7.83,  depth: 8.48, mirrored: true,  centre: -0.375,
+                points: [[0, 0], [0.052, 0.16], [0.315, 0.41], [0.398, 0.55], [0.43, 0.76], [0.375, 1], [0.552, 0.76], [0.621, 0.55], [0.61, 0.37], [0.507, 0.09],
+                         [0.514, -0.09], [0.815, -0.41], [0.914, -0.61], [0.927, -0.8], [0.875, -1], [1.052, -0.76], [1.121, -0.55], [1.11, -0.37], [1.002, -0.05]] },
+  urdy:       { period: 15.34, depth: 7.67, mirrored: false, centre: -0.25, points: [[0, 0], [0, 0.5], [0.25, 1], [0.5, 0.5], [0.5, -0.5], [0.75, -1], [1, -0.5]] },
+  potenty:    { period: 19.49, depth: 4.84, mirrored: true,  centre: -0.125,
+                points: [[0, 0], [-0.25, 0], [-0.25, 1], [0.5, 1], [0.5, 0], [0.25, 0], [0.25, -1], [1, -1]] },
 };
 const UPPER_ONLY = new Set(['fess', 'bend', 'bendSinister', 'chevron', 'chevronInverted']);
+// The edge of an ordinary, and the inner edge of a bordure, are drawn with a
+// smaller version of a deep line (both its length and its depth), so that a
+// fess rayonny keeps some fess between its flames.
+const ORDINARY_DEPTH = 4.3, LOOP_DEPTH = 2.6;
 const LINE_REACH = 95;        // how far from the middle of the shield a line is drawn complex (beyond the edge)
 
 // A polygon with each long straight edge redrawn as a complex line. The line
@@ -284,6 +303,9 @@ const LINE_REACH = 95;        // how far from the middle of the shield a line is
 // chooses which edges, from the way each faces.
 function linedPolygon(polygon, id, { outward = false, pick = null } = {}) {
   const shape = LINE_SHAPES[id];
+  // (on an ordinary, a deep line is drawn smaller: see ORDINARY_DEPTH)
+  const smaller = outward ? Math.min(1, ORDINARY_DEPTH / shape.depth) : 1;
+  const period = shape.period * smaller, depth = shape.depth * smaller;
   let area = 0;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) area += (polygon[j][0] - polygon[i][0]) * (polygon[j][1] + polygon[i][1]);
   const turn = area < 0 ? -1 : 1;
@@ -308,12 +330,12 @@ function linedPolygon(polygon, id, { outward = false, pick = null } = {}) {
     const from = Math.max(Math.min(ta, tb), -LINE_REACH), to = Math.min(Math.max(ta, tb), LINE_REACH);
     const shift = outward ? shape.centre : 0;
     const points = [];
-    for (let k = Math.floor(from / shape.period) - 1; k <= Math.ceil(to / shape.period) + 1; k++) {
+    for (let k = Math.floor(from / period) - 1; k <= Math.ceil(to / period) + 1; k++) {
       for (const [s, v] of shape.points) {
         // (a point belongs to the edge if its place in the repeat does, wherever an overhang puts it)
-        const place = (k + shift + Math.min(1, Math.max(0, s))) * shape.period;
+        const place = (k + shift + Math.min(1, Math.max(0, s))) * period;
         if (place <= from + 1e-6 || place >= to - 1e-6) continue;
-        const t = (k + shift + s) * shape.period, d = v * shape.depth * side;
+        const t = (k + shift + s) * period, d = v * depth * side;
         points.push([origin[0] + ux * t + nx * d, origin[1] + uy * t + ny * d]);
       }
     }
@@ -333,9 +355,11 @@ function linedLoop(loop, id, fitted = false) {
   const shape = LINE_SHAPES[id], n = loop.length;
   const lengths = loop.map((p, i) => Math.hypot(loop[(i + 1) % n][0] - p[0], loop[(i + 1) % n][1] - p[1]));
   const total = lengths.reduce((s, x) => s + x, 0);
-  const count = Math.max(4, Math.round(total / shape.period)), period = total / count;
-  // `fitted`: on a short outline the line is made shallower in proportion
-  const depth = shape.depth * (fitted ? Math.min(1, total / (10 * shape.period)) * 0.6 : 1);
+  // A deep line is drawn smaller round an outline (see LOOP_DEPTH), and with
+  // `fitted` smaller still round a short one, or it would be all line.
+  const smaller = Math.min(1, LOOP_DEPTH / shape.depth) * (fitted ? Math.min(1, total / (10 * shape.period)) : 1);
+  const count = Math.max(4, Math.round(total / (shape.period * smaller))), period = total / count;
+  const depth = shape.depth * smaller;
   const middle = [loop.reduce((s, p) => s + p[0], 0) / n, loop.reduce((s, p) => s + p[1], 0) / n];
   const highest = Math.max(...shape.points.map(p => p[1]));
   // where the outline is `s` along from its first point, and the way inward there

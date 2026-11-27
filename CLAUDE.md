@@ -69,11 +69,16 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   shared tinctures don't touch, which the drawing doesn't yet guarantee);
   a chief, bordure or base is let through, because the maintainer finds they
   read clearly as drawn (late November 2026).
-- An ORDINARY may be counterchanged over a field of many pieces (the
-  maintainer, late November 2026; SENA A3F4 wants it "attested", and the O&A
-  shows the College registering such bends, saltires and bordures since).
-  Any other single charge still may not. Both of these were to be checked
-  with another herald: see ROADMAP.md before widening or narrowing them.
+- NO charge may be counterchanged over a field of many pieces, ordinaries
+  included (`counterchange-many`, SENA A3F4). For a few days in late
+  November 2026 ordinaries were let through; the maintainer took that back
+  ("I was wrong about counterchanging; let's go back to the old rule").
+  Do not bring the exception back without their say-so.
+- PARALLEL ORDINARIES (the maintainer's rule, the end of November 2026;
+  `PARALLEL` in `rules.js`, problem `parallel-ordinaries`, level `house`
+  because no sentence of SENA was found for it): no fess with a chief, no
+  fess with a base, no orle with a bordure. "No point pointed with a
+  chevron" belongs here too once there is a point pointed.
 - A field of many pieces (barry, chevronelly, checky...) counts as neutral
   under a charge lying across its pieces (SENA A3B1; raised by Měryem,
   November 2026). The drawing still nudges such charges onto the tincture
@@ -89,12 +94,20 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
 ## Complex lines (built the end of November 2026)
 - `line` on a divided field and on an ordinary group is 'plain' or an id
   from `LINES` in `catalog.js` (wavy, indented, dancetty, embattled,
-  engrailed, invected, nebuly, dovetailed, raguly, rayonny): "per pale
-  wavy", "a fess embattled", "a bordure engrailed". `canBeLined(division)`
-  and `LINED_ORDINARIES` say what can have one so far (not orly, checky,
-  lozengy, two divisions together; not the orle, canton, flaunches, gore).
+  engrailed, invected, nebuly, dovetailed, raguly, rayonny, urdy, potenty):
+  "per pale wavy", "a fess embattled", "a bordure engrailed".
+  `canBeLined(division)` and `LINED_ORDINARIES` say what can have one so far
+  (not checky, lozengy, two divisions together; not the orle, canton,
+  flaunches, gore). Orly can: each of its rings is a `linedLoop`.
 - The shapes are `LINE_SHAPES` in `geometry.js`: ONE REPEAT of each line as
-  points. `linedPolygon` redraws each long straight edge of a polygon with
+  points, TRACED from Traceable Heraldic Art's "Per Fess <line>" device
+  forms (the maintainer asked for this; `python tools/trace_lines.py`
+  prints them from the local `SVG/` folder, to paste in by hand). `out`
+  runs from -1 to 1 about the line's middle level; `period` and `depth` are
+  theirs on a shield 100 wide. Dancetty has no drawing there and is ours. A
+  deep line is made smaller, keeping its proportions, on an ordinary
+  (`ORDINARY_DEPTH`) and along a bordure or an orly ring (`LOOP_DEPTH`).
+  `linedPolygon` redraws each long straight edge of a polygon with
   it. The line along an edge depends only on where the edge lies (it is laid
   out from where the edge's line crosses the pale line), so the two parts of
   a field that share a line get the same line and still fit together. For an
@@ -111,7 +124,12 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
 - SENA Appendix H (`checkField`): a complex line between two colours or two
   metals is `complex-line-ruled-out` (sena) for sable with azure or with
   purpure, the two pairings it names, and `complex-line-contrast` (house)
-  otherwise ("registerable on a case-by-case basis").
+  otherwise ("registerable on a case-by-case basis"), EXCEPT the pairings
+  the College registers often, which are offered to everybody
+  (`REGISTERED_OFTEN` in `rules.js`, with the counts since 2015 from the
+  O&A: gules/sable, sable/vert, azure/gules, azure/vert, argent/Or). The
+  maintainer's sentence for the rest: "Complex lines between two
+  metals/colours may not be allowed; use herald mode to override".
 - Build page: "line:" on an ordinary's card (and in its "expand" box), and a
   menu of lines under "How is the background divided?" (`state.fieldLine`),
   which every background picture is then drawn with. The generator only
@@ -261,7 +279,12 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   `oanda.js`, Měryem's advice; my.cat's number words make "3" a kind of "3
   or fewer"). `tests/index.html` knows this.
 - A divided field with charges strewn over it is blazoned "all semy of".
-  Semy on one part only cannot be described yet.
+- SEMY ON ONE PART of a divided field (the end of November 2026): `part` on
+  a charge group whose number is `SEMY` (the part's number, null = the
+  whole field). `strewnOn` / `partOf` in `layout.js` strew over that part's
+  shape only; the blazon names the charges with that part ("Per chevron
+  sable and purpure semy of lions Or"); the rules judge them against that
+  part alone. On the build page it is "over:" on the charge's card.
 
 ## The two pages
 - `apps/search/` is "Forannán's Shieldpainter 1.0", the BUILD MODE (the
@@ -346,8 +369,13 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
     `renderChargePanel`), and its picture is fetched first. Never draw a
     shield with a Traceable Heraldic Art picture before `loadPicture` has
     finished: it would come out as a blob and be remembered that way.
-  - a switch: "Suggestions include any of my selections" / "Must include
-    ALL of my selections" (`state.any`; it changes only the suggestions).
+  - a row of four buttons (the maintainer's sketch and words, the end of
+    November 2026): "Mode: Suggestions include [any of] [all of] [only] my
+    selections, or [default mode]" (`state.mode`; it changes only the
+    suggestions). "only": nothing but the charges picked. "default mode":
+    the charges picked, plus ordinaries and simple geometric charges
+    (`SIMPLE_CHARGES` in `catalog.js`; `extras: 'simple'` for the
+    generator), so a cat may get a bend or three mullets but never a bear.
   - a card per charge chosen: "you selected: lion", its picture, "number:"
     as stops on a line from 1 to semy, "colour:" as a menu with a strip of
     small squares under it, and the one line saying why any are greyed.

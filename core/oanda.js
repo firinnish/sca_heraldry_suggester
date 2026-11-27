@@ -231,6 +231,11 @@ function tinctureFeatures(group, field) {
 // kind of secondary), and not always given the number: "Sable semy of
 // trefoils, a garb Or" has FOIL-3:or:seme on field. So that line leaves the
 // number out.
+// Charges strewn over ONE PART of a divided field (`part` on the group) are
+// indexed no differently: "Per chevron vert crusilly Or and Or" has
+// CRAC:crosslet:gpa:or:seme and PS:or; "Per chevron azure mullety argent and
+// Or, a laurel wreath azure" has STAR:argent:...:seme:seme on field. The
+// index does not say which part, so neither do these lines.
 // The number of charges in a group. For two, three or four the search asks
 // for "that many OR FEWER" (Měryem, November 2026): armory with two of the
 // charge and one of something else in the same arrangement is indexed as

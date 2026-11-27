@@ -262,8 +262,10 @@ export const ordinaryLabel = id => (ORDINARIES[id].count === 2 ? ORDINARIES[id].
 //         dancetty, which is indexed "indented" ("a fess dancetty" has
 //         FESS:1:argent:indented; "Barry dancetty azure and argent" has
 //         FIELD DIV.-BARRY:argent:indented:~and azure).
-// The shapes are in geometry.js (LINE_SHAPES). Not here yet: urdy, potenty,
-// bevilled, and the rarer ones.
+//         (Urdy and potenty are my.cat's own words, "urdy<wavy" and
+//         "potenty<complex line".)
+// The shapes are in geometry.js (LINE_SHAPES), traced from Traceable
+// Heraldic Art. Not here yet: bevilled, and the rarer ones.
 export const LINES = {
   wavy:       { name: 'wavy',       code: 'wavy' },
   indented:   { name: 'indented',   code: 'indented' },
@@ -275,6 +277,8 @@ export const LINES = {
   dovetailed: { name: 'dovetailed', code: 'dovetailed' },
   raguly:     { name: 'raguly',     code: 'raguly' },
   rayonny:    { name: 'rayonny',    code: 'rayonny' },
+  urdy:       { name: 'urdy',       code: 'urdy' },
+  potenty:    { name: 'potenty',    code: 'potenty' },
 };
 // The ordinaries whose edges can be drawn with a complex line so far: those
 // with straight edges, and the bordure. (Not the orle, the canton, flaunches
