@@ -131,7 +131,10 @@ if (!saved) {
     html += '</table>' + (different.length > 60 ? `<p>…and ${different.length - 60} more.</p>` : '');
   }
   out.innerHTML = html;
+  // (`blazons`: every shield that came out differently, for whoever needs to
+  // check that a change touched only what it was meant to)
   window.testSummary = { saved: true, total: saved.items.length, different: different.length,
+    blazons: different.map(d => d.item.was.blazon),
     kinds: different.reduce((m, d) => { for (const k of d.what) m[k] = (m[k] || 0) + 1; return m; }, {}) };
 }
 </script>

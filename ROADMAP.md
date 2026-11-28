@@ -307,6 +307,26 @@ here were made with the maintainer; add to it as things are decided.
   wavy", "fess embattled"...), under "ordinaries" and by typing the line.
 - **A "?" in a circle** beside "default mode" says what it does (the
   maintainer's sentence) when the pointer rests on it or it is pressed.
+- **The maintainer's fixes list of 28 November 2026:**
+  - *Per chevron inverted* (and the chevron inverted) come to their point
+    lower, at 74.5, as Traceable Heraldic Art draws them: the line now parts
+    the shield 54/46 instead of 34/66.
+  - *The usual palette* is Forannán's "alternative" one, with the pinker
+    purpure (#E98CC0, read from their picture); a palette is only
+    remembered in the browser when somebody chooses one.
+  - *A canton beside a chief* hangs from the chief's lower edge.
+  - *Synonyms:* `synonyms` in `charges/charges.csv`; the eight boats answer
+    to "boat" and "ship" and are under the topic Maritime.
+  - *A charge greyed by the colour already chosen for it* says "A sable
+    charge cannot be placed on this background - please change the colour
+    of the charge, below" (their sentence).
+  - *A slimmer page:* the shield top right in a column just wide enough for
+    it, suggestions without their blazons, less padding everywhere, and
+    pickers as tall as the window allows.
+  - *"Randomise"* in place of "Show different suggestions".
+  - *Charges in bend with a canton* are held back for heralds; when chosen,
+    the line runs from the canton's edge.
+  - *The AI disclosure* has the maintainer's fourth paragraph, on both pages.
 
 ## Next, in the maintainer's words
 

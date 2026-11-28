@@ -45,7 +45,11 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
 - The shield is the SCA standard escutcheon (traced from Traceable Heraldic
   Art's "Plain" device form, with the maintainer's permission for this use).
   All shapes follow THA's device forms: fess point (50, 50), every diagonal
-  45 degrees, stripes sized so ordinaries cover whole pieces. Read the notes
+  45 degrees, stripes sized so ordinaries cover whole pieces. PER CHEVRON
+  INVERTED and the chevron inverted come to their point at 74.5, as THA
+  draws them, not near the fess point: the maintainer found the old line
+  (56.4) "too high" (28 November 2026); it now parts the shield 54/46. A
+  CANTON beside a chief hangs from the chief's lower edge, still square. Read the notes
   at the top of `geometry.js` before changing any shape, and check
   `tests/alignment.html` afterwards: a division and an ordinary on it must
   never leave a sliver of field along the ordinary's edge (maintainer's rule).
@@ -83,6 +87,11 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   chevron" belongs here too once there is a point pointed. The maintainer
   thinks it "was a recent ruling"; their sentence for it, for now:
   "Parallel ordinaries may be confused for field divisions".
+- CHARGES IN BEND WITH A CANTON (`canton-in-bend`, house; the maintainer,
+  28 November 2026, of two tiny wings squeezed against a canton: "ban 'in
+  bend' arrangements like this from being combined with a canton"). When a
+  herald overrides it, the line is laid from the canton's edge to the far
+  edge and centred on that (`corner` in `placeArranged`, `layout.js`).
 - A field of many pieces (barry, chevronelly, checky...) counts as neutral
   under a charge lying across its pieces (SENA A3B1; raised by Měryem,
   November 2026). The drawing still nudges such charges onto the tincture
@@ -406,9 +415,23 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   colours makes a fur or field treatment from two colours and adds it to
   the furs in every colour menu (`state.extraTinctures`).
 - "AI disclosure" beside the herald tick opens a box with the maintainer's
-  own text (`TEXT.aiText`): do not reword it.
+  own text (`TEXT.aiText`, on both pages): do not reword it.
 - Three areas: questions (top left, scrolls on its own, always shows every
   question), the shield being built (top right), suggestions (bottom).
+  KEPT SLIM (the maintainer, 28 November 2026: "Let's substantially slim
+  down the rest of the site to make more space for the actual menus /
+  pickers"): the shield top right keeps its size in a column just wide
+  enough for it; a suggestion is its picture and two buttons, with NO
+  blazon under it (the blazon is its tooltip); the pickers are as tall as
+  the window leaves room for (`.picker`'s height). Do not pad these back out.
+- A charge greyed because of the colour ALREADY chosen for it says so, in
+  the maintainer's sentence ("A sable charge cannot be placed on this
+  background - please change the colour of the charge, below":
+  `TEXT.chargeColourClash`, `clash` in `renderChargePanel`), instead of
+  asking for a metal that is ticked already.
+- The search box for charges also looks in `plain_name` and `synonyms`
+  (charges.csv): every boat answers to "boat" and "ship".
+- The button over the suggestions is "Randomise" (their word).
 - Nothing waits for an earlier answer. Unanswered things are filled at random
   in option pictures and suggestions, within the rules. Random pictures are
   seeded from what they depend on, so they only change when that changes.
@@ -565,10 +588,17 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
 
 ## Palettes (`core/palettes.js`)
 - People choose the colour scheme shields are drawn in, under question 1;
-  the choice is kept in the browser. Each palette links to where it was
-  published. Names are the maintainer's wording. Forannán's "alternative"
-  palette (purpure as in the post's "5b" picture) has APPROXIMATE codes for azure, gules, purpure and vert (read from
-  a picture): replace them when the exact codes are known.
+  a palette somebody CHOSE is kept in the browser (`heraldryPaletteChosen`;
+  the palette merely in use is no longer saved, or a change of the usual
+  one would never reach anybody who had visited). Each palette links to
+  where it was published. Names are the maintainer's wording.
+- The usual palette is Forannán's "alternative" one (the maintainer, 28
+  November 2026), with the PINKER purpure (#E98CC0), not the lilac. Its
+  azure, gules, purpure and vert are APPROXIMATE: read from the
+  maintainer's pictures, whose pixels are in a wider colour space
+  (Display P3) and are converted to ordinary sRGB; replace them when the
+  exact codes are known. The standard palette's seven codes are the
+  maintainer's own and exact (checked against their list, 28 November).
 
 ## The charge library (`charges/`)
 - This is the project's own database, replacing the Traceable Art one:

@@ -12,9 +12,13 @@
 
   /* Three areas: questions (top left, scrolls), the shield being built (top
      right), and a row of suggestions along the bottom. */
-  .app { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px; height: 100vh; max-width: 1400px; margin: 0 auto; padding: 12px 16px; }
+  /* (Kept slim on purpose: the maintainer, 28 November 2026, "Let's
+     substantially slim down the rest of the site to make more space for the
+     actual menus / pickers". The shield top right keeps its size and loses
+     its padding; the suggestions lose their blazons and theirs.) */
+  .app { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 8px; height: 100vh; max-width: 1500px; margin: 0 auto; padding: 6px 12px; }
   .app > * { min-width: 0; }   /* lets the suggestion row scroll sideways instead of widening the page */
-  .top { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; min-height: 0; }
+  .top { display: grid; grid-template-columns: minmax(0, 1fr) 282px; gap: 10px; min-height: 0; }
   .questions, .current { overflow-y: auto; min-height: 0; }
   .questions { padding-right: 6px; }
   /* On a narrow or short screen everything simply stacks and the page scrolls. */
@@ -27,8 +31,8 @@
   }
 
   header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; }
-  h1 { font-size: 1.45rem; margin: 0; }
-  h2 { font-size: 1.05rem; margin: 0 0 12px; }
+  h1 { font-size: 1.3rem; margin: 0; }
+  h2 { font-size: 1.05rem; margin: 0 0 10px; }
   .herald { font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
   .head-right { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; }
   .mode-link { font-size: 0.8rem; color: var(--accent); }
@@ -48,7 +52,8 @@
   .ai-box a { color: var(--accent); }
   .ai-close { position: absolute; top: 8px; right: 10px; background: none; border: none; font-size: 1.5rem; line-height: 1; padding: 2px 8px; }
 
-  .panel { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+  .panel { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; }
+  .current.panel { padding: 8px 8px 10px; }
   .current.panel, .suggestions.panel { margin-bottom: 0; }
   .row { display: flex; flex-wrap: wrap; gap: 10px; }
   .row-label { font-size: 0.8rem; color: var(--muted); margin: 12px 0 6px; }
@@ -122,7 +127,8 @@
   .sq[aria-pressed="true"] { border-color: var(--accent); }
 
   /* The list of charges: a menu on the left, the pictures on the right. */
-  .picker { display: grid; grid-template-columns: 132px minmax(0, 1fr); border: 1.5px solid var(--ink); border-radius: 6px; height: 440px; overflow: hidden; }
+  /* (As tall as the screen leaves room for, so that the whole of it can be seen at once.) */
+  .picker { display: grid; grid-template-columns: 132px minmax(0, 1fr); border: 1.5px solid var(--ink); border-radius: 6px; height: clamp(250px, calc(100vh - 384px), 560px); overflow: hidden; }
   .views { overflow-y: auto; background: #e9e1cf; padding: 6px 4px; display: flex; flex-direction: column; }
   .view { background: none; border: 2px solid transparent; border-radius: 5px; padding: 2px 6px; text-align: left; font-size: 0.82rem; font-weight: bold; }
   .view.sub { padding-left: 20px; font-weight: normal; }
@@ -145,7 +151,7 @@
   .bg-picked .selected-row { margin-top: 10px; }
   .slot .made-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 6px; font-size: 0.82rem; }
   .slot .made-row select { padding: 3px 5px; font-size: 0.82rem; }
-  .picker.small { height: 330px; margin-top: 8px; }
+  .picker.small { height: clamp(230px, calc(100vh - 420px), 330px); margin-top: 8px; }
   .credits { font-size: 0.82rem; margin: 10px 0 0; }
   .credits a { color: var(--accent); }
   .roles { display: grid; gap: 8px; margin-top: 14px; }
@@ -154,9 +160,9 @@
   select, input[type="search"] { font-family: inherit; font-size: 0.9rem; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); max-width: 100%; }
   input[type="search"] { width: 100%; margin: 12px 0; }
 
-  .current svg { display: block; width: 100%; max-width: 250px; height: auto; margin: 0 auto 12px; }
-  .blazon { font-size: 1.05rem; font-style: italic; margin: 0 0 12px; text-align: center; overflow-wrap: anywhere; }
-  .search-link { display: block; text-align: center; background: var(--accent); color: #fff; text-decoration: none; padding: 10px 14px; border-radius: 6px; font-size: 0.95rem; }
+  .current svg { display: block; width: 100%; max-width: 250px; height: auto; margin: 0 auto 8px; }
+  .blazon { font-size: 1rem; font-style: italic; margin: 0 0 8px; text-align: center; overflow-wrap: anywhere; }
+  .search-link { display: block; text-align: center; background: var(--accent); color: #fff; text-decoration: none; padding: 8px 10px; border-radius: 6px; font-size: 0.9rem; }
   .search-link:hover { background: #453a6b; }
   .note { font-size: 0.82rem; color: var(--muted); margin: 10px 0 0; }
   .palette-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 14px; font-size: 0.95rem; }
@@ -175,18 +181,19 @@
   details { margin-top: 12px; font-size: 0.8rem; color: var(--muted); }
   code { display: block; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 6px; color: var(--ink); }
 
-  .suggestions { padding-bottom: 8px; }
-  .suggestions-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 8px; }
+  .suggestions.panel { padding: 6px 12px 4px; }
+  .suggestions-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 5px; }
   .suggestions-head h2 { margin: 0; }
-  .suggestion-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+  .suggestions-head .plain-btn { padding: 2px 10px; }
+  .suggestion-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
   .suggestion-row.waiting { opacity: 0.4; pointer-events: none; }
-  .suggestion { flex: none; width: 132px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 2px solid var(--line); border-radius: 8px; padding: 6px; background: #fff; }
+  /* (No blazon under a suggestion: the maintainer, 28 November 2026. It is
+     what the pointer shows when it rests on the picture, and it is in full
+     under the shield top right once the suggestion is selected.) */
+  .suggestion { flex: none; width: 118px; display: flex; flex-direction: column; align-items: center; gap: 3px; border: 2px solid var(--line); border-radius: 8px; padding: 4px; background: #fff; }
   .suggestion.pinned { border-color: var(--accent); background: #f3f0fa; }
-  .suggestion svg { width: 70px; height: auto; }
-  /* (The whole blazon shows, however long: its last words are the colours.) */
-  .suggestion p { margin: 0; font-size: 0.66rem; font-style: italic; text-align: center; line-height: 1.2; min-height: 3.6em; }
-  .suggestion button { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 5px; padding: 3px 4px; font-size: 0.68rem; }
-  .suggestion p + button { margin-top: auto; }
+  .suggestion svg { width: 62px; height: auto; }
+  .suggestion button { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 5px; padding: 2px 4px; font-size: 0.68rem; }
 </style>
 </head>
 <body>
@@ -319,6 +326,11 @@ const TEXT = {
   viewCompact: 'compact',
   viewLong: 'long and thin',
   chargeNoneLeft: 'No other charge can be added with the choices made so far. "see all" shows them with the reason.', // DRAFT
+  // Why a charge is greyed when it is the colour ALREADY chosen for it that
+  // rules it out (the maintainer's sentence, 28 November 2026, with the
+  // colour filled in). When no colour is chosen the old reasons stand
+  // ("Low contrast - please choose a metal").
+  chargeColourClash: colour => `A ${colour} charge cannot be placed on this background - please change the colour of the charge, below`,
   // The row under the list of charges (the maintainer's sketch, 27 November
   // 2026): "Mode: Suggestions include [any of] [all of] [only] my
   // selections, or [default mode]".
@@ -398,7 +410,7 @@ const TEXT = {
   chargeMore: n => `…and ${n} more. Type to narrow the list.`,          // DRAFT
   chargeNoMatch: 'No charge matches that.',                             // DRAFT
   suggestions: 'Suggestions',                                           // DRAFT
-  reroll: 'Show different suggestions',                                 // DRAFT
+  reroll: 'Randomise',                                                  // (the maintainer's word, 28 November 2026)
   pin: 'pin suggestion',
   unpin: 'unpin',                                                       // DRAFT
   select: 'select this shield',
@@ -437,6 +449,8 @@ const TEXT = {
     'Artificial intelligence can be unreliable or dangerous. Consider signing the [Statement on Superintelligence](https://superintelligence-statement.org/).',
     'Images produced by this page are *not* products of generative AI. The page uses human-created artwork from the Traceable Heraldic Art library, plus ordinary deterministic code that places them on the page and colours them.',
     "The code that makes this page work was written with extensive assistance from Anthropic's AI, Claude. You can read the code [here](https://github.com/firinnish/sca_heraldry_suggester/).",
+    // (added by the maintainer, 28 November 2026)
+    'This website contains automated tools to help you find appropriate heraldry, but it is not a substitute for a human herald. A human herald can help you avoid conflicts, guide you to something appropriate to the century and culture of your persona, and potentially help customise your art. In some kingdoms, you may need to consult a warranted herald before submission. Speak to a herald as early in the process as you can, so that they can guide you away from unhistorical or conflicted designs before you get too emotionally attached to what you\'ve created.',
   ],
   // Under the search button, when the search will be missing something
   // about a charge (the maintainer's words, November 2026).
@@ -475,6 +489,7 @@ const TEXT = {
     'parted-complex-line-ruled-out': 'A complex line between these two colours has been ruled unregisterable',
     'bordurewise-not-bordure': 'Only a bordure can be parted bordurewise',
     'parallel-ordinaries': 'Parallel ordinaries may be confused for field divisions',   // (the maintainer's words)
+    'canton-in-bend': 'Charges in bend start in the corner where the canton is',
     'arrangement-unity': 'With another charge above or below, charges in a line may be taken for one group with two arrangements',
     'not-possible': 'Not possible with the colours chosen',
   },
@@ -1859,11 +1874,26 @@ function renderChargePanel() {
   };
   const about = (choice, { mine, items }) => ({ ...c, items, arrangement: mine >= 0 ? c.arrangement : chosenArrangement(items.length - 1) });
   const greyed = found => found === null || (found && found.problems.length > 0);
-  let anyCharge = true;
+  // When a colour has ALREADY been chosen for the charge (on the card it
+  // would go to) and that colour is what rules it out, say so, instead of
+  // asking for a metal that may well be ticked already (the maintainer, 28
+  // November 2026, after picking sable by accident: "A sable charge cannot
+  // be placed on this background - please change the colour of the charge,
+  // below").
+  const COLOUR_FAULTS = new Set(['charge-low-contrast', 'charge-shares-tincture', 'neutral-on-neutral', 'counterchange-field', 'counterchange-low-contrast', 'counterchange-many']);
+  const clash = (made, found) => {
+    const at = made.mine >= 0 ? made.mine : state.items.findIndex(item => !item.choice);
+    const colour = at >= 0 ? tinctureOf(state.items[at]) : null;
+    const fault = found && found.problems[0];
+    if (!colour || !fault || !(fault.hint || COLOUR_FAULTS.has(fault.id))) return null;
+    return TEXT.chargeColourClash(colour === COUNTERCHANGED ? TEXT.counterchanged : TINCTURES[colour].name);
+  };
+  let anyCharge = true, noneLeft = TEXT.chargeNoneLeft;
   if (hiding && library.charges.length) {
     const probe = { kind: 'charge', id: library.charges[0].id, file: null };
-    const made = itemsWith(probe);
-    anyCharge = !!made.items && !greyed(option('charge', about(probe, made)));
+    const made = itemsWith(probe), found = made.items ? option('charge', about(probe, made)) : null;
+    anyCharge = !!made.items && !greyed(found);
+    noneLeft = clash(made, found) || noneLeft;
   }
 
   // Each option is drawn on a shield that fits everything else chosen so far:
@@ -1888,7 +1918,7 @@ function renderChargePanel() {
     const solo = { ...c, items: [{ charge: choice, number: choice.kind === 'ordinary' ? null : 1, tincture: mine ? tinctureOf(mine) : null }], arrangement: null };
     const soloKey = optionKey('charge', solo);
     const args = (found, alone) => ({ attrs, shield: (alone && alone.shield) || (found && found.shield), label, on: picked,
-                                      problems: found ? found.problems : [], why: found === null ? TEXT.rules['not-possible'] : null });
+                                      problems: found ? found.problems : [], why: found === null ? TEXT.rules['not-possible'] : clash(made, found) });
     const hidden = found => hiding && !picked && greyed(found);
     if (remembered.has(key) && remembered.has(soloKey) && (!choice.file || getPicture(choice.file))) {
       const found = remembered.get(key);
@@ -1911,7 +1941,11 @@ function renderChargePanel() {
   };
 
   const every = everyChoice();
-  const matching = list => list.filter(x => x.label.toLowerCase().includes(q));
+  // (A charge is also found by its everyday name and by the other words
+  // people may type for it: `plain_name` and `synonyms` in charges.csv. Every
+  // kind of boat answers to "boat" and "ship": the maintainer, 28 November 2026.)
+  const wordsFor = x => [x.label, x.charge ? x.charge.plain_name : '', x.charge ? x.charge.synonyms : ''].filter(Boolean).join(' ; ').toLowerCase();
+  const matching = list => list.filter(x => wordsFor(x).includes(q));
   // Searching by name looks through everything, whatever the menu is set to.
   const list = q ? matching([...every.ordinaries, ...every.lined, ...every.pictures, ...every.names]) : choicesFor(state.view);
   const cards = list.filter(x => !x.blob).map(chargeCard).join('');
@@ -1922,7 +1956,7 @@ function renderChargePanel() {
   html += `<input type="search" id="chargeFilter" value="${esc(state.chargeFilter)}" placeholder="${esc(TEXT.chargeSearch)}" aria-label="${esc(TEXT.chargeSearch)}">`;
   let grid = `<div class="row">` +
     `<button class="card text-card" type="button" data-charge="none" aria-pressed="${state.noCharge}">${esc(TEXT.chargeNone)}</button>${cards}</div>`;
-  if (hiding && !anyCharge) grid += `<p class="note">${esc(TEXT.chargeNoneLeft)}</p>`;
+  if (hiding && !anyCharge) grid += `<p class="${noneLeft === TEXT.chargeNoneLeft ? 'note' : 'why-line'}">${esc(noneLeft)}</p>`;
   if (namesShown.length) {
     grid += `<div class="row-label">${esc(TEXT.chargeNoPicture)}</div><div class="row">` +
       namesShown.map(x => `<button class="name-btn" type="button" data-charge="charge:${esc(x.choice.id)}:" ` +
@@ -2192,9 +2226,8 @@ function renderSuggestions() {
   const suggestion = (s, i) => {
     const text = blazon(s.field, s.groups);
     const pinned = i < state.pinned.length;
-    return `<div class="suggestion${pinned ? ' pinned' : ''}">${shieldSVG(s.field, { charges: s.groups, title: text })}` +
-      `<p title="${esc(text)}">${esc(text)}</p>` +
-      `<button type="button" data-select="${i}">${esc(TEXT.select)}</button>` +
+    return `<div class="suggestion${pinned ? ' pinned' : ''}" title="${esc(text)}">${shieldSVG(s.field, { charges: s.groups, title: text })}` +
+      `<button type="button" data-select="${i}" aria-label="${esc(TEXT.select)}: ${esc(text)}">${esc(TEXT.select)}</button>` +
       `<button type="button" data-pin="${i}">${esc(pinned ? TEXT.unpin : TEXT.pin)}</button></div>`;
   };
   const note = !remembered.has(key) ? '' : !fresh.length ? TEXT.noSuggestions
@@ -2721,14 +2754,19 @@ document.addEventListener('input', e => {
   box.setSelectionRange(at, at);
 });
 
-// The chosen palette is remembered in this browser for next time.
-function choosePalette(id) {
+// A palette somebody CHOSE is remembered in this browser for next time.
+// (Until the end of November 2026 the palette in use was saved on every
+// visit, chosen or not, under another name: that is no longer read, or
+// nobody who had visited would ever see a change of the usual palette.)
+const PALETTE_KEY = 'heraldryPaletteChosen';
+function choosePalette(id, remember = true) {
   state.palette = usePalette(id).id;
-  try { localStorage.setItem('heraldryPalette', state.palette); } catch (e) { /* private window: just not remembered */ }
+  if (!remember) return;
+  try { localStorage.setItem(PALETTE_KEY, state.palette); } catch (e) { /* private window: just not remembered */ }
 }
 let saved = null;
-try { saved = localStorage.getItem('heraldryPalette'); } catch (e) { /* ignore */ }
-choosePalette(saved || DEFAULT_PALETTE);
+try { saved = localStorage.getItem(PALETTE_KEY); } catch (e) { /* ignore */ }
+choosePalette(saved || DEFAULT_PALETTE, false);
 
 $('title').textContent = TEXT.title;
 $('modeLink').textContent = TEXT.modeLink;

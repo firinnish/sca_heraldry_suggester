@@ -23,7 +23,7 @@ import argparse, csv, os, re, sys
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
-CHARGE_COLUMNS = ['id', 'name', 'plural', 'plain_name', 'oanda_category', 'type',
+CHARGE_COLUMNS = ['id', 'name', 'plural', 'plain_name', 'synonyms', 'oanda_category', 'type',
                   'themes', 'region_culture', 'exclude', 'notes']
 ART_COLUMNS = ['file', 'charge_id', 'posture', 'variant', 'default', 'artist',
                'source', 'permission', 'notes', 'complexity']

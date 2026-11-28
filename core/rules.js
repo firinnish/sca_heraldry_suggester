@@ -541,6 +541,15 @@ export function checkArrangement(groups) {
   const has = id => groups.some(g => g.kind === 'ordinary' && g.ordinary === id);
   if (PARALLEL.some(([a, b]) => has(a) && has(b))) problems.push({ id: 'parallel-ordinaries', sena: null, level: 'house' });
 
+  // Charges set out in bend beside a canton: the canton stands where the
+  // line starts, and the charges came out tiny, squeezed against it (the
+  // maintainer, 28 November 2026: "ban 'in bend' arrangements like this
+  // from being combined with a canton"). A herald may still choose it; the
+  // line is then laid from the canton's edge (layout.js: placeArranged).
+  if (has('canton') && groups.some(g => g.kind === 'charge' && g.arranged === 'bend')) {
+    problems.push({ id: 'canton-in-bend', sena: null, level: 'house' });
+  }
+
   // SENA Appendix I3: "Charges on tertiary charges are known as quaternary
   // charges and are not allowed".
   if (groups.some(g => g.charged && g.charged.charged)) problems.push({ id: 'quaternary', sena: 'Appendix I3', level: 'sena' });

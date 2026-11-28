@@ -42,10 +42,15 @@ const DIAGONAL_HALF = 1.5 * UNIT;   // half a bend, saltire or pall, measured st
 // Per chevron's point touches the top of a fess and the bottom of a chief.
 const CHEVRON_APEX = C - UNIT;      // per chevron, and the middle of a chevron: 33.67
 const CHEVRON_HALF = 22.75;         // half a chevron, measured straight up
-// Per chevron inverted's point is at the inner point of a chevron (and per
-// chevron's at the inner point of a chevron inverted), so a chevron on per
-// chevron inverted makes one clean diamond with the lower part.
-const CHEVRON_INV_APEX = CHEVRON_APEX + CHEVRON_HALF; // per chevron inverted, and a chevron inverted: 56.42
+// Per chevron inverted, and the middle of a chevron inverted, come to their
+// point well below the fess point, as Traceable Heraldic Art draws them
+// ("Per Chevron Inverted (2)": 74.2; "Chevron Inverted (1)" and "(2)": the
+// middle at 74.2 to 74.9), so that the line parts the shield about evenly
+// (54% above it). Until 28 November 2026 the point was at 56.42, the inner
+// point of a chevron, and the maintainer found the line "too high ...
+// there's much more area below the line than above it". At 74.5 it also
+// runs along the lower edges of a saltire.
+const CHEVRON_INV_APEX = C + DIAGONAL_HALF; // per chevron inverted, and a chevron inverted: 74.5
 export const CHIEF_BOTTOM = C - UNIT;      // 33.67
 export const BASE_TOP = C + 2 * UNIT;      // 82.67
 // Half the width of a pale, fess or cross, for anything that needs to know
@@ -623,6 +628,12 @@ export const suitsDivision = (ordinary, division) =>
 export function ordinaryShapes(ordinary, division = null, frame = null, width = 1, line = null) {
   if (ordinary === 'bordure' || ordinary === 'orle') return null;
   if (!ORDINARY_SHAPES[ordinary]) throw new Error('No shape for ordinary: ' + ordinary);
+  // A canton beside a chief hangs from the chief's lower edge, as square as
+  // ever (the maintainer, 28 November 2026: "The top edge of the canton
+  // should line up perfectly with the bottom of the chief"). Squeezed into
+  // the space below like the other ordinaries, its top poked up into the
+  // chief, which it is drawn over.
+  if (ordinary === 'canton' && frameParts(frame).chief) return [rect(-10, CHIEF_BOTTOM, CHIEF_BOTTOM + 10, CHIEF_BOTTOM - 1)];
   let shapes = ORDINARY_SHAPES[ordinary](division, width);
   if (line && LINE_SHAPES[line] && !CURVED.has(ordinary)) {
     const upper = LINE_SHAPES[line].upper && UPPER_ONLY.has(ordinary);

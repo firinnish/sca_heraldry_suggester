@@ -26,7 +26,7 @@ import { SAMPLES, insideShield, pointInPolygon, samplesInBox, ordinarySamples, o
          DIVISION_VARIANTS, divisionShapes, isLayered } from './geometry.js';
 import { TINCTURES, ARRANGEMENTS, SEMY, familyOf, baseTincture, turnFor } from './catalog.js';
 import { roles } from './shield.js';
-import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, centroid, heights, sides, sidesAt, cuts,
+import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, inMask, centroid, heights, sides, sidesAt, cuts,
          probeOf, turned, largestFit, fitsAt, bestSpot, clearDistance } from './space.js';
 
 export const FILL = 0.95;
@@ -383,14 +383,16 @@ const lineOf = group => (group.line && group.line !== 'plain' ? group.line : nul
 // As for a group alone: one in the middle, two side by side (one above the
 // other if they are wide), three "two and one"; each at the centre of its
 // share, all as large as the tightest share allows.
-function placeIn(group, region, splitAt = null) {
+// `corner`: true = something stands in the dexter chief corner of the space
+// (a canton), which a line of charges in bend must start clear of.
+function placeIn(group, region, splitAt = null, corner = false) {
   const shape = pictureOf(group);
   if (group.number === SEMY) return placeSemy(shape, region);
   // (How many has not been chosen, but how they are set out has: drawn as
   // three, or as many as that arrangement takes.)
   const number = group.number || (group.arranged && ARRANGEMENTS[group.arranged]
     ? [3, 5, 4, 2].find(n => ARRANGEMENTS[group.arranged].numbers.includes(n)) : 1);
-  if (group.arranged || number > MAX_NUMBER) return placeArranged(group, shape, number, region);
+  if (group.arranged || number > MAX_NUMBER) return placeArranged(group, shape, number, region, corner);
   const [cx, cy] = splitAt || centroid(region);
   let shares;
   if (number === 1) shares = [region];
@@ -438,7 +440,7 @@ const SIDEWAYS_TOO = new Set(['bend', 'bendSinister']);
 const APART = 1.12;                // charges keep this much of their own size between centres
 const SPREAD = 0.45;               // a slanting line reaches across at least this share of the space
 
-function placeArranged(group, shape, number, region) {
+function placeArranged(group, shape, number, region, corner = false) {
   const id = group.arranged || null;
   if (id && !(ARRANGEMENTS[id] && ARRANGEMENTS[id].numbers.includes(number))) return null;
   const make = id ? PATTERNS[id] : USUAL[number];
@@ -471,7 +473,22 @@ function placeArranged(group, shape, number, region) {
   // charges barely stepped past one another; to read as a line it must
   // stretch across a fair share of the space.
   const [leftEdge, rightEdge] = sides(region);
-  const reach = square ? SPREAD * (rightEdge - leftEdge) / span(0) : 0;
+  // A line in bend beside a canton: the canton stands where the line would
+  // start, and two wings in bend came out tiny, squeezed against it. The
+  // line is laid along the part of the diagonal that is LEFT, from the edge
+  // of the canton to the far edge of the shield, and centred on that (the
+  // maintainer, 28 November 2026: "re-center them on a diagonal line that
+  // starts at the edge of the canton rather than starting at the edge of
+  // the shield"). `share` is how much of the diagonal is left.
+  let fromX = 0, fromY = 0, share = 1;
+  if (corner && id === 'bend') {
+    const run = (way, inside) => { let d = 0; while (d < 150 && inside(cx + way * (d + 1), cy + way * (d + 1))) d++; return d; };
+    const up = run(-1, (x, y) => inMask(region, x, y)), down = run(1, (x, y) => inMask(region, x, y));
+    const whole = run(-1, insideShield) + down;
+    fromX = fromY = (down - up) / 2;
+    share = whole > 0 ? (up + down) / whole : 1;
+  }
+  const reach = square ? SPREAD * share * (rightEdge - leftEdge) / span(0) : 0;
   // Charges in ROWS (one and two, two and two...) must read as rows: the top
   // row keeps out of the bottom third of the space and the bottom row out
   // of the top third (the maintainer, November 2026, after three tall
@@ -536,7 +553,7 @@ function placeArranged(group, shape, number, region) {
     }
     return [at, atSize];
   };
-  let [best, bestSize] = climb([start, start, 0, 0], moves);
+  let [best, bestSize] = climb([Math.max(reach + 0.5, start * share), Math.max(reach + 0.5, start * share), fromX, fromY], moves);
   if (!(bestSize > 0)) return null;
 
   // That is the layout with the LARGEST charges, which is not always the
@@ -840,7 +857,7 @@ function compose(groups, r, division) {
     if (wanted.includes('chief')) region = where(region, (x, y) => y >= chiefLine);
     if (wanted.includes('base')) region = where(region, (x, y) => y <= baseLine);
     const whole = region === frame.mask && !frame.chief && !frame.base && !frame.lopsided;
-    const found = remembered(['primary', drawnAs(primary), partKey(primary)].join('|'), () => placeIn(primary, partOf(primary, region), whole ? centre : null));
+    const found = remembered(['primary', drawnAs(primary), partKey(primary)].join('|'), () => placeIn(primary, partOf(primary, region), whole ? centre : null, frame.taken.includes('canton')));
     // (a copy: the remembered placing must not be changed by what follows)
     const placed = found && found.places.length ? { shape: found.shape, places: found.places.map(p => ({ ...p })) } : null;
     if (!placed) Object.assign(entries[pi], { ok: false, picture: BLOB_PICTURE, flipY: false, places: [], coverage: [] });

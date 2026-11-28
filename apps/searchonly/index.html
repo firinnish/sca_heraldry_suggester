@@ -271,6 +271,7 @@ const TEXT = {
     'parted-complex-line-ruled-out': 'A complex line between these two colours has been ruled unregisterable',
     'bordurewise-not-bordure': 'Only a bordure can be parted bordurewise',
     'parallel-ordinaries': 'Parallel ordinaries may be confused for field divisions',   // (the maintainer's words)
+    'canton-in-bend': 'Charges in bend start in the corner where the canton is',
     'arrangement-unity': 'With another charge above or below, charges in a line may be taken for one group with two arrangements',
   },
 
@@ -283,6 +284,8 @@ const TEXT = {
     'Artificial intelligence can be unreliable or dangerous. Consider signing the [Statement on Superintelligence](https://superintelligence-statement.org/).',
     'Images produced by this page are *not* products of generative AI. The page uses human-created artwork from the Traceable Heraldic Art library, plus ordinary deterministic code that places them on the page and colours them.',
     "The code that makes this page work was written with extensive assistance from Anthropic's AI, Claude. You can read the code [here](https://github.com/firinnish/sca_heraldry_suggester/).",
+    // (added by the maintainer, 28 November 2026)
+    'This website contains automated tools to help you find appropriate heraldry, but it is not a substitute for a human herald. A human herald can help you avoid conflicts, guide you to something appropriate to the century and culture of your persona, and potentially help customise your art. In some kingdoms, you may need to consult a warranted herald before submission. Speak to a herald as early in the process as you can, so that they can guide you away from unhistorical or conflicted designs before you get too emotionally attached to what you\'ve created.',
   ],
 };
 
@@ -840,7 +843,7 @@ document.addEventListener('click', e => {
 // Shields are drawn in the palette chosen on the build mode page, if one was
 // (it keeps the choice in this browser), and otherwise in the usual one.
 let saved = null;
-try { saved = localStorage.getItem('heraldryPalette'); } catch (e) { /* private window: the usual palette */ }
+try { saved = localStorage.getItem('heraldryPaletteChosen'); } catch (e) { /* private window: the usual palette */ }   // (a palette chosen in build mode)
 usePalette(saved || DEFAULT_PALETTE);
 
 document.title = TEXT.title;
