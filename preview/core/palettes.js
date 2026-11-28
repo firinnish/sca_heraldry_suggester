@@ -16,10 +16,14 @@ export const PALETTES = [
   { id: 'forannan', name: "Forannán's colourblind-friendly", source: FORANNAN,
     colours: { argent: '#FFFFFF', or: '#FFE122', azure: '#00BDE9', gules: '#FF513C', purpure: '#963A83', vert: '#155127', sable: '#000000' } },
   // Argent, Or and sable as in the main palette (identical in the published
-  // pictures); the other four are APPROXIMATE, read from the post's picture
-  // (its pixels are in a wider colour space, converted back to ordinary sRGB).
+  // pictures); the other four are APPROXIMATE, read from pictures (their
+  // pixels are in a wider colour space, converted back to ordinary sRGB).
+  // Purpure is the PINKER of the two the maintainer has drawn it with, from
+  // the picture they sent on 28 November 2026 ("use the one with the pinker
+  // 'Purpure' rather than the lilac"; the lilac was #C995CB). That picture's
+  // vert, azure and gules convert to exactly the codes already here.
   { id: 'forannan-alt', name: "Forannán's colourblind-friendly - alternative", source: FORANNAN,
-    colours: { argent: '#FFFFFF', or: '#FFE122', azure: '#2D6B92', gules: '#94110D', purpure: '#C995CB', vert: '#469A49', sable: '#000000' } },
+    colours: { argent: '#FFFFFF', or: '#FFE122', azure: '#2D6B92', gules: '#94110D', purpure: '#E98CC0', vert: '#469A49', sable: '#000000' } },
   { id: 'insignia-anglica', name: 'Insignia Anglica (credit Iago ab Adam)', source: IAGO,
     colours: { argent: '#D0C2A5', or: '#E0B32F', azure: '#0E5979', gules: '#B93A29', purpure: '#743934', vert: '#27744A', sable: '#2D261E' } },
   { id: 'libro-normanda', name: 'Libro II della Natione Normanda (credit Iago ab Adam)', source: IAGO,
@@ -40,7 +44,10 @@ export const PALETTES = [
     colours: { argent: '#F2F2F2', or: '#F1DD00', azure: '#1D6EBF', gules: '#BB2E2D', purpure: '#8C33CC', vert: '#3E9340', sable: '#383838' } },
 ];
 
-export const DEFAULT_PALETTE = 'forannan';
+// The palette shields are drawn in until somebody chooses another (the
+// maintainer, 28 November 2026: "set my 'alternative' colourblind friendly
+// as the default rather than my standard colourblind friendly").
+export const DEFAULT_PALETTE = 'forannan-alt';
 export const paletteById = id => PALETTES.find(p => p.id === id) || PALETTES.find(p => p.id === DEFAULT_PALETTE);
 
 // Draw everything from now on in this palette. (Drawing reads TINCTURES[t].hex
