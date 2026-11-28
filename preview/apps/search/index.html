@@ -228,7 +228,7 @@
 <script type="module">
 import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, familyOf,
          ARRANGEMENTS, USUAL_ARRANGEMENT, SEMY, arrangementsFor, ORIENTATIONS, isLying, postureCode, ordinaryLabel,
-         PATTERNS, tinctureFrom, divisionsTogether, LINES, LINED_ORDINARIES, canBeLined, SIMPLE_CHARGES,
+         PATTERNS, tinctureFrom, divisionsTogether, LINES, LINED_ORDINARIES, COTISABLE, canBeLined, SIMPLE_CHARGES,
          partedTincture, partedOf } from '../../core/catalog.js';
 import { plain, divided, isComplete, isNested, leafTinctures, tincturesIn, shieldTinctures, blazon, ordinaryGroup,
          chargeGroup, chargeGroupFromLibrary, allGroups, COUNTERCHANGED } from '../../core/shield.js';
@@ -368,6 +368,9 @@ const TEXT = {
   asDrawn: 'as drawn',                                                  // DRAFT (the orientation the picture was drawn in)
   inverted: 'inverted',
   contourny: 'facing sinister',                                         // DRAFT (the blazon says "contourny")
+  // On an ordinary's card (heraldry's own words; a pale's cotises make it "endorsed", from core/catalog.js).
+  voided: 'voided',
+  cotised: 'cotised',
   artBy: (name, artist) => `${name}, by ${artist}`,                     // DRAFT
   artOurs: name => `${name} (traced from a medieval image)`,            // DRAFT
   exploreHeading: name => `More ways to draw the ${name}`,              // DRAFT
@@ -490,6 +493,9 @@ const TEXT = {
     'bordurewise-not-bordure': 'Only a bordure can be parted bordurewise',
     'parallel-ordinaries': 'Parallel ordinaries may be confused for field divisions',   // (the maintainer's words)
     'canton-in-bend': 'Charges in bend start in the corner where the canton is',
+    'voided-not-allowed': 'Only an ordinary with more than two ends (a cross, a saltire, a pall) can be voided',
+    'voided-unsupported': 'The tools cannot yet draw a voided ordinary with charges on it or with a complex line',
+    'cotised-unsupported': 'The tools can only cotise a pale, fess, bend or chevron that has a plain line and no other charges around it',
     'arrangement-unity': 'With another charge above or below, charges in a line may be taken for one group with two arrangements',
     'not-possible': 'Not possible with the colours chosen',
   },
@@ -632,7 +638,7 @@ function tidy() {
 const currentField = () => state.field;
 
 function groupFor(choice, tincture, number, arranged = null) {
-  if (choice.kind === 'ordinary') return ordinaryGroup(choice.id, tincture, { line: choice.line || 'plain' });
+  if (choice.kind === 'ordinary') return ordinaryGroup(choice.id, tincture, { line: choice.line || 'plain', voided: !!choice.voided, cotised: !!choice.cotised });
   const charge = library.charges.find(c => c.id === choice.id);
   if (!charge) return null;
   return chargeGroupFromLibrary(charge, pictureRow(choice.file),
@@ -1425,7 +1431,8 @@ const posable = id => picturesOf(id).some(p => postureCode(p.posture));
 function choiceName(choice, plural = false) {
   if (choice.kind === 'ordinary') {
     const name = ORDINARIES[choice.id].count === 2 ? ordinaryLabel(choice.id) : ORDINARIES[choice.id].name + (plural ? 's' : '');
-    return choice.line && LINES[choice.line] ? `${name} ${LINES[choice.line].name}` : name;
+    return [name, choice.line && LINES[choice.line] ? LINES[choice.line].name : '', choice.voided ? TEXT.voided : '',
+            choice.cotised ? (COTISABLE[choice.id] || {}).blazon || TEXT.cotised : ''].filter(Boolean).join(' ');
   }
   const charge = library.charges.find(c => c.id === choice.id);
   const picture = pictureRow(choice.file);
@@ -1613,6 +1620,7 @@ function slotBlock(slot, c) {
   // A charge with a picture has its posture, drawing and orientation to
   // choose; an ordinary, the line its edges are drawn with ("a fess wavy").
   const lined = !!item.choice && item.choice.kind === 'ordinary' && LINED_ORDINARIES.has(item.choice.id);
+  if (item.choice && item.choice.kind === 'ordinary') html += ordinaryFlags(slot, item);
   if ((item.choice && item.choice.kind === 'charge' && item.choice.file) || lined) {
     html += (lined ? lineRow(slot, item) : stanceRows(slot, item)) + `<div class="pick-more"><button class="plain-btn" type="button" data-explore="${slot}" ` +
       `aria-expanded="${state.explore === slot}">${esc(state.explore === slot ? TEXT.collapse : TEXT.expand)}</button></div>`;
@@ -1632,6 +1640,23 @@ function strewableParts() {
 // The lines an ordinary's edges, or a division of the background, can be
 // drawn with: plain, then the complex lines by their heraldic names.
 const lineChoices = () => [['', TEXT.linePlain], ...Object.keys(LINES).map(id => [id, LINES[id].name])];
+// An ordinary can be VOIDED or COTISED (the maintainer, 28 November 2026:
+// "add a way to void and cotise ordinaries, which should show up as an
+// option in the charge's card"). Each is greyed where the rules do not
+// allow it (SENA lets only a cross, a saltire or a pall be voided), the
+// reason shown when the pointer rests on it.
+function ordinaryFlags(slot, item) {
+  const choice = item.choice;
+  const flag = (key, label) => {
+    const on = !!choice[key];
+    const trial = groupFor({ ...choice, voided: false, cotised: false, [key]: true }, tinctureOf(item), 1);
+    const faults = on ? [] : checkArrangement([trial]).filter(p => p.id.startsWith(key));
+    const greyed = faults.length ? ` greyed" aria-disabled="${!state.herald}" title="${esc(ruleText(faults[0]))}` : '';
+    return `<button class="name-btn small${greyed}" type="button" data-ordinary-flag="${key}" data-slot="${slot}" aria-pressed="${on}">${esc(label)}</button>`;
+  };
+  return `<div class="pick-more">${flag('voided', TEXT.voided)} ${flag('cotised', (COTISABLE[choice.id] || {}).blazon || TEXT.cotised)}</div>`;
+}
+
 function lineRow(slot, item) {
   const now = item.choice.line || '';
   return `<div class="pick-row"><label class="pick-label" for="line${slot}">${esc(TEXT.lineLabel)}</label>` +
@@ -2290,7 +2315,8 @@ function adopt(shield) {
   // The charges, one entry each, and how they go together.
   const made = unarrange(groups);
   state.items = made.groups.map(g => ({
-    choice: g.kind === 'ordinary' ? { kind: 'ordinary', id: g.ordinary, file: null, line: g.line && g.line !== 'plain' ? g.line : null }
+    choice: g.kind === 'ordinary' ? { kind: 'ordinary', id: g.ordinary, file: null, line: g.line && g.line !== 'plain' ? g.line : null,
+                                      voided: !!g.voided, cotised: !!g.cotised }
       : { kind: 'charge', id: g.charge, file: g.art, turned: g.turned || null, inverted: !!g.inverted, mirror: !!g.mirror },
     number: g.kind === 'ordinary' ? null : g.number,
     arranged: g.arranged || (g.kind !== 'ordinary' && USUAL_ARRANGEMENT[g.number] ? 'usual' : null),
@@ -2556,6 +2582,11 @@ document.addEventListener('click', e => {
     const item = state.items[Number(d.slot)];
     item.choice = { ...item.choice, [d.flip]: !item.choice[d.flip] };
     refocus = `[data-flip="${d.flip}"][data-slot="${d.slot}"]`;
+  } else if (d.ordinaryFlag) {
+    // "voided" or "cotised" on an ordinary's card: one or the other, or neither.
+    const item = state.items[Number(d.slot)], on = !item.choice[d.ordinaryFlag];
+    item.choice = { ...item.choice, voided: false, cotised: false, [d.ordinaryFlag]: on };
+    refocus = `[data-ordinary-flag="${d.ordinaryFlag}"][data-slot="${d.slot}"]`;
   } else if (d.chargeTincture) {
     const item = state.items[Number(d.slot)];
     item.tincture = item.tincture === d.chargeTincture ? null : d.chargeTincture;

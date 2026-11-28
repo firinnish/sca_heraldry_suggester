@@ -30,7 +30,7 @@
 // NOT CHOSEN YET: anything the shield description leaves open (see shield.js)
 // is simply left out of the pattern, so the search matches any value for it.
 
-import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, LINES, SEMY, postureCode, partedOf } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, LINES, SEMY, COTISABLE, postureCode, partedOf } from './catalog.js';
 import { COUNTERCHANGED, tincturesIn, isComplete, roles, isPeripheral } from './shield.js';
 
 const FORM_URL = 'https://oanda.sca.org/oanda_complex.cgi';
@@ -340,6 +340,14 @@ export function shieldPatterns(field, groups = [], { noCharge = false } = {}) {
     else if (!r[i].chosen) patterns.push(groupLine(g, field, null));
     else if (r[i].role === 'primary') patterns.push(...primaryLines(g, field));
     else patterns.push(groupLine(g, field, 'secondary'));
+    // Cotises are indexed as a group of their own beside the ordinary,
+    // naming it: "Pean, a bend cotised Or" has COTISES:1:bend:or:pl:second;
+    // "Ermine, a pale endorsed azure" COTISES:1:azure:pale:pl:second
+    // (checked on the 750 records with cotises). Voiding is not indexed at
+    // all: "Argent, a pall voided sable" has only PALL:1:pl:sable:spa:unc.
+    if (g.kind === 'ordinary' && g.cotised && COTISABLE[g.ordinary]) {
+      patterns.push(['COTISES', '1', ...tinctureFeatures(g, field), COTISABLE[g.ordinary].word, 'pl', 'second'].join(':'));
+    }
     if (g.charged) {
       const each = g.kind === 'ordinary' ? 1 : g.number;
       const count = g.charged.number === SEMY || each === SEMY ? SEMY

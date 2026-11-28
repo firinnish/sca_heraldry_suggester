@@ -625,9 +625,13 @@ export const suitsDivision = (ordinary, division) =>
 // `line` (optional): a complex line for its edges (LINE_SHAPES): "a fess
 // wavy", "a chief indented". Of a fess, bend or chevron embattled only the
 // upper edge is.
-export function ordinaryShapes(ordinary, division = null, frame = null, width = 1, line = null) {
+// `how` (optional): 'voided' or 'cotised' (catalog.js: VOIDABLE, COTISABLE),
+// for the ordinaries that can be drawn so; they are then drawn with plain lines.
+export function ordinaryShapes(ordinary, division = null, frame = null, width = 1, line = null, how = null) {
   if (ordinary === 'bordure' || ordinary === 'orle') return null;
   if (!ORDINARY_SHAPES[ordinary]) throw new Error('No shape for ordinary: ' + ordinary);
+  if (how === 'voided' && OUTLINES[ordinary]) return intoFrame([voidedShape(ordinary, width)], frame);
+  if (how === 'cotised' && STRIPS[ordinary]) return intoFrame(cotisedShapes(ordinary, division, width), frame);
   // A canton beside a chief hangs from the chief's lower edge, as square as
   // ever (the maintainer, 28 November 2026: "The top edge of the canton
   // should line up perfectly with the bottom of the chief"). Squeezed into
@@ -642,6 +646,56 @@ export function ordinaryShapes(ordinary, division = null, frame = null, width = 
   return ordinary !== 'chief' && ordinary !== 'base' ? intoFrame(shapes, frame) : shapes;
 }
 const CURVED = new Set(['canton', 'flaunches', 'gore']);     // (no complex lines for these yet)
+
+// ---- Voided and cotised ordinaries --------------------------------------------------
+// VOIDED (a cross, a saltire, a pall: catalog.js, VOIDABLE): the ordinary's
+// outline as ONE polygon, and the same outline again, narrower, cut out of
+// its middle. The two are joined into a single polygon by a cut of no width
+// from the first corner of one to the first corner of the other (which lie
+// one above the other, inside the ordinary or off the shield), so that
+// everything else here, which knows only polygons, needs no change.
+const VOID_SHARE = 0.5;          // how much of the ordinary's width is the field showing through
+const OUTLINES = {
+  // (`h`: half the width of a pale or fess; the same twelve corners as ORDINARY_SHAPES.cross)
+  cross: k => { const h = STRAIGHT_HALF * k, a = C - h, b = C + h;
+    return [[a, -10], [b, -10], [b, a], [W + 10, a], [W + 10, b], [b, b], [b, H + 10], [a, H + 10], [a, b], [-10, b], [-10, a], [a, a]]; },
+  // (`h`: half a bend, measured straight up; from the notch at the top, round by the four arms)
+  saltire: k => { const h = DIAGONAL_HALF * k, F = FAR;
+    return [[C, C - h], [C + F, C - h - F], [C + h + F, C - F], [C + h, C], [C + h + F, C + F], [C + F, C + h + F],
+            [C, C + h], [C - F, C + h + F], [C - h - F, C + F], [C - h, C], [C - h - F, C - F], [C - F, C - h - F]]; },
+  // (`p`: half the width of the lower arm; the upper arms meet it where their lower edges cross its sides)
+  pall: k => { const h = DIAGONAL_HALF * k, p = DIAGONAL_PERP * k, F = FAR;
+    return [[C, C - h], [C + F, C - h - F], [C + F + h, C - F], [C + p, C + h - p], [C + p, C + F], [C - p, C + F],
+            [C - p, C + h - p], [C - F - h, C - F], [C - F, C - h - F]]; },
+};
+function voidedShape(ordinary, width) {
+  // (The cut is made at a corner that lies off the shield, where its line is
+  // never seen: the first of a cross's, the second of a saltire's or pall's.)
+  const from = ordinary === 'cross' ? 0 : 1;
+  const turn = list => [...list.slice(from), ...list.slice(0, from)];
+  const outer = turn(OUTLINES[ordinary](width)), inner = turn(OUTLINES[ordinary](width * VOID_SHARE));
+  return [...outer, outer[0], inner[0], ...inner.slice(1).reverse(), inner[0]];
+}
+// COTISED (catalog.js, COTISABLE): the ordinary drawn narrower, and a narrow
+// stripe either side of it, with a gap between. The proportions are those of
+// Traceable Heraldic Art's "Fess Cotised" and "Pale Cotised" (a fess of 24
+// with stripes of 5, 3.7 away, on a shield 98 wide).
+//   STRIPS: the stripe of each ordinary's kind between two distances from its
+//   middle line (across for a pale, straight down for the rest).
+const COTISED = { main: 0.72, gap: 0.22, stripe: 0.3 };      // shares of half the ordinary's usual width
+const STRIPS = {
+  pale: () => [STRAIGHT_HALF, (a, b) => rect(C + a, -10, b - a, H + 20)],
+  fess: () => [STRAIGHT_HALF, (a, b) => rect(-10, C + a, W + 20, b - a)],
+  bend: () => [DIAGONAL_HALF, bendStrip],
+  bendSinister: () => [DIAGONAL_HALF, sinisterStrip],
+  chevron: division => { const apex = DIAGONAL_LINES.has(division) ? C : CHEVRON_APEX; return [CHEVRON_HALF, (a, b) => chevronStrip(apex + a, apex + b)]; },
+  chevronInverted: division => { const apex = DIAGONAL_LINES.has(division) ? C : CHEVRON_INV_APEX; return [CHEVRON_HALF, (a, b) => chevronInvStrip(apex + a, apex + b)]; },
+};
+function cotisedShapes(ordinary, division, width) {
+  const [half, strip] = STRIPS[ordinary](division);
+  const h = half * width * COTISED.main, near = h + half * width * COTISED.gap, far = near + half * width * COTISED.stripe;
+  return [strip(-h, h), strip(-far, -near), strip(near, far)];
+}
 
 // The inner edge of a bordure drawn with a complex line: the outline of the
 // space the bordure is in (the shield, or the part of it below a chief),
@@ -735,10 +789,10 @@ export function distanceToEdge(x, y) {
 }
 
 const ordinarySampleCache = new Map();
-export function ordinarySamples(ordinary, division = null, frame = null, width = 1, line = null) {
-  const key = `${ordinary}|${division}|${frame}|${width}` + (line ? `|${line}` : '');
+export function ordinarySamples(ordinary, division = null, frame = null, width = 1, line = null, how = null) {
+  const key = `${ordinary}|${division}|${frame}|${width}` + (line ? `|${line}` : '') + (how ? `|${how}` : '');
   if (!ordinarySampleCache.has(key)) {
-    const shapes = ordinaryShapes(ordinary, division, frame, width, line);
+    const shapes = ordinaryShapes(ordinary, division, frame, width, line, how);
     // A bordure or orle follows the frame's outline (see framePath).
     const inFrame = ([, y]) => !frameParts(frame).chief || y > CHIEF_BOTTOM;
     const covered = shapes ? samplesInside(shapes)

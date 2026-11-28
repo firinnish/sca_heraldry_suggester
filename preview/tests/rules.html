@@ -96,6 +96,17 @@ const CASES = [
   ['house', D('perPale', [P('gules'), P('purpure')], 'embattled'), [ordinaryGroup('pale', 'or')], {}, 'the same under a pale: none of the line shows (the maintainer: "at least 1/3 of the total line length must be visible")'],
   ['house', D('perFess', [P('argent'), P('azure')], 'wavy'), [ordinaryGroup('fess', 'vairy:or:gules')], {}, 'a complex line hidden under a fess, whatever its colours (the maintainer)'],
   ['yes', D('perFess', [P('argent'), P('azure')], 'wavy'), [ordinaryGroup('pale', 'vairy:or:gules')], {}, 'a pale hides a third of a per fess line: two thirds show'],
+  // Voiding and cotising ordinaries (SENA A3C; built 28 November 2026)
+  ['yes', P('azure'), [ordinaryGroup('cross', 'or', { voided: true })], {}, 'A3C: "both a cross and a cross engrailed may be either voided or fimbriated"'],
+  ['yes', P('gules'), [ordinaryGroup('saltire', 'argent', { voided: true })], {}, 'A3C: "All central ordinaries with more than two ends, such as palls, crosses, and saltires, may be voided"'],
+  ['no', P('argent'), [ordinaryGroup('fess', 'gules', { voided: true })], {}, 'A3C: "a fess may only be fimbriated; a design that appears to be a fess voided must be blazoned as two bars"'],
+  ['no', P('azure'), [ordinaryGroup('chief', 'or', { voided: true })], {}, 'A3C: "Peripheral ordinaries may not be voided or fimbriated"'],
+  ['yes', P('azure'), [ordinaryGroup('bend', 'or', { cotised: true })], {}, 'a bend cotised (165 blazons in the O&A)'],
+  ['yes', P('azure'), [ordinaryGroup('bend', 'or', { cotised: true, charged: thing('mullet', 'gules', 3) })], {}, 'on a bend cotised three mullets'],
+  ['house', P('azure'), [ordinaryGroup('cross', 'or', { cotised: true })], {}, 'a cross cotised: registered 26 times, but the tools cannot draw it yet'],
+  ['house', P('azure'), [ordinaryGroup('bend', 'or', { cotised: true }), thing('mullet', 'argent', 2, { role: 'secondary', place: 'around' })], {}, 'a bend cotised between two mullets: three groups on the field, held back'],
+  // Charges in bend beside a canton (the maintainer, 28 November 2026)
+  ['house', P('azure'), [thing('wing', 'or', 2, { role: 'primary', arranged: 'bend' }), ordinaryGroup('canton', 'argent')], {}, 'in bend two wings and a canton: the canton stands where the line starts (the maintainer)'],
   // Parallel ordinaries (the maintainer's rule, 27 November 2026)
   ['house', P('azure'), [ordinaryGroup('fess', 'or'), ordinaryGroup('chief', 'argent')], {}, 'no fess with a chief (the maintainer)'],
   ['house', P('azure'), [ordinaryGroup('orle', 'or'), ordinaryGroup('bordure', 'argent')], {}, 'no orle with a bordure (the maintainer)'],

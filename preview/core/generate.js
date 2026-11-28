@@ -47,7 +47,8 @@
 // the same seed and constraints always give the same shield. Pages use this
 // to keep pictures from changing every time the screen is redrawn.
 
-import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, SEMY, COLOUR_ORDER, METAL_ORDER, SIMPLE_CHARGES, familyOf, arrangementsFor, partedOf } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, SEMY, COLOUR_ORDER, METAL_ORDER, SIMPLE_CHARGES, VOIDABLE, COTISABLE,
+         familyOf, arrangementsFor, partedOf } from './catalog.js';
 import { plain, divided, ordinaryGroup, chargeGroupFromLibrary, shieldTinctures, blazon, typeOf, COUNTERCHANGED } from './shield.js';
 import { checkShield, checkArrangement } from './rules.js';
 import { arrangements, arrange } from './arrange.js';
@@ -252,7 +253,10 @@ function indexOf(library) {
 
 function groupFromChoice(choice, library) {
   // (an ordinary's choice may say which complex line it is drawn with: "a fess wavy")
-  if (choice.kind === 'ordinary') return ORDINARIES[choice.id] ? ordinaryGroup(choice.id, null, { line: choice.line || 'plain' }) : null;
+  // (...and whether it is voided or cotised: "a cross voided", "a bend cotised")
+  if (choice.kind === 'ordinary') {
+    return ORDINARIES[choice.id] ? ordinaryGroup(choice.id, null, { line: choice.line || 'plain', voided: !!choice.voided, cotised: !!choice.cotised }) : null;
+  }
   const index = indexOf(library);
   const charge = index.charges.get(choice.id);
   if (!charge) return null;
@@ -346,6 +350,17 @@ function guessGroups(c, rng, library) {
   // that the rules can say what is wrong with it.
   const primary = arrangement.findIndex(x => x.as === 'primary');
   const circled = arrangement.some(x => x.as === 'around');
+  // Now and then a suggestion's ordinary is voided or cotised (the
+  // maintainer, 28 November 2026: "should show up in suggestions
+  // sometimes"): only where nothing has been said about that for it, and
+  // only where the rules have a chance of allowing it (catalog.js).
+  const main = primary >= 0 ? flat[primary] : null, said = main ? items[primary].charge : null;
+  if (c.extras && main && main.kind === 'ordinary' && said.voided === undefined && said.cotised === undefined && main.line === 'plain') {
+    const charged = arrangement.some(x => x.as === 'on' && x.on === primary), beside = arrangement.some(x => x.as !== 'primary' && x.as !== 'on' && x.as !== 'edge');
+    const chance = rng();
+    if (VOIDABLE.has(main.ordinary) && !charged && chance < 0.07) main.voided = true;
+    else if (COTISABLE[main.ordinary] && !beside && chance < 0.09) main.cotised = true;
+  }
   const order = [primary, ...flat.map((g, i) => i).filter(i => i !== primary)].filter(i => i >= 0);
   for (const i of order) {
     const g = flat[i], as = arrangement[i].as, fixed = items[i].number;

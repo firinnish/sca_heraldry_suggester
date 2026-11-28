@@ -393,6 +393,32 @@ export const canBeLined = division => !division.includes('+') && !['checky', 'lo
 export const SIMPLE_CHARGES = ['roundel', 'annulet', 'billet', 'delf', 'lozenge', 'mascle', 'rustre', 'mullet', 'estoile',
                                'crescent', 'heart', 'triangle', 'goutte'];
 
+// ---- Voiding and cotising ordinaries ---------------------------------------------
+// (The maintainer, 28 November 2026: "add a way to void and cotise ordinaries".)
+// VOIDED: the ordinary is drawn as its outline, the field showing through its
+// middle ("a cross voided Or"). SENA A3C allows it only for these: "All
+// central ordinaries with more than two ends, such as palls, crosses, and
+// saltires, may be voided ... As central ordinaries with two ends which are
+// voided would give the unmistakable appearance of being multiple
+// ordinaries, they may not be voided." The O&A's index does not record
+// voiding at all ("Argent, a pall voided sable" has PALL:1:pl:sable:spa:unc).
+export const VOIDABLE = new Set(['cross', 'saltire', 'pall']);
+// COTISED: a narrow stripe either side of the ordinary, of the ordinary's own
+// tincture ("a bend cotised Or"). Listed here are the ordinaries the tools
+// can draw cotised.
+//   word:   the feature the O&A's line for the cotises carries. They are
+//           indexed as a group of their own beside the ordinary: "Pean, a
+//           bend cotised Or" has COTISES:1:bend:or:pl:second and
+//           BEND:1:or:pl:spna:unc; "Ermine, a pale endorsed azure" has
+//           COTISES:1:azure:pale:pl:second.
+//   blazon: how it is blazoned (a pale is "endorsed": 73 blazons in the O&A
+//           against 27 "a pale cotised").
+export const COTISABLE = {
+  pale: { word: 'pale', blazon: 'endorsed' }, fess: { word: 'fess', blazon: 'cotised' },
+  bend: { word: 'bend', blazon: 'cotised' }, bendSinister: { word: 'bend sinister', blazon: 'cotised' },
+  chevron: { word: 'chevron', blazon: 'cotised' }, chevronInverted: { word: 'chevron inverted', blazon: 'cotised' },
+};
+
 // ---- Arrangements ----------------------------------------------------------
 // How the charges of one group are set out, when it is not simply the usual
 // way for their number: "in pale three roundels", "in chevron five swords".
