@@ -969,6 +969,35 @@ export function fieldShowing(layout) {
   for (const e of layout.entries) for (const points of e.coverage || []) for (const i of points) covered.add(i);
   return 1 - covered.size / SAMPLES.length;
 }
+// How much of the lines a field is divided by shows: is not under any
+// ordinary or charge on it (1 = all of it; 1 for a plain field). The lines
+// are found from the plain shape of the division: a sample point is on a
+// line when the point beside it or below it belongs to another part.
+let whichSample = null;
+const linePoints = new Map();
+export function lineShowing(field, layout) {
+  if (!field || field.type !== 'divided') return 1;
+  const key = `${field.division}|${layout.frame}|${layout.variant || ''}`;
+  if (!linePoints.has(key)) {
+    if (!whichSample) { whichSample = new Map(); SAMPLES.forEach(([x, y], i) => whichSample.set(`${x},${y}`, i)); }
+    const map = partMap(field.division, layout.frame, layout.variant || null);
+    const on = new Set();
+    SAMPLES.forEach(([x, y], i) => {
+      for (const j of [whichSample.get(`${x + 2},${y}`), whichSample.get(`${x},${y + 2}`)]) {
+        if (j !== undefined && map[i] !== map[j]) { on.add(i); on.add(j); }
+      }
+    });
+    if (linePoints.size > 200) linePoints.clear();
+    linePoints.set(key, on);
+  }
+  const on = linePoints.get(key);
+  if (!on.size) return 1;
+  let hidden = 0;
+  const covered = new Set();
+  for (const e of layout.entries) for (const points of e.coverage || []) for (const i of points) covered.add(i);
+  for (const i of on) if (covered.has(i)) hidden++;
+  return 1 - hidden / on.size;
+}
 // Checky or lozengy mostly hidden (under a pale and a bordure, say) is drawn
 // with pieces half the size, so that enough of them show to be made out (the
 // maintainer, November 2026). Twice as many pieces line up with every

@@ -11,6 +11,10 @@
 //   fieldOrdered:   true = use fieldTinctures in the order given.
 //   division:       null (any) | 'plain' | a division id.
 //   field:          a complete background, if one has been fully chosen.
+//   template:       a background partly chosen: a field (shield.js) in which
+//                   any tincture may still be null, to be filled in.
+//   fieldHas:       tinctures the background must contain (with a template,
+//                   or on their own: then any division with room for them).
 //   line:           the complex line the background is divided with
 //                   (catalog.js: LINES), if one has been chosen.
 //   items:          what is on the shield: null (anything, or nothing) |
@@ -43,7 +47,7 @@
 // the same seed and constraints always give the same shield. Pages use this
 // to keep pictures from changing every time the screen is redrawn.
 
-import { DIVISIONS, ORDINARIES, ARRANGEMENTS, SEMY, COLOUR_ORDER, METAL_ORDER, SIMPLE_CHARGES, familyOf, arrangementsFor } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, SEMY, COLOUR_ORDER, METAL_ORDER, SIMPLE_CHARGES, familyOf, arrangementsFor, partedOf } from './catalog.js';
 import { plain, divided, ordinaryGroup, chargeGroupFromLibrary, shieldTinctures, blazon, typeOf, COUNTERCHANGED } from './shield.js';
 import { checkShield, checkArrangement } from './rules.js';
 import { arrangements, arrange } from './arrange.js';
@@ -112,8 +116,51 @@ function nestedField(rng, tinctures) {
   return null;
 }
 
+// A background that is partly chosen (`template`: a field in which any
+// tincture may still be null): each null is filled from the palette. The
+// tinctures the background must contain (`c.fieldHas`) go in first, wherever
+// there is room; null if there is not room for them all.
+function fillTemplate(template, c, rng) {
+  const leaves = [];
+  const walk = f => { if (f.type === 'plain') leaves.push(f); else f.parts.forEach(walk); };
+  walk(template);
+  // (a tincture made of two others, "purpure masoned argent", contains both)
+  const has = new Set(leaves.filter(f => f.tincture).flatMap(f => [f.tincture, ...((TINCTURES[f.tincture] || {}).pair || [])]));
+  const must = shuffled(rng, (c.fieldHas || []).filter(t => !has.has(t)));
+  const open = shuffled(rng, leaves.filter(f => f.tincture === null));
+  if (must.length > open.length) return null;
+  const palette = paletteOf(c);
+  const chosen = new Map();
+  open.forEach((leaf, i) => {
+    if (i < must.length) { chosen.set(leaf, must[i]); return; }
+    // Lean towards the tincture that must appear somewhere, then towards one
+    // the background does not have yet (two parts alike are seldom allowed).
+    const used = new Set([...has, ...chosen.values()]);
+    const fresh = palette.filter(t => !used.has(t));
+    const t = c.mustInclude && !used.has(c.mustInclude) && palette.includes(c.mustInclude) && rng() < 0.5 ? c.mustInclude
+      : pick(rng, fresh.length && rng() < 0.9 ? fresh : palette);
+    chosen.set(leaf, t);
+  });
+  const fill = f => (f.type === 'plain' ? (chosen.has(f) ? plain(chosen.get(f)) : f) : { ...f, parts: f.parts.map(fill) });
+  return fill(template);
+}
+
 function guessField(c, rng) {
   if (c.field) return c.field;
+  if (c.template) return fillTemplate(c.template, c, rng);
+  // The background must contain certain tinctures, and nothing else about it
+  // is chosen: a division with room for them, filled as above.
+  if (c.fieldHas && c.fieldHas.length && !c.division && !(c.fieldTinctures && c.fieldTinctures.length)) {
+    const k = c.fieldHas.length;
+    if (k > 4) return null;
+    if (k === 4 || (k === 3 && rng() < 0.5)) return nestedField(rng, c.fieldHas);
+    const family = k === 3 ? 'three' : weighted(rng, k === 1
+      ? [['plain', 5], ['two', 6], ['four', 2], ['many', 4], ['three', 1]] : [['two', 5], ['four', 2], ['many', 3], ['three', 1]]);
+    const division = family === 'plain' ? 'plain' : pick(rng, idsInFamily(family));
+    const empty = division === 'plain' ? plain(null)
+      : divided(division, Array.from({ length: DIVISIONS[division].parts }, () => plain(null)), c.line || 'plain');
+    return fillTemplate(empty, c, rng);
+  }
   const fixed = c.fieldTinctures && c.fieldTinctures.length ? c.fieldTinctures : null;
   let division = c.division;
 
@@ -357,7 +404,8 @@ function guessParts(c, rng, library) {
 // lacks one it must have).
 function shieldFrom({ field, flat, arrangement }, c) {
   const groups = flat.length ? arrange(flat, arrangement) : [];
-  const used = shieldTinctures(field, groups);
+  // (a charge parted like a field, "barry gules and Or", uses the tinctures it is parted of)
+  const used = shieldTinctures(field, groups).flatMap(t => (partedOf(t) ? partedOf(t).parts : [t]));
   if (c.palette && c.palette.length && used.some(t => !c.palette.includes(t))) return null;
   if (c.mustInclude && !used.includes(c.mustInclude)) return null;
   return { field, groups, noCharge: !groups.length };

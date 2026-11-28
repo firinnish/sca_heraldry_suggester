@@ -9,10 +9,13 @@ here were made with the maintainer; add to it as things are decided.
   the shield being built top right, random suggestions along the bottom.
   Every question is always shown; anything not answered is "not chosen yet".
 - **Colours:** "What colours are used in the shield?" (colours and metals shown
-  as separate sets, then furs), then "What colours are used in the background?".
+  as separate sets, then furs). *(At first followed by "What colours are used
+  in the background?": since 28 November 2026 that is "must contain all of:"
+  in the background picker, see below.)*
 - **Background:** 16 two-tincture divisions, per pall and per pall inverted,
-  plain, and the "more complex background" form. Furs: ermine, counter-ermine,
-  erminois, pean.
+  plain, and a part divided again (at first through a "more complex
+  background" form, now "More complex options" on a part). Furs: ermine,
+  counter-ermine, erminois, pean.
 - **Primary charge:** ordinaries (drawn by the code), charges with pictures,
   every other charge by name (drawn as a blob); how many (1 to 3); its colour,
   including counterchanged.
@@ -277,7 +280,33 @@ here were made with the maintainer; add to it as things are decided.
   sable and vert 37, azure and gules 34, azure and vert 33, argent and Or
   12) and held back for heralds otherwise (purpure and vert 6, azure and
   purpure 4, gules and vert 2, gules and purpure 1), with the maintainer's
-  sentence.
+  sentence. *(The pairings were replaced a day later by "a third of the
+  line must show": see the next entries.)*
+- **The background picker** (item 14; the maintainer's sketch, built 28
+  November 2026). "How is the background divided?" is now made like the
+  list of charges: a menu on the left (default, show all, plain, 2-part,
+  3-part, 4-part, 5+ parts, patterns, furs, field treatments, and each
+  complex line), "must contain all of:" as colour squares, "Type to find a
+  field description", and a picture for every way a background can be
+  made, including the furs, the field treatments and "semy of charges".
+  The default view leaves out what the charges chosen rule out. Under it:
+  "you selected: per pale wavy", "Swap the parts", "divided with a line
+  that is", "and counterchanged with", and a box for each part with its
+  colour. "More complex options" on a part opens a second copy of the
+  picker for that part alone ("per fess, and the second part barry"). The
+  separate question "What colours are used in the background?", "more
+  complex background" and "Show one-part backgrounds" are gone.
+- **"Semy of charges" as a background:** picking it strews blobs over the
+  shield top right ("Azure semy of charges Or") and makes an empty charge
+  card set to semy; the next charge picked in the charges question fills it.
+- **Charge cards show the charge alone** (the maintainer: "it's impossible
+  to really see what a 'bycocket' looks like"): one of it, as the only
+  charge on the shield. Whether it can still be added to what is chosen
+  still greys or hides the card. Whole designs are for the suggestions.
+- **One ordinary for each complex line** in the list of charges ("fess
+  wavy", "fess embattled"...), under "ordinaries" and by typing the line.
+- **A "?" in a circle** beside "default mode" says what it does (the
+  maintainer's sentence) when the pointer rests on it or it is pressed.
 
 ## Next, in the maintainer's words
 
@@ -432,9 +461,14 @@ here were made with the maintainer; add to it as things are decided.
      Decisions needed: whether the rules should judge the tweaked picture
      (probably not: it is the same blazon), and that a tweak is forgotten
      when the charge or its number changes. Ordinaries would not move.
-14. **The background picker, made like the charge picker** (the
-    maintainer's sketch, the end of November 2026; NOT BUILT, waiting for
-    their go-ahead on the plan below). Their words: "I don't think I
+14. *(Built 28 November 2026, see "The background picker" above. Still to
+    do: picking SEVERAL things at once and seeing every way they combine,
+    which the maintainer set aside for "a single picker ... if the user
+    picks 'more complex options' ... it shows a second time"; a part of a
+    part; "semy of charges" on one part from the picker itself; the one
+    merged "element selector" as a separate page.)*
+    **The background picker, made like the charge picker** (the
+    maintainer's sketch, the end of November 2026). Their words: "I don't think I
     currently like the way background picking works - it gets complex when
     you add complex lines. Let's make the background picker work like the
     charge picker." And: they no longer like "Show one-part backgrounds".
@@ -459,8 +493,8 @@ here were made with the maintainer; add to it as things are decided.
       the page teaches with); one merged "element selector" for backgrounds
       and charges (worth trying as a separate page later, as they said: it
       changes every question on the page at once).
-15. **Parted charges** (the maintainer, the end of November 2026; NOT
-    BUILT): "Please allow charges to be parted the same way backgrounds
+15. *(Built 28 November 2026, see "Parted charges" above.)*
+    **Parted charges** (the maintainer, the end of November 2026): "Please allow charges to be parted the same way backgrounds
     are. I should be allowed 'argent, a lion barry gules and or', or
     'sable, a bordure checky argent and gules', etc. Bordures should
     additionally be allowed to be parted bordurewise." Needs: a charge's
@@ -477,25 +511,55 @@ here were made with the maintainer; add to it as things are decided.
 
 ## Questions waiting for the maintainer
 
+From the background-picker round (28 November 2026):
+
+- **"A third of a complex line must show"** is applied to EVERY complex
+  line of division, not only between two colours or two metals: "Per fess
+  wavy argent and azure" under a fess is held back too (with a sentence of
+  its own, DRAFT). Say if it was meant for the low-contrast pairings only.
+  With nothing over the line, every pairing but SENA's two (sable with
+  azure, sable with purpure) is now offered to everybody.
+- **"patterns" and "5+ parts"** in the picker's menu: checky and lozengy
+  are under "patterns"; gyronny, paly, barry, bendy, bendy sinister,
+  chevronelly and orly under "5+ parts". A guess at the sketch's meaning.
+- **The heading** is still "How is the background divided?", though the
+  list now has furs, treatments and "semy of charges" as well.
+- **"What colours are used in the background?"** is gone as a question,
+  and with it its line of help ("If you're not sure what counts as
+  background (field) in heraldry, use the question at the top..."). Say if
+  that help should live somewhere else.
+- **Picking several backgrounds at once** and seeing every way they combine
+  (the first sketch) was not built: the second picker for one part does
+  that job, as the later message asked.
+- **A parted charge's example colours** in "More complex options" are a
+  colour and a metal the background does not use; change them on the card.
+- **Parallel ordinaries:** still the maintainer's rule; they think it was a
+  recent ruling. With the precedent's wording it can cite it.
+- **Wording to check** (DRAFT in the page's `TEXT`): "line" (the heading
+  over the lines in the picker's menu), "No background matches that.", "It
+  has no room for all the colours chosen", "colour 1:" / "colour 2:" (the
+  colours of a part that is itself divided, and of a parted charge),
+  "plain colour" (takes a part's own division away), "More complex options
+  for part 1", "More complex options for the lion", "made of ... and ..."
+  (the two colours of a fur or treatment), "Pick which charge under 'What
+  charges are on the field?' below." (after "semy of charges"), "So little
+  of the complex line shows that it cannot be made out"; and from before:
+  "over:", "the whole background", "part 1 only (purpure)".
+
 From the pickers-and-rules round (the end of November 2026):
 
-- **Default mode with nothing picked** still suggests any charge at all (it
-  has nothing to keep to). "default mode" and "only" both use ALL the
-  charges picked, like "all of". Say if either should be otherwise.
-- **Parallel ordinaries** is recorded as the maintainer's rule: no sentence
-  of SENA was found that says it. If there is a precedent to cite, it can
-  become a SENA-level refusal instead of one heralds can override.
-- **Purpure and vert** with a complex line (6 registrations since 2015) is
-  still held back for heralds, with the three rarer pairings. Five
-  pairings are offered to everybody.
+- *(Answered: "I like that default mode with nothing picked still suggests
+  any charge, that's correct".)* **Default mode with nothing picked**
+  suggests any charge at all. "default mode" and "only" both use ALL the
+  charges picked, like "all of".
+- *(Answered: "Parallel ordinaries may be confused for field divisions" is
+  the sentence for now.)* **Parallel ordinaries** is recorded as the
+  maintainer's rule: no sentence of SENA was found that says it.
+- *(Answered: "it's less about the specific colour combination and more
+  about identifiability": see "a third of a complex line must show".)*
+  **Purpure and vert** with a complex line was held back for heralds.
 - **The traced lines:** look at nebuly and rayonny on a bordure and on a
   bend, where they are drawn smallest.
-- **Wording to check** (DRAFT in the page's `TEXT`): the hint on "default
-  mode" ("Suggestions use the charges you picked, and may add an ordinary
-  or a simple shape (a mullet, a roundel...), but no other charge."),
-  "over:", "the whole background", "part 1 only (purpure)", and "A fess
-  cannot go with a chief or a base, nor an orle with a bordure: they run
-  side by side" (the reason shown for the new rule, on both pages).
 
 From the complex lines round (the end of November 2026):
 

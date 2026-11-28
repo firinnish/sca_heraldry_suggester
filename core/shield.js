@@ -22,7 +22,7 @@
 // them out, and the rules skip whatever they cannot judge yet.
 
 import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, AROUND_NAMED, SEMY,
-         LINES, LINED_ORDINARIES, canBeLined } from './catalog.js';
+         LINES, LINED_ORDINARIES, BORDUREWISE, canBeLined, partedOf } from './catalog.js';
 
 const checkTincture = t => {
   if (t !== null && !TINCTURES[t]) throw new Error('Unknown tincture: ' + t);
@@ -30,7 +30,24 @@ const checkTincture = t => {
 
 export function plain(tincture) {
   checkTincture(tincture);
-  return { type: 'plain', tincture };
+  // (A parted tincture is made for a charge, "a lion barry gules and Or". As
+  // a field it is simply that division: see partedField below. Only a
+  // bordure can be parted bordurewise.)
+  const parted = partedOf(tincture);
+  if (parted && parted.division === BORDUREWISE) throw new Error('A field cannot be parted bordurewise');
+  return partedField(tincture) || { type: 'plain', tincture };
+}
+
+// PARTED CHARGES. A charge's `tincture` may be a parted one (catalog.js:
+// "parted:barry:gules,or"): the charge is divided as a field would be. This
+// gives the field such a tincture stands for, divided('barry', [plain('gules'),
+// plain('or')]), so that the blazon, the rules and the drawing can treat a
+// parted charge with what they already know about fields. Null for any
+// other tincture. (Only a bordure can be parted bordurewise, so as a field
+// that one is good for the rules and the blazon alone: it has no shape.)
+export function partedField(tincture) {
+  const parted = partedOf(tincture);
+  return parted ? divided(parted.division, parted.parts.map(plain), parted.line) : null;
 }
 
 export function divided(division, parts, line = 'plain') {
@@ -243,10 +260,15 @@ export function counterchangedField(field) {
   return swap(field);
 }
 
-// Every tincture a whole shield uses (a counterchanged charge adds none).
+// Every tincture a whole shield uses (a counterchanged charge adds none, and
+// a parted charge each of its parts).
 export function shieldTinctures(field, groups = []) {
   const used = new Set(tincturesIn(field));
-  for (const g of allGroups(groups)) if (g.tincture && g.tincture !== COUNTERCHANGED) used.add(g.tincture);
+  for (const g of allGroups(groups)) {
+    if (!g.tincture || g.tincture === COUNTERCHANGED) continue;
+    const parted = partedOf(g.tincture);
+    for (const t of parted ? parted.parts : [g.tincture]) used.add(t);
+  }
   return [...used];
 }
 

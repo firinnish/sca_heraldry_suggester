@@ -36,7 +36,6 @@
   .opt { display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .opt .card { flex: 1; }
   .opt .link-btn { font-size: 0.68rem; padding: 0; color: var(--muted); }
-  .show-row { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 0; }
   .line-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 0; font-size: 0.9rem; }
   .line-row select { padding: 4px 6px; }
   .ai-link { font-size: 0.75rem; color: var(--muted); }
@@ -130,17 +129,28 @@
   .view-head { font-size: 0.82rem; font-weight: bold; padding: 6px 6px 1px; }
   .picker-grid { overflow-y: auto; padding: 8px; }
   @media (max-width: 560px) { .picker { grid-template-columns: 1fr; height: auto; } .views { max-height: 130px; } .picker-grid { max-height: 420px; } }
-  .mode-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 12px; font-size: 0.88rem; font-weight: bold; }
-  .switch { width: 46px; height: 22px; border-radius: 12px; border: 1.5px solid var(--ink); background: #e9e1cf; padding: 1px; display: flex; justify-content: flex-start; }
-  .switch i { width: 17px; height: 17px; border-radius: 50%; background: var(--ink); }
-  .switch[aria-checked="true"] { justify-content: flex-end; }
+  .mode-row { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 12px; font-size: 0.88rem; font-weight: bold; }
+  /* A little "?" in a circle: what it explains shows (just above the row it
+     is in) when the pointer rests on it, or it is pressed. */
+  .help-wrap { display: inline-flex; }
+  .help-q { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--ink); background: #fff; font-size: 0.75rem; font-weight: bold; padding: 0; line-height: 1; }
+  .help-bubble { display: none; position: absolute; left: 0; bottom: calc(100% + 4px); width: min(360px, 100%); background: #fff; border: 1.5px solid var(--ink); border-radius: 6px; padding: 6px 9px; font-size: 0.8rem; font-weight: normal; line-height: 1.3; z-index: 5; }
+  .help-q:hover + .help-bubble, .help-q:focus-visible + .help-bubble, .help-q[aria-expanded="true"] + .help-bubble { display: block; }
+  /* The background picker: the colours it "must contain all of", and under the list what was picked. */
+  .must-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0 0 10px; font-size: 0.88rem; }
+  .must-row .strip { margin-top: 0; gap: 3px; }
+  .must-row .sq svg { width: 26px; height: 26px; }
+  .bg-picked { border: 1.5px solid var(--ink); border-radius: 6px; padding: 8px 12px 12px; margin-top: 12px; }
+  .bg-picked .line-row { margin-top: 8px; }
+  .bg-picked .selected-row { margin-top: 10px; }
+  .slot .made-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 6px; font-size: 0.82rem; }
+  .slot .made-row select { padding: 3px 5px; font-size: 0.82rem; }
+  .picker.small { height: 330px; margin-top: 8px; }
   .credits { font-size: 0.82rem; margin: 10px 0 0; }
   .credits a { color: var(--accent); }
   .roles { display: grid; gap: 8px; margin-top: 14px; }
   .roles label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.9rem; }
 
-  .builder { display: grid; gap: 10px; margin-top: 14px; }
-  .builder label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.9rem; }
   select, input[type="search"] { font-family: inherit; font-size: 0.9rem; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); max-width: 100%; }
   input[type="search"] { width: 100%; margin: 12px 0; }
 
@@ -195,7 +205,6 @@
     <div class="questions">
       <section class="panel" id="shieldColoursPanel"></section>
       <section class="panel" id="divisionPanel"></section>
-      <section class="panel" id="fieldColoursPanel"></section>
       <section class="panel" id="chargePanel"></section>
       <section class="panel" id="arrangePanel"></section>
     </div>
@@ -212,9 +221,10 @@
 <script type="module">
 import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, familyOf,
          ARRANGEMENTS, USUAL_ARRANGEMENT, SEMY, arrangementsFor, ORIENTATIONS, isLying, postureCode, ordinaryLabel,
-         PATTERNS, tinctureFrom, divisionsTogether, LINES, LINED_ORDINARIES, canBeLined, SIMPLE_CHARGES } from '../../core/catalog.js';
-import { plain, divided, isComplete, isNested, leafTinctures, shieldTinctures, blazon, ordinaryGroup,
-         chargeGroupFromLibrary, allGroups, COUNTERCHANGED } from '../../core/shield.js';
+         PATTERNS, tinctureFrom, divisionsTogether, LINES, LINED_ORDINARIES, canBeLined, SIMPLE_CHARGES,
+         partedTincture, partedOf } from '../../core/catalog.js';
+import { plain, divided, isComplete, isNested, leafTinctures, tincturesIn, shieldTinctures, blazon, ordinaryGroup,
+         chargeGroup, chargeGroupFromLibrary, allGroups, COUNTERCHANGED } from '../../core/shield.js';
 import { layoutShield } from '../../core/layout.js';
 import { shieldSVG, swatchSVG, counterchangedSwatchSVG } from '../../core/draw.js';
 import { shieldPNG } from '../../core/export.js';
@@ -238,12 +248,31 @@ const TEXT = {
   // Under an option's picture: adds that whole design to the suggestions,
   // pinned (the maintainer's words).
   makeSuggestion: 'make suggestion',
-  // With three colours chosen for the background, the plain and two-colour
-  // backgrounds are kept behind these (the maintainer's words).
-  showOnePart: 'Show one-part backgrounds',
-  showTwoPart: 'Show two-part backgrounds',
-  hideOnePart: 'Hide one-part backgrounds',                             // DRAFT
-  hideTwoPart: 'Hide two-part backgrounds',                             // DRAFT
+  // The background picker (the maintainer's sketch, the end of November
+  // 2026: "Let's make the background picker work like the charge picker").
+  // These are the words of the sketch unless marked DRAFT.
+  bgViewDefault: 'default',
+  bgViewAll: 'show all',
+  bgGroups: { plain: 'plain', two: '2-part', three: '3-part', four: '4-part', many: '5+ parts',
+              patterns: 'patterns', furs: 'furs', treatments: 'field treatments' },
+  bgViewLine: 'line',                                                   // DRAFT (the heading over the complex lines in the menu on the left)
+  bgViewsLabel: 'Which backgrounds to show',                            // DRAFT (read out by screen readers only)
+  bgMust: 'must contain all of:',
+  bgSearch: 'Type to find a field description',
+  bgSemy: 'semy of charges',
+  bgSemyHelp: 'Pick which charge under "What charges are on the field?" below.',   // DRAFT (shown once "semy of charges" is picked)
+  bgNoRoom: 'It has no room for all the colours chosen',                // DRAFT
+  bgNoMatch: 'No background matches that.',                             // DRAFT
+  swapParts: 'Swap the parts',
+  partLabel: n => `part ${n}`,
+  partColour: n => `colour ${n}:`,                                       // DRAFT (the colours of a part that is itself divided)
+  partPlain: 'plain colour',                                             // DRAFT (the button that takes a part's own division away again)
+  partMoreHeading: n => `More complex options for part ${n}`,           // DRAFT
+  madeOf: 'made of',                                                    // DRAFT (before the two colours of a fur or treatment made from two)
+  // "More complex options" on a chosen charge's card: the same list, for
+  // that charge's colour (the maintainer, 28 November 2026).
+  chargeMoreHeading: name => `More complex options for the ${name}`,    // DRAFT
+  bordurewise: 'parted bordurewise',                                    // (the maintainer's words: only a bordure can be)
   nestedLabel: 'With all of these colours',                             // DRAFT (backgrounds where one part is itself divided)
   // Shown with the shield when a charge lies on a canton (the maintainer's words).
   augmentation: 'This usually represents an augmentation of honour, and is not allowed in the SCA without an augmentation of arms',
@@ -267,18 +296,11 @@ const TEXT = {
   makerColour: 'Which colour',                                          // DRAFT (the same)
   makerAdd: name => (name ? `add ${name}` : 'add'),                     // DRAFT
   makerNeeds: 'Choose one colour and one metal',                        // DRAFT
-  fieldColours: 'What colours are used in the background?',
-  fieldColoursHelp: "If you're not sure what counts as background (field) in heraldry, use the question at the top to select colours and scroll down for more questions",
   dividedHeading: 'How is the background divided?',
-  plainBackground: colour => `Plain ${colour} Background`,
   plainBackgroundAny: 'Plain Background',                               // DRAFT
-  complexOption: 'more complex background',
-  swap: 'Swap the two colours',                                         // DRAFT
-  builderDivision: 'The background is divided',                         // DRAFT
   builderOver: 'and counterchanged with',                               // DRAFT (a second division over the first: "orly and chevronelly")
   builderNoOver: 'nothing else',                                        // DRAFT
-  builderPart: n => `Part ${n} is`,                                     // DRAFT
-  builderAnd: 'and',                                                    // DRAFT
+  and: 'and',
   chargeHeading: 'What charges are on the field?',
   chargeHelp: 'Pick up to three. Pick one again to take it off.',       // DRAFT
   chargeFull: 'Three charges are chosen already',                       // DRAFT
@@ -306,7 +328,9 @@ const TEXT = {
   modeOnly: 'only',
   modeTail: 'my selections, or',
   modeDefault: 'default mode',
-  modeDefaultHelp: 'Suggestions use the charges you picked, and may add an ordinary or a simple shape (a mullet, a roundel...), but no other charge.', // DRAFT (shown when the pointer rests on "default mode")
+  // What the little "?" beside "default mode" says when the pointer rests
+  // on it or it is pressed (the maintainer's words, 28 November 2026).
+  modeDefaultHelp: 'Suggestions include the charges you picked, plus ordinaries and simple geometric charges',
   youSelected: name => `you selected: ${name}`,
   noneSelected: 'no charge selected yet',                               // DRAFT
   numberLabel: 'number:',
@@ -328,7 +352,7 @@ const TEXT = {
   lineLabel: 'line:',                                                   // DRAFT
   linePlain: 'plain',                                                   // DRAFT (a straight line)
   exploreLine: 'line',                                                  // DRAFT
-  fieldLineLabel: 'divided with a line that is',                        // DRAFT (beside the menu of lines for the background)
+  fieldLineLabel: 'divided with a line that is',                        // (the words of the maintainer's sketch of the background picker)
   asDrawn: 'as drawn',                                                  // DRAFT (the orientation the picture was drawn in)
   inverted: 'inverted',
   contourny: 'facing sinister',                                         // DRAFT (the blazon says "contourny")
@@ -445,7 +469,12 @@ const TEXT = {
     'pattern-hidden': 'So little of the background shows that its pattern cannot be made out',
     'complex-line-ruled-out': 'A complex line between these two colours has been ruled unregisterable',
     'complex-line-contrast': 'Complex lines between two metals/colours may not be allowed; use herald mode to override',   // (the maintainer's words)
-    'parallel-ordinaries': 'A fess cannot go with a chief or a base, nor an orle with a bordure: they run side by side',
+    'complex-line-hidden': 'So little of the complex line shows that it cannot be made out',
+    // A charge parted like a background ("a lion barry gules and Or"):
+    'parted-same-base': 'Two parts of the charge next to each other are too alike to tell apart',
+    'parted-complex-line-ruled-out': 'A complex line between these two colours has been ruled unregisterable',
+    'bordurewise-not-bordure': 'Only a bordure can be parted bordurewise',
+    'parallel-ordinaries': 'Parallel ordinaries may be confused for field divisions',   // (the maintainer's words)
     'arrangement-unity': 'With another charge above or below, charges in a line may be taken for one group with two arrangements',
     'not-possible': 'Not possible with the colours chosen',
   },
@@ -459,7 +488,6 @@ const MAX_NAMES_SHOWN = 40;
 const furOrder = () => [...FUR_ORDER, ...state.extraTinctures];
 const allTinctures = () => [...COLOUR_ORDER, ...METAL_ORDER, ...furOrder()];
 const TWO_TINCTURE = Object.keys(DIVISIONS).filter(d => DIVISIONS[d].parts === 2);
-const THREE_TINCTURE = Object.keys(DIVISIONS).filter(d => DIVISIONS[d].parts === 3);
 // A fresh starting point for the random pictures each time the page is opened.
 const SEED = String(Math.floor(Math.random() * 1e9));
 
@@ -480,10 +508,15 @@ const NUMBERS = [1, 2, 3, 4, 5, 6, SEMY];  // the "How many?" buttons
 const state = {
   herald: false,
   shieldColours: [],     // question 1: tinctures that may be used anywhere
-  fieldColours: [],      // question 2: the background's tinctures, in order
-  division: null,        // null | 'plain' | a division id | 'complex'
-  fieldLine: null,       // the complex line the background is divided with (an id from LINES in core/catalog.js), or null for plain
-  builder: null,         // the "more complex background" form
+  // The background: ONE description of it (a field from core/shield.js:
+  // plain, or a division whose parts are fields), in which any colour may
+  // still be null = not chosen yet. Null = nothing chosen about it.
+  field: null,
+  fieldColours: [],      // the colours the background "must contain all of", in the order ticked
+  bgView: 'default',     // which backgrounds the picker shows: 'default' | 'all' | a group of BG_GROUPS | 'line:<id>'
+  bgFilter: '',          // what is typed in "Type to find a field description"
+  bgOpen: null,          // which part's "More complex options" picker is open ("0", "1"...), or null
+  bgSubView: 'default',  // which backgrounds that second picker shows
   // What is on the field: one entry per charge chosen (up to MAX_ITEMS).
   // The first entry is always there, so "how many" and "what colour" can be
   // answered before a charge is picked.
@@ -510,11 +543,12 @@ const state = {
   //   'all'      all of them, and perhaps other charges
   //   'only'     all of them and nothing else
   mode: 'default',
-  showParts: { one: false, two: false },   // "Show one-part backgrounds" / "Show two-part backgrounds" pressed?
   extraTinctures: [],    // furs and field treatments made under "More complex options" (ids from tinctureFrom in core/catalog.js)
   moreOptions: false,    // is "More complex options" open?
   maker: { pattern: 'ermined', first: 'vert', second: 'or' },   // what it is set to make
   explore: null,         // which chosen charge's bigger box of postures and orientations is open ("expand"), or null
+  chargeMore: null,      // which chosen charge's "More complex options" for its colour is open, or null
+  chargeColourView: 'default',   // which colourings that box shows
   pinned: [],            // suggestions the user has pinned
   epoch: 0,
   palette: DEFAULT_PALETTE, // the colour scheme shields are drawn in
@@ -537,11 +571,16 @@ const offered = () => palette() || allTinctures();
 function tidy() {
   // A colour used for the background or the charge is used in the shield
   // (once any shield colour is ticked: then they are all in the palette).
+  // (For a charge parted like a background, "barry gules and Or", that means
+  // the colours it is parted of.)
   if (state.shieldColours.length >= 1) {
-    for (const t of [...state.fieldColours, ...state.items.map(tinctureOf)]) {
+    const used = state.items.map(tinctureOf).flatMap(t => (partedOf(t) ? partedOf(t).parts : [t]));
+    for (const t of [...state.fieldColours, ...tincturesIn(state.field), ...used]) {
       if (t && t !== COUNTERCHANGED && !state.shieldColours.includes(t)) state.shieldColours.push(t);
     }
   }
+  // "More complex options" for a charge's colour stays open only while there is that charge.
+  if (state.chargeMore !== null && !(state.items[state.chargeMore] && state.items[state.chargeMore].choice) || state.noCharge) state.chargeMore = null;
   // How a charge's own charges are set out only lasts while it suits how many there are.
   // (It may be chosen before how many: then any number that suits it is offered.)
   // Strewn over one part of the background only lasts while the charges are
@@ -562,24 +601,20 @@ function tidy() {
   const explored = state.explore === null ? null : state.items[state.explore];
   const explorable = c => !!c && ((c.kind === 'charge' && !!c.file) || (c.kind === 'ordinary' && LINED_ORDINARIES.has(c.id)));
   if (state.noCharge || (state.explore !== null && !(explored && explorable(explored.choice)))) state.explore = null;
-  // With a "more complex background", the background's colours are whatever
-  // the form uses.
-  if (state.division === 'complex') state.fieldColours = [...new Set(leafTinctures(builderField()))];
-  // A division that cannot hold this many background colours is dropped.
-  const d = state.division, k = state.fieldColours.length;
-  if (d === 'plain' && k > 1) state.division = null;
-  else if (d && d !== 'plain' && d !== 'complex' && k > DIVISIONS[d].parts) state.division = null;
+  // The colours the background "must contain" follow the background chosen:
+  // every colour in it is one of them, and once it is all chosen they are
+  // exactly its colours.
+  const f = state.field;
+  if (f) {
+    const here = containedIn(f);
+    state.fieldColours = [...new Set([...state.fieldColours.filter(t => !isComplete(f) || here.has(t)), ...tincturesIn(f)])];
+  }
+  // "More complex options" for a part only stays open while there is that part.
+  if (state.bgOpen !== null && !(f && f.type === 'divided' && partAt(f, keyPath(state.bgOpen)))) state.bgOpen = null;
 }
 
 // ---- The shield described so far (parts not chosen are null) -----------------
-function currentField() {
-  const fc = state.fieldColours, d = state.division;
-  if (d === 'complex') return builderField();
-  if (d === 'plain') return plain(fc[0] ?? null);
-  if (d) return divided(d, Array.from({ length: DIVISIONS[d].parts }, (_, i) => plain(fc[i] ?? null)), state.fieldLine || 'plain');
-  if (fc.length === 1) return plain(fc[0]);     // one background colour and no division: plain
-  return null;
-}
+const currentField = () => state.field;
 
 function groupFor(choice, tincture, number, arranged = null) {
   if (choice.kind === 'ordinary') return ordinaryGroup(choice.id, tincture, { line: choice.line || 'plain' });
@@ -627,7 +662,22 @@ const together = (groups, arrangement) => (arrangement ? arrange(groups, arrange
 
 function currentShield() {
   const groups = chosen().map(x => x.group);
-  return { field: currentField(), groups: together(groups, chosenArrangement(groups.length)), noCharge: state.noCharge };
+  return { field: currentField(), groups: [...together(groups, chosenArrangement(groups.length)), ...placeholders(groups.length)], noCharge: state.noCharge };
+}
+
+// Charges strewn over the background before it is known what they are
+// ("semy of charges", picked as a background): drawn as blobs for now, and
+// left out of the search (the maintainer, 28 November 2026: "show blobs or
+// maybe mullets initially, and direct the user to pick a specific charge
+// later"). `others`: how many charges that ARE chosen are on the shield.
+function placeholders(others = 0) {
+  return state.items.filter(item => !item.choice && item.number === SEMY).map(item => ({
+    ...chargeGroup({ charge: 'charge', name: 'charge', plural: 'charges', number: SEMY, tincture: tinctureOf(item),
+                     ...(others ? { role: 'secondary', place: 'around' } : { role: 'primary' }) }),
+    placeholder: true,
+    // (strewn over one part of the background only, if that has been said)
+    ...(Number.isInteger(item.part) ? { part: item.part } : {}),
+  }));
 }
 
 // The shield shown top right: as chosen, but where what has been chosen
@@ -655,7 +705,7 @@ function shownShield() {
       if (ok.length === 1) groups = withTincture(ok[0]);
     });
   }
-  return { field, groups: assumeNumbers(field, together(groups, arrangement)), noCharge: state.noCharge };
+  return { field, groups: [...assumeNumbers(field, together(groups, arrangement)), ...placeholders(groups.length)], noCharge: state.noCharge };
 }
 
 // The one way to fill a field's unchosen colours from `palette` that the
@@ -680,7 +730,8 @@ function fillings(field, palette, most = 60) {
     if (found.length >= most) return;
     if (chosen.length === slots) {
       const f = fill(field, [...chosen]);
-      if (!checkShield({ field: f }).length) found.push(f);
+      // (it must also contain every colour the background "must contain")
+      if (!checkShield({ field: f }).length && state.fieldColours.every(t => containedIn(f).has(t))) found.push(f);
       return;
     }
     for (const t of palette) tryAll([...chosen, t]);
@@ -691,19 +742,16 @@ function fillings(field, palette, most = 60) {
 
 // When the colours ticked for the shield leave the background only one set
 // of colours (azure and Or are ticked and the background is per pale), they
-// are chosen in "What colours are used in the background?" there and then,
-// in the order they were ticked; "Swap the two colours" turns them round
-// (the maintainer, November 2026). Done when a division is picked or the
-// shield's colours change, not all the time, so that a colour can still be
-// taken off the background by hand.
+// are chosen for its parts there and then, in the order they were ticked;
+// "Swap the parts" turns them round (the maintainer, November 2026). Done
+// when a background is picked or the shield's colours change, not all the
+// time, so that a colour can still be taken off a part by hand.
 function assumeFieldColours() {
-  const p = palette(), d = state.division;
-  if (!p || p.length > 4 || !d || d === 'complex' || state.fieldUnspecified) return;
-  const field = currentField();
-  if (!field || isComplete(field)) return;
+  const p = palette(), field = currentField();
+  if (!p || p.length > 4 || !field || state.fieldUnspecified || isComplete(field)) return;
   const ways = fillings(field, p);
   const sets = new Set(ways.map(f => [...leafTinctures(f)].sort().join()));
-  if (sets.size === 1) state.fieldColours = leafTinctures(ways[0]);
+  if (sets.size === 1) state.field = ways[0];
 }
 
 // The same for a charge's colour (the maintainer, November 2026): with
@@ -762,9 +810,10 @@ function constraints() {
   return {
     palette: palette(),
     mustInclude: mustInclude(),
-    fieldTinctures: state.fieldColours.length ? state.fieldColours : null,
-    division: state.division === 'complex' ? null : state.division,
-    line: state.fieldLine || undefined,
+    // The background: all of it if it is all chosen; otherwise what is
+    // chosen of it (`template`), and the colours it must contain.
+    fieldHas: state.fieldColours.length ? state.fieldColours : null,
+    template: field && !isComplete(field) ? field : undefined,
     field: isComplete(field) ? field : undefined,
     items,
     arrangement: Array.isArray(items) ? chosenArrangement(items.filter(x => x.charge).length) : null,
@@ -814,15 +863,19 @@ const forgetLater = panel => { later = later.filter(x => x.panel !== panel); };
 
 // An option card that may be filled in later. `args(found)` gives what card()
 // needs; `found` is what option() returns, or undefined while waiting.
-function lazyCard(panel, tag, c, args) {
+// `hide(found)` (optional): true = leave the card out altogether (a list
+// that shows only what can still be chosen).
+function lazyCard(panel, tag, c, args, hide = null) {
   const key = optionKey(tag, c);
-  if (remembered.has(key)) return card(args(remembered.get(key)));
+  if (remembered.has(key)) return hide && hide(remembered.get(key)) ? '' : card(args(remembered.get(key)));
   const id = `w${waitingCards++}`;
   later.push({ panel, run: () => {
     const waiting = document.querySelector(`[data-waiting="${id}"]`);
     if (!waiting) return;
+    const found = option(tag, c);
+    if (hide && hide(found)) { waiting.remove(); return; }
     const holder = document.createElement('div');
-    holder.innerHTML = card(args(option(tag, c)));
+    holder.innerHTML = card(args(found));
     const fresh = holder.firstElementChild, focused = document.activeElement === waiting;
     waiting.replaceWith(fresh);
     if (focused) cardButton(fresh).focus({ preventScroll: true });
@@ -925,9 +978,6 @@ function tinctureMaker() {
 function renderColourPanels() {
   $('shieldColoursPanel').innerHTML = `<h2>${esc(TEXT.shieldColours)}</h2><p class="help">${esc(TEXT.shieldColoursHelp)}</p>` +
     slimSets(allTinctures(), { attr: 'data-q1', on: id => state.shieldColours.includes(id) }) + tinctureMaker() + paletteChooser();
-  $('fieldColoursPanel').innerHTML = `<h2>${esc(TEXT.fieldColours)}</h2><p class="help">${esc(TEXT.fieldColoursHelp)}</p>` +
-    slimSets(offered(), { attr: 'data-q2', on: id => state.fieldColours.includes(id),
-      also: `<button class="name-btn" type="button" data-field-unspecified aria-pressed="${state.fieldUnspecified}">${esc(TEXT.dontSpecify)}</button>` });
 }
 
 // `waiting`: the card's picture is still being worked out (see lazyCard); it
@@ -958,195 +1008,384 @@ let pinCount = 0;
 // The button of an option made by card(), whether or not it has "make suggestion" under it.
 const cardButton = made => (made.matches('button') ? made : made.querySelector('button'));
 
-function permutations(list) {
-  if (list.length <= 1) return [list];
-  return list.flatMap((x, i) => permutations([...list.slice(0, i), ...list.slice(i + 1)]).map(p => [x, ...p]));
+// ---- "How is the background divided?" ------------------------------------------
+// The background picker (the maintainer's sketch, the end of November 2026:
+// "Let's make the background picker work like the charge picker"). A menu on
+// the left to narrow the list down, the colours the background "must contain
+// all of" as a row of squares, a box to search by name, and a picture for
+// every way a background can be made: plain, each division, the furs, the
+// field treatments, and "semy of charges". Under the list, what was picked:
+// the line it is divided with, a colour for each part, and "More complex
+// options" on a part, which opens a second copy of the picker for that part
+// alone ("per pale, and the second part checky").
+//
+// What is chosen is ONE description of the background (state.field: a field
+// from core/shield.js in which any colour may still be null), so the
+// questions, the shield top right and the suggestions cannot disagree.
+
+// The groups of the menu on the left, in the order of the sketch.
+const BG_GROUPS = ['plain', 'two', 'three', 'four', 'many', 'patterns', 'furs', 'treatments'];
+// (Which divisions the sketch means by "patterns" and which by "5+ parts" is
+// a guess, to be confirmed: the two that tile the shield are the patterns.)
+const BG_PATTERNS = new Set(['checky', 'lozengy']);
+const bgGroupOf = division => (BG_PATTERNS.has(division) ? 'patterns' : familyOf(division));
+const PLAIN_ONES = [...COLOUR_ORDER, ...METAL_ORDER];
+
+// A part of the background, by where it is: [] is the whole of it, [1] its
+// second part, [1, 0] the first part of that. On the page: "top", "1", "1.0".
+const pathKey = path => (path.length ? path.join('.') : 'top');
+const keyPath = key => (key === 'top' ? [] : String(key).split('.').map(Number));
+const partAt = (field, path) => path.reduce((f, i) => (f && f.type === 'divided' ? f.parts[i] || null : null), field);
+const withPart = (field, path, make) => (!path.length ? make(field)
+  : { ...field, parts: field.parts.map((p, i) => (i === path[0] ? withPart(p, path.slice(1), make) : p)) });
+const emptyDivision = (division, line = 'plain') =>
+  divided(division, Array.from({ length: DIVISIONS[division].parts }, () => plain(null)), line);
+// The first part of a background with no colour yet, or null.
+function firstOpen(field, path = []) {
+  if (field.type === 'plain') return field.tincture === null ? path : null;
+  for (let i = 0; i < field.parts.length; i++) {
+    const found = firstOpen(field.parts[i], [...path, i]);
+    if (found) return found;
+  }
+  return null;
+}
+// Every tincture a background contains, counting both tinctures of a fur or
+// treatment made from two ("purpure masoned argent" has purpure and argent).
+const containedIn = field => new Set(tincturesIn(field).flatMap(t => [t, ...(TINCTURES[t].pair || [])]));
+// A background with one tincture taken out of it: those parts are open again.
+const withoutTincture = (field, t) => (!field ? field : field.type === 'plain'
+  ? (field.tincture === t || (field.tincture && (TINCTURES[field.tincture].pair || []).includes(t)) ? plain(null) : field)
+  : { ...field, parts: field.parts.map(p => withoutTincture(p, t)) });
+// A fur or treatment made from two colours joins the furs on offer when it is used.
+function offerMade(id) {
+  if (id && TINCTURES[id] && TINCTURES[id].pattern && !allTinctures().includes(id)) state.extraTinctures.push(id);
 }
 
-// "How is the background divided?": one picture per division. When the
-// background's colours are not all chosen, the colours shown are random ones
-// that the rules allow.
-function renderDivisionPanel() {
-  const fc = state.fieldColours, k = fc.length;
-  // (every picture is drawn with the complex line chosen for the background, if one has been)
-  const base = { palette: palette(), mustInclude: mustInclude(), charge: 'none', allowBare: true, line: state.fieldLine || undefined };
-  const cards = [];
-
-  const randomCard = id => {
-    const found = option('division', { ...base, division: id, fieldTinctures: k ? fc : null });
-    const label = id === 'plain' ? (k ? plainLabel(fc[0]) : TEXT.plainBackgroundAny) : DIVISIONS[id].name;
-    const on = state.division === id || (id === 'plain' && !state.division && k === 1);
-    return card({ attrs: `data-division="${id}"`, shield: found && found.shield, label, on,
-                  problems: found ? found.problems : [], why: found ? null : TEXT.rules['not-possible'] });
-  };
-  const exactCard = (id, order) => {
-    const field = divided(id, order.map(plain), state.fieldLine || 'plain');
-    const problems = checkShield({ field, groups: [] });
-    const on = state.division === id && fc.join() === order.join();
-    return card({ attrs: `data-division="${id}" data-order="${order.join(',')}"`, shield: { field, groups: [] },
-                  label: DIVISIONS[id].name, on, problems });
-  };
-
-  const plainCard = t => card({ attrs: `data-division="plain" data-order="${t}"`, shield: { field: plain(t), groups: [] },
-                                label: plainLabel(t), on: state.division === 'plain' && fc.join() === t });
-
-  if (k <= 1) {
-    cards.push(randomCard('plain'), ...TWO_TINCTURE.map(randomCard), ...THREE_TINCTURE.map(randomCard));
-  } else if (k === 2) {
-    cards.push(...TWO_TINCTURE.map(id => exactCard(id, fc)));
-  } else if (k === 3) {
-    cards.push(...THREE_TINCTURE.flatMap(id => permutations(fc).map(order => exactCard(id, order))));
+// A fur or treatment made from two colours, to show for its kind: made from
+// the colours the background must contain if they can make one, otherwise
+// from those on offer. Null if the colours asked for cannot make it.
+function madeExample(pattern, has = []) {
+  if (has.length > 2 || has.some(t => !PLAIN_ONES.includes(t))) return null;
+  const pool = shuffled(randomFrom(`${SEED}|made|${pattern}`), offered().filter(t => PLAIN_ONES.includes(t)));
+  const pairs = has.length === 2 ? [has, [...has].reverse()]
+    : has.length === 1 ? pool.flatMap(t => [[has[0], t], [t, has[0]]])
+    : pool.flatMap(a => pool.map(b => [a, b]));
+  for (const [a, b] of pairs) {
+    const id = tinctureFrom(pattern, a, b);
+    if (id) return id;
   }
-  cards.push(`<button class="card text-card" type="button" data-complex aria-pressed="${state.division === 'complex'}">${esc(TEXT.complexOption)}</button>`);
+  return null;
+}
 
-  // With two or more colours chosen, the backgrounds that use fewer of them
-  // are not shown at first, but they are not hidden either (the maintainer,
-  // November 2026): "Show one-part backgrounds" and "Show two-part
-  // backgrounds" bring them out. And with three or four colours, a few
-  // backgrounds that use ALL of them by dividing one part again ("per pale
-  // argent and barry sable and Or"); picking one opens it in "more complex
-  // background".
-  let more = '';
+// Everything a background can be made as, each { key, group, label, ... }:
+// plain; every division; the furs on offer; a fur or field treatment of each
+// kind, made from two colours; and charges strewn over it. For one PART of a
+// background (`inPart`): the same without "plain" and "semy of charges".
+function bgEntries(inPart = false) {
+  const list = inPart ? [] : [{ key: 'plain', group: 'plain', label: TEXT.plainBackgroundAny }];
+  for (const id of Object.keys(DIVISIONS)) list.push({ key: id, group: bgGroupOf(id), label: DIVISIONS[id].name, division: id });
+  for (const id of furOrder()) list.push({ key: `t:${id}`, group: TINCTURES[id].kind === 'treatment' ? 'treatments' : 'furs', label: TINCTURES[id].name, tincture: id });
+  for (const p of Object.keys(PATTERNS)) list.push({ key: `p:${p}`, group: PATTERNS[p].kind === 'treatment' ? 'treatments' : 'furs', label: PATTERNS[p].name('…', '…'), pattern: p });
+  if (!inPart) list.push({ key: 'semy', group: 'treatments', label: TEXT.bgSemy, semy: true });
+  // (in the order of the menu: plain, then two parts, three, four...)
+  return list.sort((a, b) => BG_GROUPS.indexOf(a.group) - BG_GROUPS.indexOf(b.group));
+}
+// Every division that can have one, drawn with a complex line ("per pale wavy").
+const bgLined = line => Object.keys(DIVISIONS).filter(canBeLined).map(id =>
+  ({ key: `${id}~${line}`, group: bgGroupOf(id), label: `${DIVISIONS[id].name} ${LINES[line].name}`, division: id, line }));
+const bgEntry = (key, inPart = false) => [...bgEntries(inPart), ...Object.keys(LINES).flatMap(bgLined)].find(e => e.key === key) || null;
+
+// The background an entry stands for: the colours it must contain put in, in
+// the order they were ticked, every other colour left open. Null if it has
+// no room for them all.
+function bgTemplate(entry, has) {
+  if (entry.tincture) return has.every(t => t === entry.tincture || (TINCTURES[entry.tincture].pair || []).includes(t)) ? plain(entry.tincture) : null;
+  if (entry.pattern) { const id = madeExample(entry.pattern, has); return id ? plain(id) : null; }
+  if (!entry.division) return has.length <= 1 ? plain(has[0] ?? null) : null;
+  const n = DIVISIONS[entry.division].parts;
+  return has.length <= n ? divided(entry.division, Array.from({ length: n }, (_, i) => plain(has[i] ?? null)), entry.line || 'plain') : null;
+}
+
+// Is this entry what `field` (the background, or one part of it) is now?
+function bgIsOn(entry, field) {
+  if (entry.semy) return state.items.some(item => item.number === SEMY);
+  if (!field) return false;
+  if (field.type === 'plain') {
+    const t = field.tincture ? TINCTURES[field.tincture] : null;
+    if (entry.tincture) return field.tincture === entry.tincture;
+    if (entry.pattern) return !!t && t.pattern === entry.pattern;
+    return !entry.division && (!t || t.kind === 'colour' || t.kind === 'metal');
+  }
+  return !!entry.division && field.division.split('+')[0] === entry.division && (!entry.line || field.line === entry.line);
+}
+
+// What a background is called under "you selected:": "per pale wavy", "per
+// pale and checky" (one part is checky), "ermine", "plain".
+function bgName(field) {
+  if (field.type === 'plain') {
+    const t = field.tincture ? TINCTURES[field.tincture] : null;
+    return t && t.kind !== 'colour' && t.kind !== 'metal' ? t.name : TEXT.bgGroups.plain;
+  }
+  const own = f => DIVISIONS[f.division].name + (f.line && f.line !== 'plain' ? ` ${LINES[f.line].name}` : '');
+  return [own(field), ...field.parts.filter(p => p.type === 'divided').map(own)].join(` ${TEXT.and} `);
+}
+
+// The menu on the left of a background picker.
+function bgMenu(attr, current, groups, lines) {
+  const item = (view, label, sub = false) =>
+    `<button class="view${sub ? ' sub' : ''}" type="button" ${attr}="${esc(view)}" aria-pressed="${current === view}">${esc(label)}</button>`;
+  return `<nav class="views" aria-label="${esc(TEXT.bgViewsLabel)}">` + item('default', TEXT.bgViewDefault) + item('all', TEXT.bgViewAll) +
+    groups.map(g => item(g, TEXT.bgGroups[g])).join('') +
+    (lines ? `<div class="view-head">${esc(TEXT.bgViewLine)}</div>` + Object.keys(LINES).map(id => item('line:' + id, LINES[id].name, true)).join('') : '') +
+    `</nav>`;
+}
+
+// One background in a picker: a picture of it, any colour not chosen filled
+// in with one the rules allow. `template` is the background it stands for
+// (null: it has no room for the colours asked for); `about` is whatever else
+// is fixed (the palette, the charges chosen); `hiding` leaves out what
+// cannot be chosen instead of greying it.
+function fieldCard({ attrs, label, on, template, about, hiding }) {
+  if (!template) return hiding && !on ? '' : card({ attrs, shield: null, label, on, why: TEXT.bgNoRoom });
+  const args = found => ({ attrs, label, on, shield: found && { field: found.shield.field, groups: [] },
+    problems: found ? found.problems : [], why: found === null ? TEXT.rules['not-possible'] : null });
+  return lazyCard('division', 'bg', { ...about, template }, args,
+    hiding && !on ? (found => found === null || found.problems.length > 0) : null);
+}
+
+function renderDivisionPanel() {
+  forgetLater('division');
+  const has = state.fieldColours, f = state.field;
+  const q = state.bgFilter.trim().toLowerCase();
+  const hiding = state.bgView === 'default' && !q;
+  // Each picture is a background that works with everything else chosen so
+  // far: the palette, and the charges if any are chosen (which is how the
+  // default view knows what the charges rule out).
+  const about = { ...constraints(), field: undefined, template: undefined, charge: 'none', allowBare: true };
+
+  const lined = Object.keys(LINES).flatMap(bgLined);
+  const list = q ? [...bgEntries(), ...lined].filter(e => e.label.toLowerCase().includes(q))
+    : state.bgView.startsWith('line:') ? bgLined(state.bgView.slice(5))
+    : bgEntries().filter(e => state.bgView === 'default' || state.bgView === 'all' || e.group === state.bgView);
+
+  const cards = list.map(entry => {
+    const attrs = `data-bg="${esc(entry.key)}"`, on = bgIsOn(entry, f);
+    if (entry.semy) return semyCard(attrs, on);
+    const template = bgTemplate(entry, has);
+    // (a fur or treatment made from two colours is named as it is drawn: "gules masoned Or")
+    const label = entry.pattern && template ? TINCTURES[template.tincture].name : entry.label;
+    return fieldCard({ attrs, label, on, template, about, hiding });
+  }).join('');
+
+  // With three or four colours to contain, a few backgrounds that hold them
+  // all by dividing one part again ("per pale argent and barry sable and
+  // Or"); picking one puts it in the questions, where it can be changed.
+  let nested = '';
   shownNested = [];
-  if (k >= 3) {
-    const key = `${SEED}|nested|${fc.join()}`;
-    shownNested = remember(key, () => randomShields({ fieldTinctures: fc, charge: 'none', allowBare: true }, key, library, 14)
+  if (has.length >= 3 && !q && (state.bgView === 'default' || state.bgView === 'all')) {
+    const key = `${SEED}|nested|${has.join()}`;
+    shownNested = remember(key, () => randomShields({ fieldTinctures: has, charge: 'none', allowBare: true }, key, library, 14)
       .filter(s => isNested(s.field)).slice(0, 6));
     if (shownNested.length) {
-      more += `<div class="row-label">${esc(TEXT.nestedLabel)}</div><div class="row">` + shownNested.map((s, i) =>
-        card({ attrs: `data-nested="${i}"`, shield: s, label: blazon(s.field, [], words).toLowerCase(), on: false })).join('') + `</div>`;
-    }
-  }
-  if (k >= 2) {
-    const toggleBtn = (which, show, hide) => `<button class="link-btn" type="button" data-show="${which}" aria-expanded="${state.showParts[which]}">` +
-      `${esc(state.showParts[which] ? hide : show)}</button>`;
-    more += `<div class="show-row">${toggleBtn('one', TEXT.showOnePart, TEXT.hideOnePart)}${k >= 3 ? toggleBtn('two', TEXT.showTwoPart, TEXT.hideTwoPart) : ''}</div>`;
-    if (state.showParts.one) more += `<div class="row" style="margin-top:8px">${fc.map(plainCard).join('')}</div>`;
-    if (state.showParts.two && k >= 3) {
-      const pairs = fc.flatMap((a, i) => fc.slice(i + 1).map(b => [a, b]));
-      more += pairs.map(pair => `<div class="row-label">${esc(pair.map(t => TINCTURES[t].name).join(' ' + TEXT.builderAnd + ' '))}</div>` +
-        `<div class="row">${TWO_TINCTURE.map(id => exactCard(id, pair)).join('')}</div>`).join('');
+      nested = `<div class="row-label">${esc(TEXT.nestedLabel)}</div><div class="row">` + shownNested.map((s, i) =>
+        card({ attrs: `data-nested="${i}"`, shield: s, label: blazon(s.field, [], words).toLowerCase(),
+               on: !!f && blazon(f, [], words) === blazon(s.field, [], words) })).join('') + `</div>`;
     }
   }
 
-  // The line the background is divided with: plain, or a complex line
-  // ("per pale wavy"). Every picture above is drawn with the one chosen.
-  const lineMenu = `<label class="line-row">${esc(TEXT.fieldLineLabel)} <select data-field-line>` +
-    [['', TEXT.linePlain], ...Object.keys(LINES).map(id => [id, LINES[id].name])].map(([id, name]) =>
-      `<option value="${id}"${(state.fieldLine || '') === id ? ' selected' : ''}>${esc(name)}</option>`).join('') + `</select></label>`;
+  const chip = id => `<button class="sq" type="button" data-q2="${id}" aria-pressed="${has.includes(id)}" ` +
+    `aria-label="${esc(TINCTURES[id].name)}" title="${esc(TINCTURES[id].name)}">${swatchSVG(id)}</button>`;
+  const chips = [...offered(), ...has.filter(id => !offered().includes(id))];
+  let html = `<h2>${esc(TEXT.dividedHeading)}</h2>` +
+    `<div class="must-row"><span class="pick-label">${esc(TEXT.bgMust)}</span><div class="strip">${chips.map(chip).join('')}</div></div>` +
+    `<input type="search" id="bgFilter" value="${esc(state.bgFilter)}" placeholder="${esc(TEXT.bgSearch)}" aria-label="${esc(TEXT.bgSearch)}" style="margin-top:0">`;
+  const grid = `<div class="row">${cards}</div>` + (list.length ? '' : `<p class="note">${esc(TEXT.bgNoMatch)}</p>`) + nested;
+  html += `<div class="picker">${bgMenu('data-bg-view', q ? '' : state.bgView, BG_GROUPS, true)}<div class="picker-grid" id="bgGrid">${grid}</div></div>`;
+  html += bgPickedBox();
 
-  $('divisionPanel').innerHTML = `<h2>${esc(TEXT.dividedHeading)}</h2>` +
-    (k === 2 ? `<p style="margin:0 0 12px"><button class="plain-btn" type="button" data-swap>⇄ ${esc(TEXT.swap)}</button></p>` : '') +
-    `<div class="row">${cards.join('')}</div>` + lineMenu + more +
-    (state.division === 'complex' ? renderBuilder() : '');
+  // Keep the list where it was scrolled to, unless it is now a different list.
+  const showing = `${state.bgView}|${q}`, was = $('bgGrid');
+  const top = was && showing === bgShowing ? was.scrollTop : 0;
+  const subWas = $('bgSubGrid'), subTop = subWas ? subWas.scrollTop : 0;
+  bgShowing = showing;
+  $('divisionPanel').innerHTML = html;
+  $('bgGrid').scrollTop = top;
+  if ($('bgSubGrid')) $('bgSubGrid').scrollTop = subTop;
 }
-let shownNested = [];                          // the backgrounds with a part divided again, as shown, by position
+let shownNested = [];          // the backgrounds with a part divided again, as shown, by position
+let bgShowing = '';            // the view and search the list of backgrounds was last drawn for
 
-function plainLabel(tincture) {
-  const t = TINCTURES[tincture];
-  return TEXT.plainBackground(t.kind !== 'colour' && t.kind !== 'metal' ? t.name : cap(t.plain));
-}
-
-// ---- The "more complex background" form ---------------------------------------
-function builderToField(b) {
-  const parts = b.parts.slice(0, DIVISIONS[b.division].parts).map(p =>
-    p.kind === 'plain' ? plain(p.tincture) : divided(p.kind, [plain(p.a), plain(p.b)]));
-  // Two divisions counterchanged over each other ("orly and chevronelly"):
-  // both parts are plain, and the second division is laid over the first.
-  const both = b.over && parts.every(p => p.type === 'plain') ? divisionsTogether(b.division, b.over) : null;
-  return divided(both || b.division, parts, state.fieldLine || 'plain');
-}
-
-function builderFromField(field) {
-  if (field.division.includes('+')) {
-    const [division, over] = field.division.split('+');
-    return { ...builderFromField({ ...field, division }), over };
-  }
-  const parts = field.parts.map(p => (p.type === 'plain'
-    ? { kind: 'plain', tincture: p.tincture, a: p.tincture, b: p.tincture }
-    : { kind: p.division, tincture: p.parts[0].tincture, a: p.parts[0].tincture, b: p.parts[1].tincture }));
-  while (parts.length < 3) parts.push({ ...parts[0] });
-  return { division: field.division, parts };
-}
-
-// Any tincture allowed in the shield can be used in the form; whatever the
-// form ends up using becomes the answer to "colours used in the background".
-const builderTinctures = offered;
-
-// Start the form on a random background the rules allow, using the
-// background colours already chosen (and adding others if more are needed).
-function defaultBuilder() {
-  const chosen = [...state.fieldColours];
-  // Two colours: two divisions counterchanged over each other ("lozengy and
-  // barry argent and sable": the maintainer, November 2026), if the rules
-  // allow those two colours together.
-  if (chosen.length === 2) {
-    for (let i = 0; i < 40; i++) {
-      const [a, b] = shuffled(randomFrom(`${SEED}|builder two|${i}|${chosen.join()}`), TWO_TINCTURE);
-      const id = divisionsTogether(a, b);
-      const field = id ? divided(id, chosen.map(plain)) : null;
-      if (field && !checkShield({ field, groups: [] }).length) return builderFromField(field);
+// "semy of charges" as a background (the maintainer, 28 November 2026): the
+// background as chosen so far with blobs strewn over it, in a colour the
+// rules allow. Which charge they are is picked in the charges question.
+function semyCard(attrs, on) {
+  const key = `${SEED}|semy card|${JSON.stringify([state.field, palette()])}`;
+  const shield = remember(key, () => {
+    const field = state.field || plain(null);
+    for (const t of [...shuffled(randomFrom(key), offered()), null]) {
+      const group = { ...chargeGroup({ charge: 'charge', name: 'charge', plural: 'charges', number: SEMY, tincture: t, role: 'primary' }), placeholder: true };
+      if (t === null || !isComplete(field) || !checkShield({ field, groups: [group] }).length) return { field, groups: [group] };
     }
-  }
-  const pool = offered().filter(t => !chosen.includes(t) && TINCTURES[t].kind !== 'fur');
-  for (let i = 0; i < 40; i++) {
-    const key = `${SEED}|builder|${i}|${chosen.join()}`;
-    const extra = shuffled(randomFrom(key), pool);
-    const set = [...chosen, ...extra].slice(0, Math.max(3, Math.min(chosen.length, 4)));
-    const found = set.length >= 3 && randomShield({ fieldTinctures: set, charge: 'none', allowBare: true }, key, library);
-    if (found && isNested(found.field)) return builderFromField(found.field);
-  }
-  const t = [...chosen, ...pool, ...allTinctures()];
-  return builderFromField(divided('perPale', [plain(t[0]), divided('checky', [plain(t[1]), plain(t[2])])]));
+    return null;
+  });
+  return card({ attrs, shield, label: TEXT.bgSemy, on });
 }
 
-function builderField() {
-  return builderToField(state.builder || (state.builder = defaultBuilder()));
+// ---- What was picked for the background, and its parts ---------------------------
+// A colour for one part: a menu, and every colour as a small square to
+// click (as on a chosen charge's card). A colour the rules do not allow
+// there is greyed, and one line underneath says why.
+function partColourRow(path, label) {
+  const f = state.field, part = partAt(f, path), key = pathKey(path), now = part.tincture;
+  const offer = [...offered(), ...(now && !offered().includes(now) ? [now] : [])];
+  const faults = new Map(offer.map(id => {
+    const found = checkShield({ field: withPart(f, path, () => plain(id)), groups: [] }).filter(p => p.id !== 'single-tincture');
+    return [id, found.length ? found : null];
+  }));
+  const greyed = id => (faults.get(id) ? ` greyed" aria-disabled="${!state.herald}" title="${esc(ruleText(faults.get(id)[0]))}` : '');
+  const option = id => `<option value="${id}"${now === id ? ' selected' : ''}${faults.get(id) && !state.herald && now !== id ? ' disabled' : ''}>${esc(TINCTURES[id].name)}</option>`;
+  const square = id => `<button class="sq${greyed(id)}" type="button" data-leaf="${key}" data-leaf-tincture="${id}" aria-pressed="${now === id}" ` +
+    `aria-label="${esc(TINCTURES[id].name)}"${faults.get(id) ? '' : ` title="${esc(TINCTURES[id].name)}"`}>${swatchSVG(id)}</button>`;
+  const inOrder = [...allTinctures().filter(id => offer.includes(id)), ...offer.filter(id => !allTinctures().includes(id))];
+  let html = `<div class="pick-row"><label class="pick-label" for="leaf${key}">${esc(label)}</label>` +
+    `<select id="leaf${key}" data-leaf-select="${key}"><option value="">${esc(TEXT.roleUnset)}</option>${inOrder.map(option).join('')}</select></div>` +
+    `<div class="strip">${inOrder.map(square).join('')}</div>` +
+    whyLine(inOrder.filter(id => faults.get(id)).map(id => [TINCTURES[id].name, faults.get(id)]));
+  // A fur or treatment made from two colours: which two.
+  const t = now ? TINCTURES[now] : null;
+  if (t && t.pattern) {
+    const side = which => `<select data-made="${which}" data-leaf="${key}" aria-label="${esc(TEXT.makerColour)}">` + PLAIN_ONES.map(id => {
+      const pair = which === 'first' ? [id, t.pair[1]] : [t.pair[0], id];
+      const on = t.pair[which === 'first' ? 0 : 1] === id;
+      return `<option value="${id}"${on ? ' selected' : ''}${tinctureFrom(t.pattern, ...pair) || on ? '' : ' disabled'}>${esc(TINCTURES[id].name)}</option>`;
+    }).join('') + `</select>`;
+    html += `<div class="made-row"><span>${esc(TEXT.madeOf)}</span>${side('first')}<span>${esc(TEXT.and)}</span>${side('second')}</div>`;
+  }
+  return html;
 }
 
-function renderBuilder() {
-  const b = state.builder || (state.builder = defaultBuilder());
-  const parts = DIVISIONS[b.division].parts;
-  // Would this change leave a background the rules allow?
-  const allowed = change => {
-    if (state.herald) return true;
-    const trial = { division: b.division, over: b.over || null, parts: b.parts.map(p => ({ ...p })) };
-    change(trial);
-    return checkShield({ field: builderToField(trial), groups: [] }).length === 0;
-  };
-  const opt = (value, label, selected, ok) =>
-    `<option value="${value}"${selected ? ' selected' : ''}${ok || selected ? '' : ' disabled'}>${esc(label)}</option>`;
-  const tinctureLabel = id => `${TINCTURES[id].plain} (${TINCTURES[id].name})`;
+// Under the list: "you selected: per pale wavy", "Swap the parts", the line
+// it is divided with, and a box for each part (the maintainer's sketch).
+function bgPickedBox() {
+  const f = state.field;
+  if (!f) return '';
+  const lineMenu = (attr, now) => `<select ${attr}>` + lineChoices().map(([id, name]) =>
+    `<option value="${id}"${(now && now !== 'plain' ? now : '') === id ? ' selected' : ''}>${esc(name)}</option>`).join('') + `</select>`;
+  const unspecified = `<button class="name-btn small" type="button" data-field-unspecified aria-pressed="${state.fieldUnspecified}">${esc(TEXT.dontSpecify)}</button>`;
+  let html = `<div class="bg-picked"><div class="slot-head"><span>${esc(TEXT.youSelected(bgName(f)))}</span><span>` +
+    (f.type === 'divided' ? `<button class="plain-btn" type="button" data-swap>⇄ ${esc(TEXT.swapParts)}</button> ` : '') + unspecified + `</span></div>`;
+  if (state.items.some(item => item.number === SEMY && !item.choice)) html += `<p class="note" style="margin:6px 0 0">${esc(TEXT.bgSemy)}: ${esc(TEXT.bgSemyHelp)}</p>`;
+  if (f.type === 'plain') return html + `<div class="selected-row"><div class="slot">${partColourRow([], TEXT.colourLabel)}</div></div></div>`;
 
-  // Every division may be the first choice: SENA allows a pattern of many
-  // pieces with a divided part ("Barry azure and checky gules and argent").
-  const tops = Object.keys(DIVISIONS);
-  let html = `<div class="builder"><label>${esc(TEXT.builderDivision)} <select data-b="division">` +
-    tops.map(id => opt(id, DIVISIONS[id].name, id === b.division, allowed(t => { t.division = id; }))).join('') + `</select></label>`;
+  const [top, over] = f.division.split('+');
+  if (canBeLined(f.division)) html += `<label class="line-row">${esc(TEXT.fieldLineLabel)} ${lineMenu('data-field-line', f.line)}</label>`;
   // A second division counterchanged over the first: "orly and chevronelly"
   // (the maintainer, November 2026). Only when each part is one plain colour.
-  if (parts === 2 && b.parts.slice(0, 2).every(p => p.kind === 'plain')) {
-    html += `<label>${esc(TEXT.builderOver)} <select data-b="over">` + opt('', TEXT.builderNoOver, !b.over, true) +
-      TWO_TINCTURE.filter(id => id !== b.division).map(id => opt(id, DIVISIONS[id].name, id === b.over, allowed(t => { t.over = id; }))).join('') + `</select></label>`;
+  if (DIVISIONS[top].parts === 2 && f.parts.every(p => p.type === 'plain')) {
+    const allowed = id => state.herald || !checkShield({ field: { ...f, division: divisionsTogether(top, id), line: 'plain' }, groups: [] }).length;
+    html += `<label class="line-row">${esc(TEXT.builderOver)} <select data-field-over><option value="">${esc(TEXT.builderNoOver)}</option>` +
+      TWO_TINCTURE.filter(id => id !== top && divisionsTogether(top, id)).map(id =>
+        `<option value="${id}"${over === id ? ' selected' : ''}${over === id || allowed(id) ? '' : ' disabled'}>${esc(DIVISIONS[id].name)}</option>`).join('') + `</select></label>`;
   }
-  for (let i = 0; i < parts; i++) {
-    const p = b.parts[i];
-    const kinds =
-      builderTinctures().map(id => opt('plain:' + id, tinctureLabel(id), p.kind === 'plain' && p.tincture === id,
-        allowed(t => { t.parts[i].kind = 'plain'; t.parts[i].tincture = id; }))).join('') +
-      TWO_TINCTURE.map(id => opt(id, DIVISIONS[id].name + '…', p.kind === id, allowed(t => { t.parts[i].kind = id; }))).join('');
-    html += `<label>${esc(TEXT.builderPart(i + 1))} <select data-b="kind" data-i="${i}">${kinds}</select>`;
-    if (p.kind !== 'plain') {
-      const side = which => `<select data-b="${which}" data-i="${i}">` + builderTinctures().map(id =>
-        opt(id, tinctureLabel(id), p[which] === id, allowed(t => { t.parts[i][which] = id; }))).join('') + `</select>`;
-      html += `${side('a')} ${esc(TEXT.builderAnd)} ${side('b')}`;
+  html += `<div class="selected-row">` + f.parts.map((part, i) => {
+    const key = String(i);
+    if (part.type === 'plain') {
+      return `<div class="slot"><div class="slot-head"><span>${esc(TEXT.partLabel(i + 1))}</span></div>${partColourRow([i], TEXT.colourLabel)}` +
+        (over ? '' : `<div class="pick-more"><button class="plain-btn" type="button" data-part-more="${key}" aria-expanded="${state.bgOpen === key}">${esc(TEXT.moreOptions)}</button></div>`) + `</div>`;
     }
-    html += `</label>`;
+    // A part that is itself divided: its own line, and a colour for each of its parts.
+    return `<div class="slot"><div class="slot-head"><span>${esc(TEXT.partLabel(i + 1))}: ${esc(bgName(part))}</span>` +
+      `<button class="link-btn" type="button" data-part-plain="${key}">${esc(TEXT.partPlain)}</button></div>` +
+      (canBeLined(part.division) ? `<div class="pick-row"><label class="pick-label" for="partline${key}">${esc(TEXT.lineLabel)}</label>${lineMenu(`id="partline${key}" data-part-line="${key}"`, part.line)}</div>` : '') +
+      part.parts.map((sub, j) => partColourRow([i, j], TEXT.partColour(j + 1))).join('') +
+      `<div class="pick-more"><button class="plain-btn" type="button" data-part-more="${key}" aria-expanded="${state.bgOpen === key}">${esc(TEXT.moreOptions)}</button></div></div>`;
+  }).join('') + `</div>`;
+  return html + bgPartPicker() + `</div>`;
+}
+
+// "More complex options" for one part: the picker again, for that part
+// alone. Each picture is the whole background with that part made the way
+// the picture's name says.
+function bgPartPicker() {
+  const f = state.field;
+  if (state.bgOpen === null || !f || f.type !== 'divided') return '';
+  const path = keyPath(state.bgOpen), part = partAt(f, path);
+  if (!part) return '';
+  const view = state.bgSubView, hiding = view === 'default';
+  const about = { palette: palette(), mustInclude: mustInclude(), charge: 'none', allowBare: true };
+  const cards = bgEntries(true).filter(e => view === 'default' || view === 'all' || e.group === view).map(entry => {
+    const made = bgTemplate(entry, []);
+    const label = entry.pattern && made ? TINCTURES[made.tincture].name : entry.label;
+    return fieldCard({ attrs: `data-part-entry="${esc(entry.key)}"`, label, on: bgIsOn(entry, part), about, hiding,
+                       template: made && withPart(f, path, () => made) });
+  }).join('');
+  return `<div class="explorer"><div class="slot-head"><span>${esc(TEXT.partMoreHeading(path[0] + 1))}</span>` +
+    `<button class="link-btn" type="button" data-part-more="${state.bgOpen}">${esc(TEXT.exploreClose)}</button></div>` +
+    `<div class="picker small">${bgMenu('data-bg-sub-view', view, BG_GROUPS.filter(g => g !== 'plain'), false)}` +
+    `<div class="picker-grid" id="bgSubGrid"><div class="row">${cards}</div></div></div></div>`;
+}
+
+// What a click on one of the picker's pictures does to the background.
+function pickBackground(key) {
+  const entry = bgEntry(key);
+  if (!entry) return;
+  if (entry.semy) { toggleSemy(); return; }
+  const f = state.field;
+  // The colours to start it with: those of the background it replaces, in
+  // order, then any others it must contain.
+  const kept = f ? (f.type === 'plain' ? [f.tincture] : f.parts.map(p => (p.type === 'plain' ? p.tincture : null))).filter(t => t && TINCTURES[t].kind !== 'treatment' && !TINCTURES[t].pattern) : [];
+  const seeds = [...new Set([...kept, ...state.fieldColours])];
+  if (entry.division && f && f.type === 'divided' && f.division.split('+')[0] === entry.division) {
+    // The division already chosen: with the same line, it is un-chosen;
+    // with another line, only its line changes.
+    const line = entry.line || 'plain';
+    state.field = f.line === line || !canBeLined(f.division) ? null : { ...f, line };
+    return;
   }
-  return html + `</div>`;
+  if (bgIsOn(entry, f)) { state.field = null; return; }     // picked again: un-chosen
+  const room = entry.division ? DIVISIONS[entry.division].parts : entry.tincture || entry.pattern ? 2 : 1;
+  // ("Plain Background" picked over a fur: a plain colour, not that fur again)
+  const usable = entry.division || entry.pattern ? seeds : seeds.filter(t => PLAIN_ONES.includes(t));
+  const made = bgTemplate(entry, entry.tincture ? [] : usable.slice(0, room)) || bgTemplate(entry, []);
+  if (!made) return;
+  if (made.type === 'plain') offerMade(made.tincture);
+  state.field = made;
+  // (the colours it must contain are now its own: see tidy)
+  state.fieldColours = state.fieldColours.filter(t => containedIn(made).has(t) || firstOpen(made));
+}
+
+// "semy of charges": the next charge picked is strewn over the background
+// (or, pressed again, no charge is).
+function toggleSemy() {
+  const strewn = state.items.filter(item => item.number === SEMY);
+  if (strewn.length) {
+    for (const item of strewn) { item.number = null; item.part = null; }
+    state.items = state.items.filter((item, i) => i === 0 || item.choice);
+    return;
+  }
+  state.noCharge = false;
+  const empty = state.items.find(item => !item.choice);
+  if (empty) empty.number = SEMY;
+  else if (state.items.length < MAX_ITEMS) state.items.push({ choice: null, number: SEMY, tincture: null });
+}
+
+// What a click on a picture of the second picker does to one part.
+function pickPart(key) {
+  const entry = bgEntry(key, true), f = state.field;
+  if (!entry || !f || state.bgOpen === null) return;
+  const path = keyPath(state.bgOpen), part = partAt(f, path);
+  if (!part) return;
+  let made = bgIsOn(entry, part) ? plain(null) : bgTemplate(entry, []);
+  if (!made) return;
+  // (a part divided the same way keeps its colours when only its line changes)
+  if (made.type === 'divided' && part.type === 'divided' && part.division === made.division) made = { ...part, line: made.line };
+  if (made.type === 'plain') offerMade(made.tincture);
+  state.field = withPart(f, path, () => made);
+  state.fieldColours = tincturesIn(state.field);
 }
 
 // ---- "What charges are on the field?" ------------------------------------------
+
 const sameCharge = (a, b) => !!a && !!b && a.kind === b.kind && a.id === b.id;
 const samePicture = (a, b) => sameCharge(a, b) && (a.file || '') === (b.file || '');
 // A picture's row in the library (ours, or one from Traceable Heraldic Art).
@@ -1188,6 +1427,11 @@ function everyChoice() {
   return remember(`choices|${library.all.length}|${library.charges.length}`, () => {
     const byName = (a, b) => a.label.localeCompare(b.label);
     const ordinaries = Object.keys(ORDINARIES).map(id => ({ choice: { kind: 'ordinary', id, file: null }, label: ordinaryLabel(id), ordinary: true }));
+    // One ordinary for each complex line ("a fess wavy", "a fess embattled"...:
+    // the maintainer's sketch of the pickers, November 2026), so that the
+    // lines can be found in the list; any ordinary's line is set on its card.
+    const lined = Object.keys(LINES).map(line => ({ choice: { kind: 'ordinary', id: 'fess', file: null, line },
+      label: `${ordinaryLabel('fess')} ${LINES[line].name}`, ordinary: true, lined: true }));
     const pictures = [...new Set(library.all.map(p => p.charge_id))].map(usualPicture).map(p => ({
       choice: { kind: 'charge', id: p.charge_id, file: p.file }, charge: p.charge, picture: p,
       label: p.charge.name.toLowerCase(), easy: p.complexity === 'Easy to Draw',
@@ -1196,7 +1440,7 @@ function everyChoice() {
     const ordinaryNames = new Set(Object.values(ORDINARIES).map(o => o.name));
     const names = library.charges.filter(ch => !drawn.has(ch.id) && !ordinaryNames.has(ch.name.toLowerCase()))
       .map(ch => ({ choice: { kind: 'charge', id: ch.id, file: null }, charge: ch, label: ch.name.toLowerCase(), blob: true })).sort(byName);
-    return { ordinaries, pictures, names };
+    return { ordinaries, lined, pictures, names };
   });
 }
 
@@ -1229,11 +1473,11 @@ const proportion = p => { const s = p && (p.shape || (getPicture(p.file) || {}).
 // that are easy to draw, then the rest, each lot in alphabetical order (the
 // maintainer, November 2026).
 function choicesFor(view) {
-  const { ordinaries, pictures, names } = everyChoice();
+  const { ordinaries, lined, pictures, names } = everyChoice();
   if (view === 'default') return [...ordinaries, ...pictures.filter(x => x.easy), ...pictures.filter(x => !x.easy)];
-  if (view === 'all') return [...ordinaries, ...pictures, ...names];
+  if (view === 'all') return [...ordinaries, ...lined, ...pictures, ...names];
   const [kind, value] = [view.slice(0, view.indexOf(':')), view.slice(view.indexOf(':') + 1)];
-  if (kind === 'type') return value === 'ordinary' ? ordinaries : [...pictures, ...names].filter(x => splitList(x.charge.type).some(t => topType(t) === value));
+  if (kind === 'type') return value === 'ordinary' ? [...ordinaries, ...lined] : [...pictures, ...names].filter(x => splitList(x.charge.type).some(t => topType(t) === value));
   if (kind === 'theme') return [...pictures, ...names].filter(x => splitList(x.charge.themes).includes(value));
   if (view === 'need:easy') return pictures.filter(x => x.easy);
   if (view === 'need:compact') return pictures.filter(x => { const s = proportion(x.picture); return s !== null && s <= COMPACT; });
@@ -1340,9 +1584,17 @@ function slotBlock(slot, c) {
   html += `<div class="pick-row"><label class="pick-label" for="colour${slot}">${esc(TEXT.colourLabel)}</label>` +
     `<select id="colour${slot}" data-colour-select="${slot}"><option value="">${esc(TEXT.roleUnset)}</option>` +
     inOrder.map(id => option(id, TINCTURES[id].name, colours.get(id))).join('') +
+    // (a colouring from "More complex options" that is not in the menu: "barry gules and Or")
+    (tinctureOf(item) && item.tincture !== COUNTERCHANGED && !inOrder.includes(item.tincture) ? option(item.tincture, TINCTURES[item.tincture].name, null) : '') +
     option(COUNTERCHANGED, TEXT.counterchanged, colours.get(COUNTERCHANGED)) + option(UNSPECIFIED, TEXT.dontSpecify, null) + `</select></div>` +
     `<div class="strip">${[...inOrder, COUNTERCHANGED].map(square).join('')}</div>`;
   html += whyLine(offer.filter(id => colours.get(id)).map(id => [tinctureName(id), colours.get(id)]));
+  // "More complex options": a fur, a field treatment, or parted like a
+  // background (the maintainer, 28 November 2026). Parted: its line and colours.
+  if (item.choice) {
+    html += partedRows(slot, item) + `<div class="pick-more"><button class="plain-btn" type="button" data-charge-more="${slot}" ` +
+      `aria-expanded="${state.chargeMore === slot}">${esc(TEXT.moreOptions)}</button></div>`;
+  }
   // A charge with a picture has its posture, drawing and orientation to
   // choose; an ordinary, the line its edges are drawn with ("a fess wavy").
   const lined = !!item.choice && item.choice.kind === 'ordinary' && LINED_ORDINARIES.has(item.choice.id);
@@ -1478,6 +1730,102 @@ async function setPicture(slot, file) {
   render();
 }
 
+// ---- "More complex options" for a charge's colour ----------------------------------
+// (The maintainer, 28 November 2026: "by default the user picks from
+// ordinary tinctures, but if they pick 'more complex options' they can have
+// a full picker so they can make their charge barry or ermine or anything
+// they want".) The same list as the background's, for one charge: each
+// picture is that charge, on the background as chosen so far, coloured the
+// way the picture's name says. A charge parted like a background ("a lion
+// barry gules and Or") has a tincture id of its own: partedTincture in
+// core/catalog.js.
+
+// What a charge can be coloured as, beyond one plain colour: parted by any
+// division, a fur, a fur or treatment made from two colours; and a bordure
+// "parted bordurewise" (an outer ring and an inner one: the maintainer).
+function chargeColourEntries(choice) {
+  const list = bgEntries(true);
+  if (choice && choice.kind === 'ordinary' && choice.id === 'bordure') {
+    list.unshift({ key: 'bordurewise', group: 'two', label: TEXT.bordurewise, division: 'bordurewise' });
+  }
+  return list;
+}
+const partsOfDivision = division => (division === 'bordurewise' ? 2 : DIVISIONS[division].parts);
+
+// The tincture to show for an entry on a charge. Parted: the colours it is
+// parted of already if it is parted that way, otherwise colours on offer
+// that the background does not use, a colour and a metal first.
+function chargeColourExample(entry, item) {
+  if (entry.tincture) return entry.tincture;
+  const field = shownShield().field;
+  const used = new Set(field ? tincturesIn(field) : []);
+  const pool = offered().filter(t => PLAIN_ONES.includes(t));
+  const unusedFirst = list => [...list.filter(t => !used.has(t)), ...list.filter(t => used.has(t))];
+  const colours = unusedFirst(pool.filter(t => TINCTURES[t].kind === 'colour')), metals = unusedFirst(pool.filter(t => TINCTURES[t].kind === 'metal'));
+  if (entry.pattern) {
+    // (on a dark background, one that counts as a metal: "Or masoned gules")
+    const onDark = used.size > 0 && [...used].every(t => TINCTURES[t].tone === 'dark');
+    const colourFirst = colours.flatMap(c => metals.map(m => [c, m])), metalFirst = metals.flatMap(m => colours.map(c => [m, c]));
+    for (const [a, b] of onDark ? [...metalFirst, ...colourFirst] : [...colourFirst, ...metalFirst]) {
+      const id = tinctureFrom(entry.pattern, a, b);
+      if (id) return id;
+    }
+    return null;
+  }
+  const now = partedOf(tinctureOf(item));
+  if (now && now.division === entry.division) return partedTincture(entry.division, now.parts, entry.line || now.line);
+  const mixed = [];
+  for (let i = 0; i < Math.max(colours.length, metals.length); i++) mixed.push(...[colours[i], metals[i]].filter(Boolean));
+  const n = partsOfDivision(entry.division);
+  return mixed.length >= n ? partedTincture(entry.division, mixed.slice(0, n), entry.line || 'plain') : null;
+}
+
+function chargeColourIsOn(entry, item) {
+  const t = tinctureOf(item);
+  if (!t || t === COUNTERCHANGED) return false;
+  if (entry.tincture) return t === entry.tincture;
+  if (entry.pattern) return !!TINCTURES[t] && TINCTURES[t].pattern === entry.pattern;
+  const p = partedOf(t);
+  return !!p && p.division === entry.division;
+}
+
+// The box under the cards: a menu on the left and the pictures, as for the background.
+function chargeColourBox(slot) {
+  const item = state.items[slot];
+  if (!item || !item.choice) return '';
+  const c = constraints(), view = state.chargeColourView;
+  const cards = chargeColourEntries(item.choice).filter(e => view === 'default' || view === 'all' || e.group === view).map(entry => {
+    const id = chargeColourExample(entry, item), on = chargeColourIsOn(entry, item);
+    const attrs = `data-charge-colour="${esc(id || '')}" data-slot="${slot}"`;
+    const label = id && entry.pattern ? TINCTURES[id].name : entry.label;
+    if (!id) return card({ attrs, shield: null, label, on, why: TEXT.rules['not-possible'] });
+    // (the charge as chosen so far, alone on the shield, in that colouring)
+    const what = { ...c, arrangement: null, items: [{ charge: item.choice, tincture: id, arranged: item.arranged || null,
+      number: item.choice.kind === 'ordinary' ? null : (item.number || 1) }] };
+    return lazyCard('charge', 'charge', what, found => ({ attrs, label, on, shield: found && found.shield,
+      problems: found ? found.problems : [], why: found === null ? TEXT.rules['not-possible'] : null }));
+  }).join('');
+  return `<div class="explorer" id="chargeColourBox"><div class="slot-head"><span>${esc(TEXT.chargeMoreHeading(choiceName(item.choice)))}</span>` +
+    `<button class="link-btn" type="button" data-charge-more="${slot}">${esc(TEXT.exploreClose)}</button></div>` +
+    `<div class="picker small">${bgMenu('data-charge-colour-view', view, BG_GROUPS.filter(g => g !== 'plain'), false)}` +
+    `<div class="picker-grid" id="chargeColourGrid"><div class="row">${cards}</div></div></div></div>`;
+}
+
+// On the card of a charge that is parted: the line it is parted with, and
+// the colour of each part.
+function partedRows(slot, item) {
+  const p = partedOf(tinctureOf(item));
+  if (!p) return '';
+  const part = i => `<div class="pick-row"><label class="pick-label" for="pc${slot}_${i}">${esc(TEXT.partColour(i + 1))}</label>` +
+    `<select id="pc${slot}_${i}" data-parted-part="${i}" data-slot="${slot}">` +
+    [...new Set([...offered(), p.parts[i]])].map(t => `<option value="${esc(t)}"${p.parts[i] === t ? ' selected' : ''}>${esc(TINCTURES[t].name)}</option>`).join('') +
+    `</select></div>`;
+  const lined = p.division !== 'bordurewise' && canBeLined(p.division);
+  return (lined ? `<div class="pick-row"><label class="pick-label" for="pl${slot}">${esc(TEXT.lineLabel)}</label><select id="pl${slot}" data-parted-line data-slot="${slot}">` +
+    lineChoices().map(([id, name]) => `<option value="${id}"${(p.line && p.line !== 'plain' ? p.line : '') === id ? ' selected' : ''}>${esc(name)}</option>`).join('') + `</select></div>` : '') +
+    p.parts.map((t, i) => part(i)).join('');
+}
+
 // ---- "What charges are on the field?" -----------------------------------------------
 // A list to pick from, with a menu on its left to narrow it down and a box
 // to search it by name (the maintainer's sketch, November 2026). There are
@@ -1503,7 +1851,9 @@ function renderChargePanel() {
   const itemsWith = choice => {
     const mine = state.items.findIndex(item => sameCharge(item.choice, choice));
     if (mine >= 0) return { mine, items: wantedItems({ slot: mine, set: { charge: choice } }) };   // chosen (perhaps as another picture)
-    if (!first.choice) return { mine, items: [{ charge: choice, number: choice.kind === 'ordinary' ? null : (first.number || 1), tincture: tinctureOf(first) }] };
+    // (an entry with no charge yet, the first card or the one "semy of charges" makes, is where it would go)
+    const emptyAt = state.items.findIndex(item => !item.choice);
+    if (emptyAt >= 0) return { mine, items: wantedItems({ slot: emptyAt, set: { charge: choice } }) };
     if (count >= MAX_ITEMS) return { mine, items: null };
     return { mine, items: [...(wantedItems() || []), { charge: choice, number: null, tincture: null }] };
   };
@@ -1518,21 +1868,31 @@ function renderChargePanel() {
 
   // Each option is drawn on a shield that fits everything else chosen so far:
   // with the charges already chosen, if it would be added to them.
-  const chargeCard = ({ choice, label, ordinary }) => {
-    const attrs = `data-charge="${choice.kind}:${esc(choice.id)}:${esc(choice.file || '')}"`;
-    const picked = isPicked(choice);
+  const chargeCard = ({ choice, label, ordinary, lined }) => {
+    const attrs = `data-charge="${choice.kind}:${esc(choice.id)}:${esc(choice.file || '')}"` + (lined ? ` data-with-line="${choice.line}"` : '');
+    // ("a fess wavy" in the list is the fess picked only while its line is wavy)
+    const picked = isPicked(choice) && (!lined || state.items.some(item => sameCharge(item.choice, choice) && (item.choice.line || null) === choice.line));
     // (A charge already picked is shown as it was picked: that picture, turned that way.)
     if (picked) choice = state.items.find(item => sameCharge(item.choice, choice)).choice;
     const made = itemsWith(choice);
     if (!made.items) return hiding ? '' : card({ attrs, shield: null, label, on: false, why: TEXT.chargeFull });
     if (hiding && !ordinary && !anyCharge && !picked) return '';
     const what = about(choice, made), key = optionKey('charge', what);
-    const args = found => ({ attrs, shield: found && found.shield, label, on: picked, problems: found ? found.problems : [],
-                             why: found === null ? TEXT.rules['not-possible'] : null });
+    // The PICTURE is that charge alone: one of it, as the only charge on the
+    // shield (the maintainer, 28 November 2026: with the other charges
+    // chosen in the picture as well, "it's impossible to really see what a
+    // bycocket looks like"; whole designs are for the suggestions). Whether
+    // it can still be ADDED to what is chosen is worked out as before
+    // (`found`), and greys the card or leaves it out.
+    const mine = picked ? state.items.find(item => sameCharge(item.choice, choice)) : first.choice ? null : first;
+    const solo = { ...c, items: [{ charge: choice, number: choice.kind === 'ordinary' ? null : 1, tincture: mine ? tinctureOf(mine) : null }], arrangement: null };
+    const soloKey = optionKey('charge', solo);
+    const args = (found, alone) => ({ attrs, shield: (alone && alone.shield) || (found && found.shield), label, on: picked,
+                                      problems: found ? found.problems : [], why: found === null ? TEXT.rules['not-possible'] : null });
     const hidden = found => hiding && !picked && greyed(found);
-    if (remembered.has(key) && (!choice.file || getPicture(choice.file))) {
+    if (remembered.has(key) && remembered.has(soloKey) && (!choice.file || getPicture(choice.file))) {
       const found = remembered.get(key);
-      return hidden(found) ? '' : card(args(found));
+      return hidden(found) ? '' : card(args(found, remembered.get(soloKey)));
     }
     const id = `w${waitingCards++}`;
     gridJobs.set(id, async () => {
@@ -1542,18 +1902,18 @@ function renderChargePanel() {
       const found = option('charge', what);
       if (hidden(found)) { waiting.remove(); return; }
       const holder = document.createElement('div');
-      holder.innerHTML = card(args(found));
+      holder.innerHTML = card(args(found, option('charge', solo)));
       const fresh = holder.firstElementChild, focused = document.activeElement === waiting;
       waiting.replaceWith(fresh);
       if (focused) cardButton(fresh).focus({ preventScroll: true });
     });
-    return card({ ...args(undefined), waiting: id });
+    return card({ ...args(undefined, undefined), waiting: id });
   };
 
   const every = everyChoice();
   const matching = list => list.filter(x => x.label.toLowerCase().includes(q));
   // Searching by name looks through everything, whatever the menu is set to.
-  const list = q ? matching([...every.ordinaries, ...every.pictures, ...every.names]) : choicesFor(state.view);
+  const list = q ? matching([...every.ordinaries, ...every.lined, ...every.pictures, ...every.names]) : choicesFor(state.view);
   const cards = list.filter(x => !x.blob).map(chargeCard).join('');
   const names = list.filter(x => x.blob);
   const namesShown = names.slice(0, MAX_NAMES_SHOWN);
@@ -1572,11 +1932,15 @@ function renderChargePanel() {
   if (!list.length) grid += `<p class="note">${esc(TEXT.chargeNoMatch)}</p>`;
   html += `<div class="picker">${viewMenu()}<div class="picker-grid" id="chargeGrid">${grid}</div></div>`;
 
-  // "Suggestions include any of my selections" or "Must include ALL".
-  const modeBtn = (id, label, title = '') => `<button class="name-btn" type="button" data-mode="${id}" aria-pressed="${state.mode === id}"` +
-    `${title ? ` title="${esc(title)}"` : ''}>${esc(label)}</button>`;
+  // "Mode: Suggestions include [any of] [all of] [only] my selections, or [default mode]".
+  // (Beside "default mode", a little "?" in a circle that says what it does
+  // when the pointer rests on it or it is pressed: the maintainer, 28 November 2026.)
+  const modeBtn = (id, label) => `<button class="name-btn" type="button" data-mode="${id}" aria-pressed="${state.mode === id}">${esc(label)}</button>`;
+  const helpOpen = document.querySelector('.mode-row .help-q')?.getAttribute('aria-expanded') === 'true';
   html += `<div class="mode-row"><span>${esc(TEXT.modeLead)}</span>${modeBtn('any', TEXT.modeAnyOf)}${modeBtn('all', TEXT.modeAllOf)}` +
-    `${modeBtn('only', TEXT.modeOnly)}<span>${esc(TEXT.modeTail)}</span>${modeBtn('default', TEXT.modeDefault, TEXT.modeDefaultHelp)}</div>`;
+    `${modeBtn('only', TEXT.modeOnly)}<span>${esc(TEXT.modeTail)}</span>${modeBtn('default', TEXT.modeDefault)}` +
+    `<span class="help-wrap"><button class="help-q" type="button" data-help aria-expanded="${helpOpen}" aria-describedby="modeHelp">?</button>` +
+    `<span class="help-bubble" id="modeHelp" role="tooltip">${esc(TEXT.modeDefaultHelp)}</span></span></div>`;
 
   // A card for each charge chosen: its number and colour. (The first is there
   // before any charge is chosen, so those can be answered first.)
@@ -1584,6 +1948,7 @@ function renderChargePanel() {
     html += `<div class="selected-row">` +
       state.items.map((item, slot) => `<div class="slot" data-block="${slot}">${slotBlock(slot, c)}</div>`).join('') + `</div>`;
     if (state.explore !== null) html += explorerBox(state.explore);
+    if (state.chargeMore !== null) html += chargeColourBox(state.chargeMore);
   }
 
   // Keep the list where it was scrolled to, unless it is now a different list.
@@ -1743,7 +2108,8 @@ function creditsLine(groups) {
 function renderCurrent() {
   const shield = shownShield();
   const text = blazon(shield.field, shield.groups, words);
-  const patterns = shieldPatterns(shield.field, shield.groups, { noCharge: shield.noCharge });
+  // (charges strewn over the background that have not been picked yet are left out of the search)
+  const patterns = shieldPatterns(shield.field, shield.groups.filter(g => !g.placeholder), { noCharge: shield.noCharge });
   const problems = checkShield(shield);
   const f = shield.field;
   const noTinctures = f && f.type === 'divided' && DIVISIONS[f.division].tincturesIndexed === false;
@@ -1868,7 +2234,7 @@ function render() {
 }
 
 // A "collapse" / "expand" button beside each section's heading.
-const COLLAPSIBLE = ['shieldColoursPanel', 'fieldColoursPanel', 'divisionPanel', 'chargePanel', 'arrangePanel', 'suggestionsPanel'];
+const COLLAPSIBLE = ['shieldColoursPanel', 'divisionPanel', 'chargePanel', 'arrangePanel', 'suggestionsPanel'];
 function addCollapseButtons() {
   for (const id of COLLAPSIBLE) {
     const panel = $(id), heading = panel.querySelector('h2');
@@ -1884,11 +2250,10 @@ function addCollapseButtons() {
 // ---- "select this shield": copy a suggestion into the questions ------------------
 function adopt(shield) {
   const { field, groups } = shield;
-  state.fieldColours = [...new Set(leafTinctures(field))];
-  state.fieldLine = field.type === 'divided' && field.line && field.line !== 'plain' ? field.line : null;
-  if (field.type === 'plain') { state.division = 'plain'; state.builder = null; }
-  else if (isNested(field) || field.division.includes('+')) { state.division = 'complex'; state.builder = builderFromField(field); }
-  else { state.division = field.division; state.builder = null; state.fieldColours = leafTinctures(field); }
+  state.field = field;
+  state.fieldColours = tincturesIn(field);
+  state.fieldUnspecified = false;
+  state.bgOpen = null;
   // The charges, one entry each, and how they go together.
   const made = unarrange(groups);
   state.items = made.groups.map(g => ({
@@ -1904,7 +2269,9 @@ function adopt(shield) {
   state.arrangement = made.groups.length > 1 ? made.arrangement : null;
   state.arrangementUnspecified = false;
   // Every colour the shield uses is ticked in the first question too.
-  state.shieldColours = [...new Set([...state.shieldColours, ...shieldTinctures(field, groups)])];
+  // (For a charge parted like a background, the colours it is parted of.)
+  state.shieldColours = [...new Set([...state.shieldColours, ...shieldTinctures(field, groups).flatMap(t => (partedOf(t) ? partedOf(t).parts : [t]))])];
+  for (const t of state.shieldColours) offerMade(t);
 }
 
 // Take a charge off the shield. The first entry stays, emptied, with its
@@ -1935,7 +2302,7 @@ function addItem(choice) {
 // pinned, and which sections are collapsed.
 function clearAll() {
   Object.assign(state, {
-    shieldColours: [], fieldColours: [], fieldUnspecified: false, division: null, builder: null, fieldLine: null,
+    shieldColours: [], fieldColours: [], fieldUnspecified: false, field: null, bgOpen: null, bgFilter: '', bgView: 'default', bgSubView: 'default',
     items: [{ choice: null, number: null, tincture: null }], noCharge: false,
     arrangement: null, arrangementUnspecified: false, chargeFilter: '', explore: null,
   });
@@ -1989,19 +2356,55 @@ document.addEventListener('click', e => {
     if (row) row.scrollLeft = 0;
     return;
   }
-  if (d.show) {
-    // "Show one-part backgrounds" / "Show two-part backgrounds"
-    state.showParts = { ...state.showParts, [d.show]: !state.showParts[d.show] };
-    refocus = `[data-show="${d.show}"]`;
+  if ('help' in d) {
+    // The little "?": what it explains stays open until it is pressed again.
+    btn.setAttribute('aria-expanded', btn.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+    return;
+  }
+  if (d.bg) {
+    // A picture in the background picker.
+    pickBackground(d.bg);
+    assume = true;
+    refocus = `[data-bg="${CSS.escape(d.bg)}"]`;
+  } else if (d.bgView) {
+    state.bgView = d.bgView;
+    state.bgFilter = '';
+    refocus = `[data-bg-view="${CSS.escape(d.bgView)}"]`;
+  } else if (d.bgSubView) {
+    state.bgSubView = d.bgSubView;
+    refocus = `[data-bg-sub-view="${CSS.escape(d.bgSubView)}"]`;
+  } else if (d.partMore) {
+    // "More complex options" on a part: open (or shut) the picker for that part.
+    state.bgOpen = state.bgOpen === d.partMore ? null : d.partMore;
+    state.bgSubView = 'default';
+    refocus = `.slot [data-part-more="${d.partMore}"]`;
+  } else if (d.partEntry) {
+    pickPart(d.partEntry);
+    assumeCharge = true;
+    refocus = `[data-part-entry="${CSS.escape(d.partEntry)}"]`;
+  } else if (d.partPlain) {
+    // A part that was itself divided goes back to one colour, not yet chosen.
+    state.field = withPart(state.field, keyPath(d.partPlain), () => plain(null));
+    state.fieldColours = tincturesIn(state.field);
+    assumeCharge = true;
+    refocus = `.slot [data-part-more="${d.partPlain}"]`;
+  } else if (d.leafTincture) {
+    // A colour for one part of the background; pressed again, it is taken off.
+    const path = keyPath(d.leaf), now = partAt(state.field, path);
+    state.field = withPart(state.field, path, () => plain(now && now.tincture === d.leafTincture ? null : d.leafTincture));
+    state.fieldColours = tincturesIn(state.field);
+    state.fieldUnspecified = false;
+    assumeCharge = true;
+    refocus = `[data-leaf="${d.leaf}"][data-leaf-tincture="${CSS.escape(d.leafTincture)}"]`;
   } else if (d.nested) {
-    // A background with one part divided again, from the pictures: it opens
-    // in "more complex background", where it can be changed.
+    // A background with one part divided again, from the pictures: it goes
+    // into the questions, where it can be changed.
     const picked = shownNested[Number(d.nested)];
     if (!picked) return;
-    state.division = 'complex';
-    state.builder = builderFromField(picked.field);
+    state.field = picked.field;
+    state.fieldColours = tincturesIn(picked.field);
     assumeCharge = true;
-    refocus = '[data-complex]';
+    refocus = `[data-nested="${d.nested}"]`;
   } else if ('clear' in d) {
     clearAll();
     refocus = '[data-clear]';
@@ -2017,8 +2420,8 @@ document.addEventListener('click', e => {
     if (removing) {
       // A colour no longer used in the shield cannot be in the background or on the charge.
       state.fieldColours = state.fieldColours.filter(t => t !== d.q1);
-      for (const item of state.items) if (item.tincture === d.q1) item.tincture = null;
-      state.builder = null;
+      for (const item of state.items) if (item.tincture === d.q1 || (partedOf(item.tincture) && partedOf(item.tincture).parts.includes(d.q1))) item.tincture = null;
+      state.field = withoutTincture(state.field, d.q1);
     }
     assume = true;
     refocus = `[data-q1="${d.q1}"]`;
@@ -2039,29 +2442,29 @@ document.addEventListener('click', e => {
     if (state.collapsed.has(d.collapse)) state.collapsed.delete(d.collapse); else state.collapsed.add(d.collapse);
     refocus = `[data-collapse="${d.collapse}"]`;
   } else if (d.q2) {
+    // "must contain all of:": a colour the background must have. Taken off,
+    // the parts that had it are open again. Put on, it goes into the first
+    // part with no colour yet; a background with no room for it is
+    // un-chosen, and the list then shows the ones that do have room.
     state.fieldUnspecified = false;
-    state.fieldColours = toggle(state.fieldColours, d.q2);
-    state.builder = null;
-    // ("more complex background" needs two colours at least: with fewer it
-    // would add colours of its own, and the one just taken off would seem
-    // to come straight back.)
-    if (state.division === 'complex' && state.fieldColours.length < 2) state.division = null;
+    const f = state.field;
+    if (state.fieldColours.includes(d.q2)) {
+      state.fieldColours = state.fieldColours.filter(t => t !== d.q2);
+      state.field = withoutTincture(f, d.q2);
+    } else {
+      state.fieldColours = [...state.fieldColours, d.q2];
+      if (f) {
+        const open = firstOpen(f);
+        state.field = open ? withPart(f, open, () => plain(d.q2)) : null;
+      }
+    }
     assumeCharge = true;
-    refocus = `[data-q2="${d.q2}"]`;
-  } else if (d.division) {
-    // Clicking the chosen division again un-chooses it.
-    const order = d.order ? d.order.split(',') : null;
-    const same = state.division === d.division && (!order || order.join() === state.fieldColours.join());
-    state.division = same ? null : d.division;
-    if (order && !same) state.fieldColours = order;
-    assume = !same;
-    refocus = `[data-division="${d.division}"]` + (d.order ? `[data-order="${d.order}"]` : '');
-  } else if ('complex' in d) {
-    state.division = state.division === 'complex' ? null : 'complex';
-    assumeCharge = true;
-    refocus = '[data-complex]';
+    refocus = `[data-q2="${CSS.escape(d.q2)}"]`;
   } else if ('swap' in d) {
-    state.fieldColours = [...state.fieldColours].reverse();
+    // "Swap the parts": the colours move round one place.
+    const f = state.field;
+    if (f && f.type === 'divided') state.field = { ...f, parts: [...f.parts.slice(1), f.parts[0]] };
+    state.bgOpen = null;
     assumeCharge = true;
     refocus = '[data-swap]';
   } else if (d.charge) {
@@ -2072,13 +2475,20 @@ document.addEventListener('click', e => {
       if (state.noCharge) { state.items = [{ ...state.items[0], choice: null }]; state.arrangement = null; }
     } else {
       const [kind, id, file] = d.charge.split(':');
-      const choice = { kind, id, file: file || null };
+      // ("a fess wavy" from the list: the fess, with that line)
+      const choice = { kind, id, file: file || null, ...(d.withLine ? { line: d.withLine } : {}) };
       const at = state.items.findIndex(item => sameCharge(item.choice, choice));
       state.noCharge = false;
-      if (at >= 0) removeItem(at);                                                  // picked again: taken off
-      else if (!state.items[0].choice) state.items[0].choice = choice;
+      // (An entry with no charge yet: the first card before anything is
+      // picked, or the one "semy of charges" makes. The charge goes there.)
+      const empty = state.items.find(item => !item.choice);
+      if (at >= 0 && d.withLine && (state.items[at].choice.line || '') !== d.withLine) state.items[at].choice = { ...state.items[at].choice, line: d.withLine };
+      else if (at >= 0) removeItem(at);                                             // picked again: taken off
+      else if (empty) empty.choice = choice;
       else if (state.items.length < MAX_ITEMS) addItem(choice);
       assumeCharge = true;
+      // (a picture picked before it had been fetched: draw it when it arrives)
+      if (file && !getPicture(file)) loadPicture(file).then(() => render()).catch(() => null);
     }
     refocus = `[data-charge="${d.charge}"]`;
   } else if (d.remove) {
@@ -2117,6 +2527,20 @@ document.addEventListener('click', e => {
     const item = state.items[Number(d.slot)];
     item.tincture = item.tincture === d.chargeTincture ? null : d.chargeTincture;
     refocus = `[data-charge-tincture="${d.chargeTincture}"][data-slot="${d.slot}"]`;
+  } else if (d.chargeMore) {
+    // "More complex options" on a chosen charge's card: open (or shut) the list of colourings.
+    state.chargeMore = state.chargeMore === Number(d.chargeMore) ? null : Number(d.chargeMore);
+    state.chargeColourView = 'default';
+    refocus = `.slot [data-charge-more="${d.chargeMore}"]`;
+  } else if (d.chargeColourView) {
+    state.chargeColourView = d.chargeColourView;
+    refocus = `[data-charge-colour-view="${CSS.escape(d.chargeColourView)}"]`;
+  } else if (d.chargeColour) {
+    // A colouring from that list; pressed again, it is taken off.
+    const item = state.items[Number(d.slot)];
+    item.tincture = item.tincture === d.chargeColour ? null : d.chargeColour;
+    offerMade(item.tincture);
+    refocus = `[data-charge-colour="${CSS.escape(d.chargeColour)}"][data-slot="${d.slot}"]`;
   } else if (d.arranged) {
     const item = state.items[Number(d.slot)];
     item.arranged = item.arranged === d.arranged ? null : d.arranged;
@@ -2189,7 +2613,7 @@ document.addEventListener('change', e => {
   const line = e.target.closest('select[data-field-line], select[data-line-select]');
   if (line) {
     const slot = line.dataset.lineSelect;
-    if (slot === undefined) state.fieldLine = line.value || null;
+    if (slot === undefined) { if (state.field && state.field.type === 'divided') state.field = { ...state.field, line: line.value || 'plain' }; }
     else state.items[Number(slot)].choice = { ...state.items[Number(slot)].choice, line: line.value || null };
     tidy();
     render();
@@ -2227,6 +2651,20 @@ document.addEventListener('change', e => {
     document.getElementById(turn.id)?.focus({ preventScroll: true });
     return;
   }
+  // A charge parted like a background: one of its colours, or its line.
+  const parted = e.target.closest('select[data-parted-part], select[data-parted-line]');
+  if (parted) {
+    const item = state.items[Number(parted.dataset.slot)], p = partedOf(tinctureOf(item));
+    if (p) {
+      const at = parted.dataset.partedPart === undefined ? -1 : Number(parted.dataset.partedPart);
+      const id = partedTincture(p.division, p.parts.map((t, i) => (i === at ? parted.value : t)), at < 0 ? parted.value || 'plain' : p.line);
+      if (id) item.tincture = id;
+    }
+    tidy();
+    render();
+    document.getElementById(parted.id)?.focus({ preventScroll: true });
+    return;
+  }
   // A chosen charge's colour, from the menu on its card.
   const colour = e.target.closest('select[data-colour-select]');
   if (colour) {
@@ -2236,16 +2674,31 @@ document.addEventListener('change', e => {
     document.querySelector(`select[data-colour-select="${colour.dataset.colourSelect}"]`)?.focus({ preventScroll: true });
     return;
   }
-  const sel = e.target.closest('select[data-b]');
-  if (!sel) return;
-  const b = state.builder, i = Number(sel.dataset.i);
-  if (sel.dataset.b === 'division') { b.division = sel.value; if (b.over === b.division) b.over = null; }
-  else if (sel.dataset.b === 'over') b.over = sel.value || null;
-  else if (sel.dataset.b === 'kind') {
-    if (sel.value.startsWith('plain:')) { b.parts[i].kind = 'plain'; b.parts[i].tincture = sel.value.slice(6); }
-    else b.parts[i].kind = sel.value;
-  } else b.parts[i][sel.dataset.b] = sel.value;
-  const key = `select[data-b="${sel.dataset.b}"]` + (sel.dataset.i ? `[data-i="${sel.dataset.i}"]` : '');
+  // The background's own menus, under "you selected:": a part's colour, the
+  // two colours of a fur or treatment made from two, a second division
+  // counterchanged over the first, and the line of a part that is divided.
+  const sel = e.target.closest('select[data-leaf-select], select[data-made], select[data-field-over], select[data-part-line]');
+  if (!sel || !state.field) return;
+  const f = state.field, ds = sel.dataset;
+  let key;
+  if (ds.leafSelect !== undefined) {
+    state.field = withPart(f, keyPath(ds.leafSelect), () => plain(sel.value || null));
+    key = `select[data-leaf-select="${ds.leafSelect}"]`;
+  } else if (ds.made) {
+    const path = keyPath(ds.leaf), was = TINCTURES[partAt(f, path).tincture];
+    const id = tinctureFrom(was.pattern, ds.made === 'first' ? sel.value : was.pair[0], ds.made === 'second' ? sel.value : was.pair[1]);
+    if (id) { offerMade(id); state.field = withPart(f, path, () => plain(id)); }
+    key = `select[data-made="${ds.made}"][data-leaf="${ds.leaf}"]`;
+  } else if (ds.fieldOver !== undefined) {
+    const top = f.division.split('+')[0], both = sel.value ? divisionsTogether(top, sel.value) : top;
+    if (both) state.field = { ...f, division: both, line: DIVISIONS[both].together ? 'plain' : f.line };
+    key = 'select[data-field-over]';
+  } else {
+    state.field = withPart(f, keyPath(ds.partLine), part => ({ ...part, line: sel.value || 'plain' }));
+    key = `select[data-part-line="${ds.partLine}"]`;
+  }
+  state.fieldColours = tincturesIn(state.field);
+  state.fieldUnspecified = false;
   tidy();
   assumeChargeColours();
   tidy();
@@ -2253,15 +2706,17 @@ document.addEventListener('change', e => {
   document.querySelector(key)?.focus({ preventScroll: true });
 });
 
-// Typing in the charge search box: redraw the list, keep the cursor in place.
+// Typing in a search box (the charges', or the backgrounds'): redraw that
+// list, keep the cursor in place.
 document.addEventListener('input', e => {
-  if (e.target.id !== 'chargeFilter') return;
-  state.chargeFilter = e.target.value;
+  const id = e.target.id;
+  if (id !== 'chargeFilter' && id !== 'bgFilter') return;
   const at = e.target.selectionStart;
-  renderChargePanel();
+  if (id === 'chargeFilter') { state.chargeFilter = e.target.value; renderChargePanel(); }
+  else { state.bgFilter = e.target.value; renderDivisionPanel(); }
   addCollapseButtons();
   fillLater();
-  const box = $('chargeFilter');
+  const box = $(id);
   box.focus({ preventScroll: true });
   box.setSelectionRange(at, at);
 });

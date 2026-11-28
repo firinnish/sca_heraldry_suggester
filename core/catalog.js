@@ -95,10 +95,87 @@ function madeTincture(id) {
   }
   return madeTinctures.get(id);
 }
-// (Looking one up works as for the named ones: TINCTURES['vairy:or:gules'].
-// Listing them, with Object.keys, gives only the eleven named ones.)
+// PARTED TINCTURES: a charge divided the way a field is (the maintainer, 27
+// November 2026: "Please allow charges to be parted the same way backgrounds
+// are. I should be allowed 'argent, a lion barry gules and or', or 'sable, a
+// bordure checky argent and gules' ... Bordures should additionally be
+// allowed to be parted bordurewise"). Such a colouring is a tincture id, as
+// the made ones above are, so that whatever passes a charge's tincture
+// around needs to know nothing new:
+//   parted:<division>[~<line>]:<part>,<part>[,<part>]
+//   parted:barry:gules,or                  "barry gules and Or"
+//   parted:perPale~wavy:argent,azure       "per pale wavy argent and azure"
+//   parted:perPale:ermined:vert:or,sable   (a part may be a fur or a made
+//                                           tincture: parts are split at the commas)
+//   parted:bordurewise:gules,or            "parted bordurewise gules and Or":
+//                                           a bordure's outer ring, then its inner one
+// The division is one from DIVISIONS below (not two together, and not orly,
+// which follows the shield's own outline), or BORDUREWISE; the line, if any,
+// one from LINES. A part is never itself parted. TINCTURES answers for such
+// an id with:
+//   name, plain: its words in a blazon ("barry gules and Or") and everyday ones
+//   kind:   'parted'
+//   tone:   SENA A3B1: "Divided fields and charges are considered metals or
+//           colors based on the tincture class that dominates across the
+//           entire field or charge. If fields or charges are evenly divided
+//           into color and metal, they are treated as neutral".
+//   parted: { division, line, parts }   (the same as partedOf(id) gives)
+// It has no hex, fur, pair or pattern: draw.js paints the parts instead, and
+// shield.js (partedField) gives the same thing as a divided field, for the
+// rules and the blazon to read.
+export const BORDUREWISE = 'bordurewise';
+const NOT_ON_CHARGES = new Set(['orly']);
+// The id of a parted tincture, or null if it makes no sense (an unknown
+// division or tincture, the wrong number of parts, a part itself parted). A
+// line the division cannot be drawn with is left out, as divided() does.
+export function partedTincture(division, parts, line = 'plain') {
+  const def = typeof division === 'string' && !division.includes('+') && !NOT_ON_CHARGES.has(division) ? DIVISIONS[division] : null;
+  if (!def || !Array.isArray(parts) || parts.length !== def.parts) return null;
+  if (parts.some(p => typeof p !== 'string' || p.includes(',') || p.startsWith('parted:') || !TINCTURES[p])) return null;
+  if (line !== 'plain' && !LINES[line]) return null;
+  return `parted:${division}${line !== 'plain' && canBeLined(division) ? '~' + line : ''}:${parts.join(',')}`;
+}
+// What a parted tincture is made of: { division, line, parts }; null for any
+// other tincture (and for null, or "counterchanged").
+const partedIds = new Map();
+export function partedOf(id) {
+  if (typeof id !== 'string' || !id.startsWith('parted:')) return null;
+  if (!partedIds.has(id)) {
+    const colon = id.indexOf(':', 7);
+    const [division, line = 'plain'] = id.slice(7, colon < 0 ? id.length : colon).split('~');
+    const parts = colon < 0 ? [] : id.slice(colon + 1).split(',');
+    // (only an id as partedTincture writes it counts)
+    partedIds.set(id, partedTincture(division, parts, line) === id ? { division, line, parts } : null);
+  }
+  return partedIds.get(id);
+}
+export const isParted = id => partedOf(id) !== null;
+const TONE_VALUE = { light: 1, dark: -1, neutral: 0 };
+function partedEntry(id) {
+  if (!madeTinctures.has(id)) {
+    const parted = partedOf(id);
+    let made;
+    if (parted) {
+      // "per pale wavy argent and azure", "per pall azure, vert, and argent" (as shield.js words a field)
+      const words = key => {
+        const all = parted.parts.map(t => TINCTURES[t][key]);
+        const list = all.length === 2 ? all.join(' and ') : all.slice(0, -1).join(', ') + ', and ' + all[all.length - 1];
+        return `${DIVISIONS[parted.division].name}${parted.line !== 'plain' ? ' ' + LINES[parted.line].name : ''} ${list}`;
+      };
+      const weight = parted.parts.reduce((sum, t) => sum + TONE_VALUE[TINCTURES[t].tone], 0);
+      made = { name: words('name'), plain: words('plain'), kind: 'parted', tone: weight > 0 ? 'light' : weight < 0 ? 'dark' : 'neutral', parted };
+    }
+    madeTinctures.set(id, made);
+  }
+  return madeTinctures.get(id);
+}
+
+// (Looking one up works as for the named ones: TINCTURES['vairy:or:gules'],
+// TINCTURES['parted:barry:gules,or']. Listing them, with Object.keys, gives
+// only the eleven named ones.)
 export const TINCTURES = new Proxy(NAMED_TINCTURES, {
-  get: (named, id) => (typeof id !== 'string' || id in named ? named[id] : LONG_IDS[id] || id.includes(':') ? madeTincture(id) : undefined),
+  get: (named, id) => (typeof id !== 'string' || id in named ? named[id] : id.startsWith('parted:') ? partedEntry(id)
+    : LONG_IDS[id] || id.includes(':') ? madeTincture(id) : undefined),
 });
 
 // The order swatches are shown in.
@@ -166,10 +243,20 @@ function divisionTogether(id) {
 // The id of two divisions counterchanged over each other, or null if they
 // cannot be (they must be two different divisions of two tinctures).
 export const divisionsTogether = (a, b) => (divisionTogether(`${a}+${b}`) ? `${a}+${b}` : null);
-// (Looking one up works as for the others: DIVISIONS['orly+chevronelly'].
-// Listing them, with Object.keys, gives only the single divisions.)
+// PARTED BORDUREWISE: the way a bordure, and only a bordure, can be divided
+// besides the ways a field can: into an outer ring and an inner one (see
+// "parted tinctures" above). The O&A words it "a bordure parted bordurewise
+// argent and sable", "a bordure parted bordurewise indented Or and azure"
+// (45 blazons, all since 2015; none says "per bordure"). It is not a way to
+// divide a field, so it is not listed with the divisions and has no shape
+// in geometry.js and no code: the O&A does not index how a charge is divided.
+const BORDUREWISE_DIVISION = { name: 'parted bordurewise', parts: 2, code: null, fieldWord: null, ordered: false, plainLine: false, tincturesIndexed: false };
+// (Looking one up works as for the others: DIVISIONS['orly+chevronelly'],
+// DIVISIONS['bordurewise']. Listing them, with Object.keys, gives only the
+// single divisions of a field.)
 export const DIVISIONS = new Proxy(ONE_DIVISIONS, {
-  get: (one, id) => (typeof id !== 'string' || id in one || !id.includes('+') ? one[id] : divisionTogether(id)),
+  get: (one, id) => (id === BORDUREWISE ? BORDUREWISE_DIVISION
+    : typeof id !== 'string' || id in one || !id.includes('+') ? one[id] : divisionTogether(id)),
 });
 
 // How SENA sorts divisions for its contrast rules (SENA A3B3):
@@ -188,6 +275,12 @@ export function familyOf(division) {
   // A3B3d, "Elements not already mentioned must have good contrast between
   // their parts".)
   if (division.includes('+')) return 'many';
+  // A bordure parted bordurewise counts as divided in two. SENA A3B3a's list
+  // of those does not name it, but the College registers it in two colours
+  // as it does per pale: "a bordure parted bordurewise gules and sable"
+  // (September 2023), "... sable and vert" (February 2025). Three of the
+  // O&A's 45 are of two colours. (To be checked with another herald.)
+  if (division === BORDUREWISE) return 'two';
   return Object.keys(FAMILIES).find(f => FAMILIES[f].includes(division));
 }
 
@@ -202,6 +295,8 @@ export function baseTincture(tincture) {
 // share a tincture with the color or metal").
 export function groundsOf(tincture) {
   const t = TINCTURES[tincture];
+  // (a parted charge can be mistaken for any of its parts)
+  if (t.parted) return [...new Set(t.parted.parts.flatMap(groundsOf))];
   if (t.pair) return t.tone === 'neutral' ? t.pair : [t.pair[0]];
   return [t.fur ? t.fur.field : tincture];
 }
@@ -209,6 +304,7 @@ export function groundsOf(tincture) {
 // "purpure masoned argent" purpure and argent.
 export function tincturesWithin(tincture) {
   const t = TINCTURES[tincture];
+  if (t.parted) return [...new Set(t.parted.parts.flatMap(tincturesWithin))];
   return t.pair ? t.pair : t.fur ? [t.fur.field, t.fur.spots] : [tincture];
 }
 // Do two tinctures share a background tincture? (Argent and ermine do; so

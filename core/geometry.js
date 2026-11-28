@@ -351,13 +351,14 @@ const linedShapes = (polygons, line, options) => polygons.map(p => linedPolygon(
 // whole number of repeats goes round, begun at the middle of the top. The
 // line never comes further in than the plain one would: it is cut into the
 // bordure instead, so whatever is inside keeps its room.
-function linedLoop(loop, id, fitted = false) {
+function linedLoop(loop, id, fitted = false, deepest = LOOP_DEPTH) {
   const shape = LINE_SHAPES[id], n = loop.length;
   const lengths = loop.map((p, i) => Math.hypot(loop[(i + 1) % n][0] - p[0], loop[(i + 1) % n][1] - p[1]));
   const total = lengths.reduce((s, x) => s + x, 0);
   // A deep line is drawn smaller round an outline (see LOOP_DEPTH), and with
   // `fitted` smaller still round a short one, or it would be all line.
-  const smaller = Math.min(1, LOOP_DEPTH / shape.depth) * (fitted ? Math.min(1, total / (10 * shape.period)) : 1);
+  // (`deepest`: smaller again, for the line between a bordure's two rings.)
+  const smaller = Math.min(1, deepest / shape.depth) * (fitted ? Math.min(1, total / (10 * shape.period)) : 1);
   const count = Math.max(4, Math.round(total / (shape.period * smaller))), period = total / count;
   const depth = shape.depth * smaller;
   const middle = [loop.reduce((s, p) => s + p[0], 0) / n, loop.reduce((s, p) => s + p[1], 0) / n];
@@ -635,15 +636,27 @@ const CURVED = new Set(['canton', 'flaunches', 'gore']);     // (no complex line
 // space the bordure is in (the shield, or the part of it below a chief),
 // moved in by the bordure's width, then redrawn (linedLoop).
 const bordureCache = new Map();
+// (the shield, or beside a chief the shield cut off along the chief's lower edge)
+const bordureOutline = frame => (frameParts(frame).chief
+  ? [[1, CHIEF_BOTTOM], [99, CHIEF_BOTTOM], ...SHIELD_POLYGON.filter(([, y]) => y > CHIEF_BOTTOM)] : SHIELD_POLYGON);
 export function bordureInner(frame = null, line) {
   const key = `${frameParts(frame).chief}|${line}`;
+  if (!bordureCache.has(key)) bordureCache.set(key, linedLoop(insetOutline(bordureOutline(frame), BORDURE_WIDTH), line));
+  return bordureCache.get(key);
+}
+// The line between the two rings of a bordure PARTED BORDUREWISE ("a bordure
+// parted bordurewise indented Or and azure": catalog.js): half way in from
+// the edge, plain or drawn with a complex line. The rings are narrow, so
+// that line is a shallow one, standing as far to one side of the middle of
+// the bordure as to the other.
+const RING_DEPTH = 1.5;
+export function bordureRing(frame = null, line = null) {
+  const complex = line && LINE_SHAPES[line] ? line : null;
+  const key = `ring|${frameParts(frame).chief}|${complex}`;
   if (!bordureCache.has(key)) {
-    let outline = SHIELD_POLYGON;
-    if (frameParts(frame).chief) {
-      // the shield cut off along the chief's lower edge
-      outline = [[1, CHIEF_BOTTOM], [99, CHIEF_BOTTOM], ...SHIELD_POLYGON.filter(([, y]) => y > CHIEF_BOTTOM)];
-    }
-    bordureCache.set(key, linedLoop(insetOutline(outline, BORDURE_WIDTH), line));
+    const depth = complex ? Math.min(LINE_SHAPES[complex].depth, RING_DEPTH) : 0;
+    const middle = insetOutline(bordureOutline(frame), BORDURE_WIDTH / 2 + depth);
+    bordureCache.set(key, complex ? linedLoop(middle, complex, false, RING_DEPTH) : middle);
   }
   return bordureCache.get(key);
 }
@@ -724,4 +737,160 @@ export function ordinarySamples(ordinary, division = null, frame = null, width =
     ordinarySampleCache.set(key, covered);
   }
   return ordinarySampleCache.get(key);
+}
+
+// ---- A division on a charge ----------------------------------------------------
+// "A lion barry gules and Or", "a chief per pale", "a bordure checky"
+// (catalog.js: parted tinctures; the maintainer, 27 November 2026). For the
+// shield a division is drawn in the square from 1 to 99 both ways, the fess
+// point in its middle. To put one on a charge, that square is laid over the
+// charge instead. A FIT says how:
+//   at:    [x, y]: where the middle of the square goes
+//   size:  [w, h]: how wide and how tall the square is made
+//   turns: [[degrees, x, y], ...] (optional): then turned about (x, y), for
+//          a charge that is itself turned ("a sword bendwise per pale")
+//   keep:  [x0, y0, x1, y1] (optional): pieces wholly outside this box
+//          (before any turning) are left out
+//   grid:  for checky and lozengy, which are never squeezed to fit (see
+//          KEEPS_ITS_SHAPE) and so are set out square by square:
+//     cell     [w, h] of one square
+//     centre   a place where a square (or a lozenge) has its middle
+//     first    which part that square is: 0 for the first-named tincture
+//     slant    the squares are turned this many degrees (along a bend)...
+//     squeeze  ...and then made this many times as tall (below a chief a
+//              bend is not at 45 degrees)
+//     mirror   x: the squares are as said to sinister of x, and the mirror
+//              image of that to dexter (the two arms of a chevron)
+//     long     lozenges are this many times as long, along the slant, as
+//              they are wide. (On the field a lozenge is a square stood on
+//              its corner. Along a bend that would be a square standing
+//              upright, which nobody would take for a lozenge.)
+// draw.js draws from a fit; pictures get theirs there (the picture's own
+// box), ordinaries from ordinaryFit below.
+
+// One list of polygons per part, as divisionShapes gives, laid over a charge.
+const fittedCache = new Map();
+export function divisionOn(division, line, { at, size, turns = [], keep = null }) {
+  const key = JSON.stringify([division, line, at, size, turns, keep]);
+  if (!fittedCache.has(key)) {
+    if (fittedCache.size > 2000) fittedCache.clear();
+    const fx = size[0] / 98, fy = size[1] / 98;
+    const spin = turns.map(([degrees, x, y]) => [Math.cos(degrees * Math.PI / 180), Math.sin(degrees * Math.PI / 180), x, y]);
+    const laid = ([x, y]) => [at[0] + (x - C) * fx, at[1] + (y - C) * fy];
+    const turned = ([x, y]) => spin.reduce(([px, py], [cos, sin, ox, oy]) =>
+      [ox + (px - ox) * cos - (py - oy) * sin, oy + (px - ox) * sin + (py - oy) * cos], [x, y]);
+    const seen = polygon => !keep || (Math.max(...polygon.map(p => p[0])) > keep[0] && Math.min(...polygon.map(p => p[0])) < keep[2] &&
+                                      Math.max(...polygon.map(p => p[1])) > keep[1] && Math.min(...polygon.map(p => p[1])) < keep[3]);
+    fittedCache.set(key, divisionShapes(division, null, null, line).map(polygons =>
+      polygons.map(p => p.map(laid)).filter(seen).map(p => p.map(turned))));
+  }
+  return fittedCache.get(key);
+}
+
+// Where a straight line through (x, y), heading (dx, dy), crosses the edges
+// of some polygons: how far along the line each crossing is.
+function crossings(polygons, [x, y], [dx, dy]) {
+  const out = [];
+  for (const p of polygons) {
+    for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
+      const [ax, ay] = p[j], ex = p[i][0] - ax, ey = p[i][1] - ay, cross = dx * ey - dy * ex;
+      if (Math.abs(cross) < 1e-9) continue;
+      const along = (dy * (ax - x) - dx * (ay - y)) / cross;           // how far along the edge
+      if (along >= 0 && along < 1) out.push(((ax - x) * ey - (ay - y) * ex) / cross);
+    }
+  }
+  return out.sort((a, b) => a - b);
+}
+// How wide an ordinary is where a line crosses it: two of the crossings
+// (the first and the last, unless told otherwise). The ordinary is measured
+// as it is drawn, so that this holds whatever space the layout gave it. An
+// edge drawn with a complex line wobbles, so seven lines side by side are
+// tried and the middle answer taken; with plain edges they all agree.
+function measure(polygons, point, heading, spread, [first, last] = [0, -1]) {
+  const lows = [], highs = [];
+  for (let n = -3; n <= 3; n++) {
+    const cuts = crossings(polygons, [point[0] - heading[1] * n * spread, point[1] + heading[0] * n * spread], heading);
+    if (cuts.length < 2) continue;
+    lows.push(cuts.at(first));
+    highs.push(cuts.at(last));
+  }
+  const middle = list => [...list].sort((a, b) => a - b)[Math.floor(list.length / 2)];
+  return lows.length ? [middle(lows), middle(highs)] : null;
+}
+
+// The fit (see above) for the division of a parted ordinary. `shapes` is the
+// ordinary as drawn (from layout.js; null for a bordure or orle), `frame`
+// the space the field is drawn in. What each gets:
+//   * a pale, fess, chief or base: the division squeezed to the ordinary's
+//     width, so "a chief per pale" is split down its middle and "a pale
+//     barry" is a strip of a barry field;
+//   * a cross, saltire, pall, bordure or orle: the field's own division,
+//     showing through the ordinary;
+//   * a bend: the same at half the size (so "a bend bendy" has four pieces);
+//     a chevron: so that "a chevron per chevron" is split along its middle
+//     and "a chevron chevronelly" has four pieces;
+//   * anything else (a pile, a canton...): the box it takes up.
+// Squares are a third of the ordinary's width: "a fess checky" has three
+// rows (two would be counter-compony). They follow a bend or saltire, and
+// each arm of a chevron. A bordure's are a little over a third, so that
+// twenty-six fit across the shield exactly.
+const ROWS = 3, LOZENGE_LONG = 1.6;
+export function ordinaryFit(ordinary, shapes, frame = null) {
+  const { chief } = frameParts(frame);
+  const [cx, cy] = frameCentre(frame), [sx, sy] = frameScale(frame), slope = sy / sx;
+  const spread = 2.5 * Math.min(sx, sy), keep = [1, 1, 99, 118.5];
+  const whole = { at: [cx, cy], size: [98 * sx, 98 * sy], keep };
+  const top = chief ? CHIEF_BOTTOM : 1;
+  if (ordinary === 'bordure' || ordinary === 'orle') {
+    // (the space a bordure runs round is the shield's, or the part of it below a chief)
+    const [ex, ey] = frameScale(frameName(chief));
+    const cell = ordinary === 'bordure' ? 98 / 26 : ORLE_WIDTH / 2, gap = ordinary === 'bordure' ? 0 : ORLE_GAP;
+    return { at: [cx, cy], size: [98 * ex, 98 * ey], keep, grid: { cell: [cell, cell], centre: [1 + gap + cell / 2, top + gap + cell / 2], first: 0 } };
+  }
+  const acrossAt = y => measure(shapes, [0, y], [1, 0], spread);                      // from side to side, at this height
+  const downAt = (x, pick) => measure(shapes, [x, 0], [0, 1], spread, pick);          // from top to bottom, this far across
+  if (ordinary === 'pale') {
+    const [a, b] = acrossAt(cy) || [cx - UNIT, cx + UNIT], cell = (b - a) / ROWS;
+    return { at: [(a + b) / 2, cy], size: [b - a, 98 * sy], keep, grid: { cell: [cell, cell], centre: [(a + b) / 2, cy], first: 1 } };
+  }
+  if (ordinary === 'fess' || ordinary === 'chief' || ordinary === 'base') {
+    let [a, b] = downAt(cx) || [cy - UNIT, cy + UNIT];
+    if (ordinary === 'chief') a = 1;
+    if (ordinary === 'base') b = 118.5;
+    const cell = (b - a) / ROWS;
+    return { at: [cx, (a + b) / 2], size: [98 * sx, b - a], keep, grid: { cell: [cell, cell], centre: [cx, (a + b) / 2], first: 1 } };
+  }
+  if (ordinary === 'cross') {
+    const [a, b] = acrossAt(cy - 30 * sy) || [cx - UNIT, cx + UNIT], [u, v] = downAt(cx - 30 * sx) || [cy - UNIT, cy + UNIT];
+    return { ...whole, at: [(a + b) / 2, (u + v) / 2], grid: { cell: [(b - a) / ROWS, (v - u) / ROWS], centre: [(a + b) / 2, (u + v) / 2], first: 0 } };
+  }
+  if (ordinary === 'bend' || ordinary === 'bendSinister') {
+    const [a, b] = downAt(cx) || [cy - DIAGONAL_HALF, cy + DIAGONAL_HALF], tall = b - a, cell = tall / slope / Math.SQRT2 / ROWS;
+    return { at: [cx, (a + b) / 2], size: [tall / slope, tall], keep,
+             grid: { cell: [cell, cell], centre: [cx, (a + b) / 2], first: 1, slant: ordinary === 'bend' ? 45 : -45, squeeze: slope, long: LOZENGE_LONG } };
+  }
+  if (ordinary === 'saltire') {
+    // (measured across one arm, away from where the two cross)
+    const [a, b] = downAt(cx - 30 * sx, [0, 1]) || [0, 2 * DIAGONAL_HALF], cell = (b - a) / slope / Math.SQRT2 / ROWS;
+    return { ...whole, grid: { cell: [cell, cell], centre: [cx, cy], first: 0, slant: 45, squeeze: slope } };
+  }
+  if (ordinary === 'chevron' || ordinary === 'chevronInverted') {
+    const up = ordinary === 'chevron' ? 1 : -1;
+    // (measured through the dexter arm; its middle line turns at `point`)
+    const [a, b] = downAt(cx - 20 * sx) || [0, 2 * CHEVRON_HALF], tall = b - a, point = (a + b) / 2 - up * 20 * sy;
+    const high = 98 * tall / (4 * CHEVRON_HALF), cell = tall / slope / Math.SQRT2 / ROWS;
+    // per chevron (or per chevron inverted) runs along the chevron's own middle line
+    const middle = point + (up > 0 ? C - CHEVRON_APEX : C - CHEVRON_INV_APEX) * high / 98;
+    return { at: [cx, middle], size: [high / slope, high], keep,
+             grid: { cell: [cell, cell], centre: [cx + 1.5 * cell / Math.SQRT2, point - up * slope * 0.5 * cell / Math.SQRT2], first: 0,
+                     slant: 45, squeeze: up * slope, mirror: cx, long: LOZENGE_LONG } };
+  }
+  if (ordinary === 'pall') {
+    return { ...whole, grid: { cell: [2 * UNIT / ROWS * sx, 2 * UNIT / ROWS * sy], centre: [cx, cy], first: 0 } };
+  }
+  // Anything else: the box it takes up on the shield.
+  const xs = shapes.flat().map(p => Math.min(99, Math.max(1, p[0]))), ys = shapes.flat().map(p => Math.min(118.5, Math.max(1, p[1])));
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const cell = Math.min(x1 - x0, y1 - y0, 2 * UNIT) / ROWS;
+  return { at: [(x0 + x1) / 2, (y0 + y1) / 2], size: [x1 - x0, y1 - y0], keep, grid: { cell: [cell, cell], centre: [x0 + cell / 2, y0 + cell / 2], first: 0 } };
 }

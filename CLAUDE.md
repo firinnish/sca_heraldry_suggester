@@ -35,6 +35,8 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   - `core/rules.js`: SENA's style rules. See below.
   - `core/generate.js`: random shields within constraints. It guesses and asks
     `rules.js`, so it can never disagree with the rules; add rules there, not here.
+    A background partly chosen is a `template` (a field with nulls), which
+    it fills in; `fieldHas` lists tinctures the background must contain.
   - `core/art.js`, `core/csv.js`: the charge library and its pictures.
     `loadLibrary()` gives `pictures` (ready to draw: our own; the random
     generator picks from these) and `all` (every picture known, including
@@ -78,7 +80,9 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   `PARALLEL` in `rules.js`, problem `parallel-ordinaries`, level `house`
   because no sentence of SENA was found for it): no fess with a chief, no
   fess with a base, no orle with a bordure. "No point pointed with a
-  chevron" belongs here too once there is a point pointed.
+  chevron" belongs here too once there is a point pointed. The maintainer
+  thinks it "was a recent ruling"; their sentence for it, for now:
+  "Parallel ordinaries may be confused for field divisions".
 - A field of many pieces (barry, chevronelly, checky...) counts as neutral
   under a charge lying across its pieces (SENA A3B1; raised by Měryem,
   November 2026). The drawing still nudges such charges onto the tincture
@@ -123,13 +127,20 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   `oanda.js`); dancetty is indexed "indented". Checked against the records.
 - SENA Appendix H (`checkField`): a complex line between two colours or two
   metals is `complex-line-ruled-out` (sena) for sable with azure or with
-  purpure, the two pairings it names, and `complex-line-contrast` (house)
-  otherwise ("registerable on a case-by-case basis"), EXCEPT the pairings
-  the College registers often, which are offered to everybody
-  (`REGISTERED_OFTEN` in `rules.js`, with the counts since 2015 from the
-  O&A: gules/sable, sable/vert, azure/gules, azure/vert, argent/Or). The
-  maintainer's sentence for the rest: "Complex lines between two
-  metals/colours may not be allowed; use herald mode to override".
+  purpure, the two pairings it names. Every other complex line of division
+  is judged by HOW MUCH OF IT SHOWS (the maintainer, 28 November 2026:
+  "it's less about the specific colour combination and more about
+  identifiability ... at least 1/3 of the total line length must be visible
+  to use a complex line. If it is hidden by charges it'll be hard to
+  identify"): `lineShowing` in `layout.js`, `LINE_SHOWS` in `rules.js`
+  (`checkShield`). Less than a third showing is a `house` problem:
+  `complex-line-contrast` between two colours or two metals (the
+  maintainer's sentence: "Complex lines between two metals/colours may not
+  be allowed; use herald mode to override"), `complex-line-hidden`
+  otherwise. I applied it to good-contrast lines too; they have not
+  confirmed that half. (For one day the low-contrast pairings were let
+  through by how often the College registers them; the counts are kept in
+  a comment in `rules.js`.)
 - Build page: "line:" on an ordinary's card (and in its "expand" box), and a
   menu of lines under "How is the background divided?" (`state.fieldLine`),
   which every background picture is then drawn with. The generator only
@@ -286,6 +297,32 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   sable and purpure semy of lions Or"); the rules judge them against that
   part alone. On the build page it is "over:" on the charge's card.
 
+## Parted charges (built 28 November 2026)
+- The maintainer: "Please allow charges to be parted the same way
+  backgrounds are. I should be allowed 'argent, a lion barry gules and or',
+  or 'sable, a bordure checky argent and gules', etc. Bordures should
+  additionally be allowed to be parted bordurewise."
+- A parted colouring is a TINCTURE ID, like the made furs, so everything
+  that passes a charge's `tincture` around keeps working:
+  `parted:<division>[~<line>]:<part>,<part>[,<part>]`, for example
+  `parted:barry:gules,or`, `parted:perPale~wavy:argent,azure`,
+  `parted:bordurewise:gules,or` (only a bordure: part 1 is the outer ring).
+  `partedTincture(division, parts, line)`, `partedOf(id)`, `isParted(id)`
+  in `catalog.js`; `TINCTURES[id]` answers for one (its `name` is the
+  blazon's words, "barry gules and Or"); `partedField(id)` in `shield.js`
+  gives the same thing as a field, which is how drawing and the rules reuse
+  the field code. `Object.keys(TINCTURES)` still lists only the eleven.
+- A PALETTE (the colours ticked for the shield) never holds a parted id:
+  wherever tinctures in use are collected (`tidy` and `adopt` in the page,
+  `shieldFrom` in `generate.js`), a parted one counts as the tinctures it is
+  parted of.
+- Drawing (`draw.js`, and `export.js` in step): through the same mask as a
+  plain colour, the division fitted to each charge's own box; on an
+  ordinary, clipped to its shape and laid along it (a fess checky has three
+  rows; a bend checky runs down the bend).
+- The page: "More complex options" on a chosen charge's card (see "How the
+  page behaves"). The generator never makes a parted charge at random.
+
 ## The two pages
 - `apps/search/` is "Forannán's Shieldpainter 1.0", the BUILD MODE (the
   maintainer's name for it, the end of November 2026). `apps/searchonly/` is
@@ -304,11 +341,49 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   background" (the maintainer's words) is ticked.
 
 ## How the page behaves (decided with the maintainer)
+- **THE BACKGROUND PICKER** (the maintainer's sketch and words, 27-28
+  November 2026: "Let's make the background picker work like the charge
+  picker"; it replaced the division pictures, the separate "What colours are
+  used in the background?" question, "more complex background" and "Show
+  one-part backgrounds", which they came to dislike).
+  - What is chosen is ONE field, `state.field` (a field from `shield.js` in
+    which any colour may still be null; null = nothing chosen). There is no
+    separate division, line or builder state any more. `state.fieldColours`
+    is the row "must contain all of:" and follows the field (`tidy`).
+  - The list (`renderDivisionPanel`): a menu on the left ("default", "show
+    all", "plain", "2-part", "3-part", "4-part", "5+ parts", "patterns",
+    "furs", "field treatments", then each complex line), "must contain all
+    of:" as colour squares, "Type to find a field description", and a
+    picture per entry (`bgEntries`: plain, every division, the furs, a fur or
+    treatment of each kind made from two colours, "semy of charges"). The
+    default view leaves out what cannot be chosen with the charges picked;
+    the others grey it with the reason. Which divisions are "patterns"
+    (checky, lozengy) and which "5+ parts" is MY GUESS (`BG_PATTERNS`).
+  - Under it (`bgPickedBox`): "you selected: per pale wavy", "Swap the
+    parts", "divided with a line that is", "and counterchanged with", and a
+    box per part with its colour. "More complex options" on a part opens a
+    SECOND COPY of the picker for that part alone (`bgPartPicker`,
+    `state.bgOpen`): the maintainer chose this over picking several things
+    at once ("have a single picker show initially, but if the user picks
+    'more complex options' for a background aspect, it shows a second time").
+  - Pictures come from the generator: `template` (a field with nulls to fill)
+    and `fieldHas` (tinctures it must contain) in `generate.js`.
+  - "semy of charges" as a background makes an entry in `state.items` with
+    number semy and no charge yet; the shield top right strews BLOBS
+    (`placeholders`, a group marked `placeholder`, left out of the search)
+    until a charge is picked in the charges question, which then fills that
+    entry (the maintainer: "show blobs or maybe mullets initially, and
+    direct the user to pick a specific charge later").
+- **A CHARGE'S CARD IN THE LIST shows that charge ALONE**, one of it, as the
+  only charge (the maintainer, 28 November 2026, of a picture with bycockets
+  strewn round anchors: "it's impossible to really see what a 'bycocket'
+  looks like"; "Full shields show up in the suggestions bar, and I think
+  that's enough"). Whether it can still be ADDED to the charges chosen is
+  worked out separately, as before, and greys the card or hides it
+  (`chargeCard`: `solo` is the picture, `found` the verdict).
 - (The end of November 2026.) "make suggestion" under an option's picture
   (`card`, `pins`) puts that whole design among the suggestions, pinned.
-  With two or more background colours chosen, "Show one-part backgrounds" /
-  "Show two-part backgrounds" (`state.showParts`) bring out the backgrounds
-  that use fewer of them; nothing is hidden for good. A charge's colour is
+  A charge's colour is
   chosen for it when only one is possible (`assumeChargeColours`), on the
   same footing as the background's. A charge on a canton shows the
   maintainer's augmentation warning and is otherwise allowed.
@@ -324,14 +399,12 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   the number keeps it open. When the search lacks a number or a posture, a
   line under the button says so (the maintainer's sentence, `searchNeeds`).
 - When the shield's colours leave the background only one set of colours,
-  they are ticked in the background question as soon as a division is
-  picked or the shield's colours change (`assumeFieldColours`): not
-  continuously, so a colour can still be un-ticked by hand.
+  they are put into its parts as soon as a background is picked or the
+  shield's colours change (`assumeFieldColours`): not continuously, so a
+  colour can still be taken off by hand.
 - "More complex options" (the maintainer's words) under the shield's
   colours makes a fur or field treatment from two colours and adds it to
   the furs in every colour menu (`state.extraTinctures`).
-- "more complex background" has "and counterchanged with" for a second
-  division over the first, when both parts are plain colours.
 - "AI disclosure" beside the herald tick opens a box with the maintainer's
   own text (`TEXT.aiText`): do not reword it.
 - Three areas: questions (top left, scrolls on its own, always shows every
@@ -340,10 +413,9 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   in option pictures and suggestions, within the rules. Random pictures are
   seeded from what they depend on, so they only change when that changes.
 - Question 1 "colours used in the shield" is a palette (a subset may be used;
-  with only one ticked it must appear but others may too). "Colours used in
-  the background" means exactly those; it now comes AFTER "How is the
-  background divided?" (the maintainer, November 2026: picking the colours
-  afterwards feels more natural).
+  with only one ticked it must appear but others may too). The background's
+  own colours are "must contain all of:" in its picker, and the menu in each
+  part's box.
 - An option the rules forbid is shown greyed with the reason, never hidden
   ("misses a chance for education"). Option groups are limited to about 18.
 - The shield top right assumes a colour when the shield's colours leave only
@@ -376,9 +448,19 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
     the charges picked, plus ordinaries and simple geometric charges
     (`SIMPLE_CHARGES` in `catalog.js`; `extras: 'simple'` for the
     generator), so a cat may get a bend or three mullets but never a bear.
+    With nothing picked it suggests any charge (the maintainer: "that's
+    correct"). Beside "default mode" a little "?" in a circle says, when the
+    pointer rests on it or it is pressed, "Suggestions include the charges
+    you picked, plus ordinaries and simple geometric charges" (their words;
+    `.help-q`, reusable for other hints).
   - a card per charge chosen: "you selected: lion", its picture, "number:"
     as stops on a line from 1 to semy, "colour:" as a menu with a strip of
     small squares under it, and the one line saying why any are greyed.
+    "More complex options" on the card opens the background picker's list
+    again for THAT CHARGE'S COLOUR (`chargeColourBox`, `state.chargeMore`):
+    a fur, a field treatment, or parted like a background ("a lion barry
+    gules and Or"; see "Parted charges" below), and for a bordure "parted
+    bordurewise". A parted charge's card has its line and each colour.
   - under the shield top right, "Artist credits:" for every Traceable
     Heraldic Art picture on it, and a link to the licence. Required by the
     licence: do not remove it.
