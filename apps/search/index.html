@@ -212,7 +212,7 @@
 <script type="module">
 import { TINCTURES, DIVISIONS, ORDINARIES, COLOUR_ORDER, METAL_ORDER, FUR_ORDER, familyOf,
          ARRANGEMENTS, USUAL_ARRANGEMENT, SEMY, arrangementsFor, ORIENTATIONS, isLying, postureCode, ordinaryLabel,
-         PATTERNS, tinctureFrom, divisionsTogether, LINES, LINED_ORDINARIES, canBeLined } from '../../core/catalog.js';
+         PATTERNS, tinctureFrom, divisionsTogether, LINES, LINED_ORDINARIES, canBeLined, SIMPLE_CHARGES } from '../../core/catalog.js';
 import { plain, divided, isComplete, isNested, leafTinctures, shieldTinctures, blazon, ordinaryGroup,
          chargeGroupFromLibrary, allGroups, COUNTERCHANGED } from '../../core/shield.js';
 import { layoutShield } from '../../core/layout.js';
@@ -297,8 +297,16 @@ const TEXT = {
   viewCompact: 'compact',
   viewLong: 'long and thin',
   chargeNoneLeft: 'No other charge can be added with the choices made so far. "see all" shows them with the reason.', // DRAFT
-  modeAny: 'Mode: Suggestions include any of my selections',
-  modeAll: 'Must include ALL of my selections',
+  // The row under the list of charges (the maintainer's sketch, 27 November
+  // 2026): "Mode: Suggestions include [any of] [all of] [only] my
+  // selections, or [default mode]".
+  modeLead: 'Mode: Suggestions include',
+  modeAnyOf: 'any of',
+  modeAllOf: 'all of',
+  modeOnly: 'only',
+  modeTail: 'my selections, or',
+  modeDefault: 'default mode',
+  modeDefaultHelp: 'Suggestions use the charges you picked, and may add an ordinary or a simple shape (a mullet, a roundel...), but no other charge.', // DRAFT (shown when the pointer rests on "default mode")
   youSelected: name => `you selected: ${name}`,
   noneSelected: 'no charge selected yet',                               // DRAFT
   numberLabel: 'number:',
@@ -313,6 +321,10 @@ const TEXT = {
   // orientation and art when an ordinary is chosen; and for the lines the
   // background is divided with). The names of the lines are heraldry's own,
   // from core/catalog.js.
+  // Semy over one part of a divided background.
+  strewnLabel: 'over:',                                                 // DRAFT
+  strewnWhole: 'the whole background',                                  // DRAFT
+  strewnPart: (n, colour) => `part ${n} only (${colour})`,              // DRAFT
   lineLabel: 'line:',                                                   // DRAFT
   linePlain: 'plain',                                                   // DRAFT (a straight line)
   exploreLine: 'line',                                                  // DRAFT
@@ -432,7 +444,8 @@ const TEXT = {
     'no-room': 'There is not enough room to draw this clearly',
     'pattern-hidden': 'So little of the background shows that its pattern cannot be made out',
     'complex-line-ruled-out': 'A complex line between these two colours has been ruled unregisterable',
-    'complex-line-contrast': 'A complex line between two colours, or two metals, is only registered if it can be clearly made out',
+    'complex-line-contrast': 'Complex lines between two metals/colours may not be allowed; use herald mode to override',   // (the maintainer's words)
+    'parallel-ordinaries': 'A fess cannot go with a chief or a base, nor an orle with a bordure: they run side by side',
     'arrangement-unity': 'With another charge above or below, charges in a line may be taken for one group with two arrangements',
     'not-possible': 'Not possible with the colours chosen',
   },
@@ -491,7 +504,12 @@ const state = {
   arrangementUnspecified: false,   // "don't specify" ticked for the arrangement
   chargeFilter: '',
   view: 'default',       // which charges the list shows: 'default' | 'all' | 'type:...' | 'theme:...' | 'need:...'
-  any: false,            // suggestions may use any of the charges chosen (true) or must use all of them (false)
+  // What the suggestions do with the charges chosen:
+  //   'default'  all of them, and perhaps an ordinary or a simple geometric charge beside
+  //   'any'      some of them (one, or two, or all), and perhaps other charges
+  //   'all'      all of them, and perhaps other charges
+  //   'only'     all of them and nothing else
+  mode: 'default',
   showParts: { one: false, two: false },   // "Show one-part backgrounds" / "Show two-part backgrounds" pressed?
   extraTinctures: [],    // furs and field treatments made under "More complex options" (ids from tinctureFrom in core/catalog.js)
   moreOptions: false,    // is "More complex options" open?
@@ -526,6 +544,10 @@ function tidy() {
   }
   // How a charge's own charges are set out only lasts while it suits how many there are.
   // (It may be chosen before how many: then any number that suits it is offered.)
+  // Strewn over one part of the background only lasts while the charges are
+  // semy and the background has that part.
+  const strewable = strewableParts().length;
+  for (const item of state.items) if (item.number !== SEMY || !Number.isInteger(item.part) || item.part >= strewable) item.part = null;
   for (const item of state.items) {
     const fits = item.number === null || (item.arranged === 'usual' ? !!USUAL_ARRANGEMENT[item.number] : arrangementsFor(item.number).includes(item.arranged));
     if (item.arranged && !fits) item.arranged = null;
@@ -573,7 +595,9 @@ function chosen() {
   return state.items.filter(item => item.choice)
     .map(item => ({ item, group: groupFor(item.choice, tinctureOf(item), item.number, item.arranged) }))
     .filter(x => x.group)
-    .map(x => ({ ...x, group: x.item.anyNumber ? { ...x.group, anyNumber: true } : x.group }));
+    .map(x => ({ ...x, group: x.item.anyNumber ? { ...x.group, anyNumber: true } : x.group }))
+    // (charges strewn over one part of the background only: `part` in core/shield.js)
+    .map(x => ({ ...x, group: x.group.kind === 'charge' && x.item.number === SEMY && Number.isInteger(x.item.part) ? { ...x.group, part: x.item.part } : x.group }));
 }
 
 // How many of a charge, when nobody has said: the shield top right shows
@@ -725,7 +749,8 @@ function itemList(keep = -1) {
   state.items.forEach((item, i) => {
     if (!(live(item) || i === keep || (!item.choice && (item.number || tinctureOf(item) || item.arranged)))) return;
     at[i] = list.length;
-    list.push({ charge: live(item) ? item.choice : null, number: item.number, tincture: tinctureOf(item), arranged: item.arranged || null });
+    list.push({ charge: live(item) ? item.choice : null, number: item.number, tincture: tinctureOf(item), arranged: item.arranged || null,
+                ...(item.number === SEMY && Number.isInteger(item.part) ? { part: item.part } : {}) });
   });
   return { list, at };
 }
@@ -1296,6 +1321,14 @@ function slotBlock(slot, c) {
     };
     html += `<div class="pick-row"><span class="pick-label">${esc(TEXT.numberLabel)}</span><div class="track">${NUMBERS.map(stop).join('')}</div></div>` +
       `<div class="pick-more"><button class="link-btn" type="button" data-any-number data-slot="${slot}" aria-pressed="${!!item.anyNumber}">${esc(TEXT.dontSpecify)}</button></div>`;
+    // Semy on a divided background: over all of it, or over one part only
+    // ("Per chevron sable and purpure semy of lions Or": the maintainer).
+    const parts = strewableParts();
+    if (item.number === SEMY && parts.length) {
+      html += `<div class="pick-row"><label class="pick-label" for="part${slot}">${esc(TEXT.strewnLabel)}</label><select id="part${slot}" data-part-select="${slot}">` +
+        `<option value="">${esc(TEXT.strewnWhole)}</option>` + parts.map((name, k) =>
+          `<option value="${k}"${item.part === k ? ' selected' : ''}>${esc(TEXT.strewnPart(k + 1, name))}</option>`).join('') + `</select></div>`;
+    }
   }
 
   const option = (value, label, faults) =>
@@ -1318,6 +1351,15 @@ function slotBlock(slot, c) {
       `aria-expanded="${state.explore === slot}">${esc(state.explore === slot ? TEXT.collapse : TEXT.expand)}</button></div>`;
   }
   return html;
+}
+
+// The parts of the background that charges can be strewn over on their own:
+// the parts of a background divided into two, three or four, by name ("the
+// purpure part"). None for a plain background or one of many small pieces.
+function strewableParts() {
+  const field = currentField();
+  if (!field || field.type !== 'divided' || field.division.includes('+') || !['two', 'three', 'four'].includes(familyOf(field.division))) return [];
+  return field.parts.map(p => blazon(p, [], words).toLowerCase());
 }
 
 // The lines an ordinary's edges, or a division of the background, can be
@@ -1531,9 +1573,10 @@ function renderChargePanel() {
   html += `<div class="picker">${viewMenu()}<div class="picker-grid" id="chargeGrid">${grid}</div></div>`;
 
   // "Suggestions include any of my selections" or "Must include ALL".
-  html += `<div class="mode-row"><span>${esc(TEXT.modeAny)}</span>` +
-    `<button class="switch" type="button" role="switch" data-mode aria-checked="${!state.any}" aria-label="${esc(TEXT.modeAll)}"><i></i></button>` +
-    `<span>${esc(TEXT.modeAll)}</span></div>`;
+  const modeBtn = (id, label, title = '') => `<button class="name-btn" type="button" data-mode="${id}" aria-pressed="${state.mode === id}"` +
+    `${title ? ` title="${esc(title)}"` : ''}>${esc(label)}</button>`;
+  html += `<div class="mode-row"><span>${esc(TEXT.modeLead)}</span>${modeBtn('any', TEXT.modeAnyOf)}${modeBtn('all', TEXT.modeAllOf)}` +
+    `${modeBtn('only', TEXT.modeOnly)}<span>${esc(TEXT.modeTail)}</span>${modeBtn('default', TEXT.modeDefault, TEXT.modeDefaultHelp)}</div>`;
 
   // A card for each charge chosen: its number and colour. (The first is there
   // before any charge is chosen, so those can be answered first.)
@@ -1729,12 +1772,21 @@ function renderCurrent() {
 function renderSuggestions() {
   // Suggestions may add a charge or two that was not asked for (a bordure,
   // charges around an ordinary...): they are ideas, not only what was chosen.
-  const c = { ...constraints(), extras: true };
-  // "Suggestions include any of my selections": each suggestion has some of
-  // the charges chosen (one, or two, or all), in turn; "Must include ALL of
-  // my selections": every suggestion has them all.
-  const picks = Array.isArray(c.items) ? c.items.filter(x => x.charge) : [];
-  const anyOf = state.any && picks.length >= 2;
+  // The mode chosen under the list of charges says what may go with the
+  // charges picked (the maintainer, 27 November 2026):
+  //   "any of":  each suggestion has some of them (one, or two, or all), in
+  //              turn, and may add other charges;
+  //   "all of":  every suggestion has them all, and may add other charges;
+  //   "only":    every suggestion has them all and nothing else (so the
+  //              suggestions are ways to arrange those charges, over
+  //              whatever backgrounds are still possible);
+  //   "default mode": them all, and perhaps an ordinary or a simple
+  //              geometric charge, but never another beast or object.
+  // With no charge picked there is nothing to restrict, in any mode.
+  const base = constraints();
+  const picks = Array.isArray(base.items) ? base.items.filter(x => x.charge) : [];
+  const c = { ...base, extras: !picks.length ? true : state.mode === 'only' ? false : state.mode === 'default' ? 'simple' : true };
+  const anyOf = state.mode === 'any' && picks.length >= 2;
   const key = `${SEED}|suggest|${anyOf}|${state.epoch}|${library.pictures.length}|${JSON.stringify(c)}`;
   const wanted = SUGGESTION_COUNT + state.pinned.length;
   const make = () => {
@@ -1844,6 +1896,7 @@ function adopt(shield) {
       : { kind: 'charge', id: g.charge, file: g.art, turned: g.turned || null, inverted: !!g.inverted, mirror: !!g.mirror },
     number: g.kind === 'ordinary' ? null : g.number,
     arranged: g.arranged || (g.kind !== 'ordinary' && USUAL_ARRANGEMENT[g.number] ? 'usual' : null),
+    part: Number.isInteger(g.part) ? g.part : null,
     tincture: g.tincture,
   }));
   state.noCharge = !state.items.length;
@@ -1955,9 +2008,9 @@ document.addEventListener('click', e => {
   } else if (d.view) {
     state.view = d.view;
     refocus = `[data-view="${d.view}"]`;
-  } else if ('mode' in d) {
-    state.any = !state.any;
-    refocus = '[data-mode]';
+  } else if (d.mode) {
+    state.mode = d.mode;
+    refocus = `[data-mode="${d.mode}"]`;
   } else if (d.q1) {
     const removing = state.shieldColours.includes(d.q1);
     state.shieldColours = toggle(state.shieldColours, d.q1);
@@ -2123,6 +2176,15 @@ document.addEventListener('change', e => {
     document.querySelector(`select[data-role="${i}"]`)?.focus({ preventScroll: true });
     return;
   }
+  // Which part of the background strewn charges are over.
+  const part = e.target.closest('select[data-part-select]');
+  if (part) {
+    state.items[Number(part.dataset.partSelect)].part = part.value === '' ? null : Number(part.value);
+    tidy();
+    render();
+    document.getElementById(part.id)?.focus({ preventScroll: true });
+    return;
+  }
   // The line the background is divided with, or an ordinary's edges are drawn with.
   const line = e.target.closest('select[data-field-line], select[data-line-select]');
   if (line) {
@@ -2249,8 +2311,11 @@ async function starterPictures(loaded) {
   return loadPictures(easy.slice(0, STARTER_PICTURES));
 }
 loadLibrary().then(async loaded => {
+  // (and the simple geometric charges, which "default mode" may add to a suggestion)
+  const usual = id => { const rows = loaded.all.filter(p => p.charge_id === id); return rows.find(p => p.default === 'TRUE') || rows[0] || null; };
   const [starter, labels] = await Promise.all([
-    starterPictures(loaded).catch(() => []),
+    Promise.all([starterPictures(loaded).catch(() => []), loadPictures(SIMPLE_CHARGES.map(usual).filter(Boolean)).catch(() => [])])
+      .then(([a, b]) => [...new Set([...a, ...b])]),
     fetchCSV(new URL('../../data/taxonomy.csv', import.meta.url).href).catch(() => []),
   ]);
   taxonomy = labels;

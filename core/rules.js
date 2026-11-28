@@ -51,6 +51,19 @@ const READS_CLEARLY = new Set(['chief', 'bordure', 'base']);
 // Checky or lozengy needs at least this share of the shield left showing to
 // be made out (see checkShield).
 const PATTERN_SHOWS = 0.25;
+// Low-contrast pairings registered with a complex line of division ten times
+// or more since 2015, counted in the O&A in November 2026 (fields of two or
+// four parts whose blazon begins "Per pale wavy ..." and the like): gules and
+// sable 55 times, sable and vert 37, azure and gules 34, azure and vert 33,
+// argent and Or 12. Those are offered to everybody. The rest are held back
+// for heralds: purpure and vert 6, azure and purpure 4, gules and vert 2,
+// gules and purpure 1. (Count again before adding to this list.)
+const REGISTERED_OFTEN = new Set(['gules,sable', 'sable,vert', 'azure,gules', 'azure,vert', 'argent,or']);
+// Ordinaries that run side by side and so may not be used together (the
+// maintainer, 27 November 2026: "There should be a ban on parallel
+// ordinaries; no fess used with a chief, no base used with a fess ... and no
+// orle used with a bordure").
+const PARALLEL = [['fess', 'chief'], ['fess', 'base'], ['orle', 'bordure']];
 
 // (Vair and the furs like it are neutral: SENA A3B1, "As they are made up of
 // multiple pieces, divided evenly between a color and a metal, they are
@@ -119,6 +132,11 @@ function checkField(field, problems, depth = 0) {
         if (goodContrast(classes[i], classes[j])) continue;
         const pair = [parts[i], parts[j]].map(p => (p.type === 'plain' ? groundsOf(p.tincture)[0] : null)).sort().join();
         const ruledOut = pair === 'purpure,sable' || pair === 'azure,sable';
+        // The pairings the College registers with a complex line as a matter
+        // of course are offered to everybody (the maintainer, 27 November
+        // 2026: "If it's common and often allowed ... with recent
+        // registrations, then no need to grey it out"). See REGISTERED_OFTEN.
+        if (!ruledOut && REGISTERED_OFTEN.has(pair)) continue;
         problems.push({ id: ruledOut ? 'complex-line-ruled-out' : 'complex-line-contrast', sena: 'Appendix H', level: ruledOut ? 'sena' : 'house' });
       }
     }
@@ -260,15 +278,12 @@ function checkGroup(field, group, coverage, frame, crossed, problems, variant = 
     // SENA A3F4: "it was used mainly with two or four part divisions of the
     // field ... The counterchanging of a single charge over a field division
     // with more than four sections must be attested to be allowed."
-    // An ORDINARY is let through: the maintainer reads "a single charge"
-    // here as a charge that is not an ordinary (confirmed, November 2026),
-    // and the College has gone on registering ordinaries counterchanged
-    // over such fields under SENA. From the O&A: "Paly
-    // azure and argent, a bend counterchanged" (September 2018), "Paly Or
-    // and vert, a bend counterchanged" (September 2016), "Gyronny vert and
-    // Or, a saltire counterchanged" (April 2019). Any other charge still
-    // needs its own evidence.
-    if (family === 'many' && group.kind !== 'ordinary') problems.push({ id: 'counterchange-many', sena: 'A3F4', level: 'sena' });
+    // This goes for ordinaries too (the maintainer, 27 November 2026, taking
+    // back an exception tried for a few days: "ordinaries have to obey the
+    // rules against excessive counterchanging"). The O&A does have some
+    // registered under SENA ("Paly azure and argent, a bend counterchanged",
+    // September 2018), each presumably with its own evidence.
+    if (family === 'many') problems.push({ id: 'counterchange-many', sena: 'A3F4', level: 'sena' });
     // Each piece of the charge sits on the other tincture, so the two must
     // themselves have good contrast (SENA A3B4a).
     const [a, b] = field.parts.map(fieldClass);
@@ -438,6 +453,10 @@ export function checkArrangement(groups) {
   // the field and in a tertiary charge group".
   const types = groups.map(typeOf);
   if (new Set(types).size < types.length) problems.push({ id: 'same-charge-twice', sena: 'A3D1a', level: 'sena' });
+
+  // Parallel ordinaries (the maintainer's rule; see PARALLEL).
+  const has = id => groups.some(g => g.kind === 'ordinary' && g.ordinary === id);
+  if (PARALLEL.some(([a, b]) => has(a) && has(b))) problems.push({ id: 'parallel-ordinaries', sena: null, level: 'house' });
 
   // SENA Appendix I3: "Charges on tertiary charges are known as quaternary
   // charges and are not allowed".

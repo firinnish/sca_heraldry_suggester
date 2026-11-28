@@ -103,6 +103,12 @@ const checkLine = line => { if (line !== 'plain' && !LINES[line]) throw new Erro
 //            For now only the primary group can be set out differently.
 //   number:  may also be SEMY (catalog.js): strewn over the field, or over
 //            the ordinary the group lies on, as many as fit.
+//   part:    for charges strewn over the field: null for the whole field, or
+//            which part of a divided field they are strewn over (0 for the
+//            first-named). "Per chevron sable and purpure semy of lions Or"
+//            is part 1: lions on the purpure only (the maintainer, 27
+//            November 2026). Strewn over the whole of a divided field, the
+//            blazon says "all semy of".
 //
 // A chief, bordure, orle or base is always a secondary group of its own kind
 // ("peripheral"), whatever `role` says, and a central ordinary is always the
@@ -127,13 +133,13 @@ export function ordinaryGroup(ordinary, tincture, { role = null, place = null, c
 
 export function chargeGroup({ charge, name = charge, plural = '', category = '', posture = '',
                               inverted = false, mirror = false, turned = null, art = null, artInverted = false,
-                              artPosture = posture,
+                              artPosture = posture, part = null,
                               number = 1, tincture, role = null, place = null, charged = null, arranged = null }) {
   checkChargeTincture(tincture);
   if (arranged !== null && !ARRANGEMENTS[arranged]) throw new Error('Unknown arrangement: ' + arranged);
   if (turned !== null && !ORIENTATIONS[turned]) throw new Error('Unknown orientation: ' + turned);
   return { kind: 'charge', charge, name, plural, category, posture, inverted, mirror, turned,
-           art, artInverted, artPosture, number, tincture, role, place, charged, arranged };
+           art, artInverted, artPosture, part, number, tincture, role, place, charged, arranged };
 }
 
 // ---- What each group on the field is ---------------------------------------------
@@ -257,9 +263,11 @@ export const PLACEHOLDER_WORDS = {
 
 const tinctureWord = (t, words) => (t === null ? words.tincture : TINCTURES[t].name);
 
-function fieldWords(field, words) {
+// `strewn` (optional): what is strewn over each part, by the part's number
+// ("semy of lions Or"), to be named with that part.
+function fieldWords(field, words, strewn = null) {
   if (field.type === 'plain') return tinctureWord(field.tincture, words);
-  const parts = field.parts.map(p => fieldWords(p, words));
+  const parts = field.parts.map((p, i) => fieldWords(p, words) + (strewn && strewn.get(i) ? ' ' + strewn.get(i) : ''));
   const list = parts.length === 2
     ? parts.join(' and ')
     : parts.slice(0, -1).join(', ') + ', and ' + parts[parts.length - 1];
@@ -269,8 +277,8 @@ function fieldWords(field, words) {
 }
 
 // "Per chevron vert and lozengy Or and purpure"
-export function blazonField(field, words = PLACEHOLDER_WORDS) {
-  const text = field ? fieldWords(field, words) : words.field;
+export function blazonField(field, words = PLACEHOLDER_WORDS, strewn = null) {
+  const text = field ? fieldWords(field, words, strewn) : words.field;
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
@@ -279,7 +287,8 @@ const NUMBER_WORDS = { 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six' };
 // A group without its tincture: "a lion rampant", "three fleurs-de-lys".
 function groupWords(group, words) {
   const one = (group.kind === 'ordinary' ? ORDINARIES[group.ordinary].name : group.name).toLowerCase();
-  const many = group.plural ? group.plural.toLowerCase() : one + 's';
+  // (where charges.csv gives no plural: "compasses", "foxes", not "compasss")
+  const many = group.plural ? group.plural.toLowerCase() : one + (/(s|x|z|ch|sh)$/.test(one) ? 'es' : 's');
   let text;
   // "Or, flaunches azure": a pair is named without its number.
   if (group.kind === 'ordinary' && ORDINARIES[group.ordinary].count === 2) text = ORDINARIES[group.ordinary].plural;
@@ -391,7 +400,14 @@ export function blazon(field, groups = [], words = PLACEHOLDER_WORDS) {
   // Without "all" the charges read as strewn over the last-named part only:
   // the maintainer, November 2026.)
   const all = field && field.type === 'divided' ? ' all' : '';
-  const fieldText = blazonField(field, words) + strewn.map(g =>
+  // Charges strewn over ONE part of a divided field are named with that
+  // part, tincture and all: "Per chevron sable and purpure semy of lions Or".
+  const onPart = g => field && field.type === 'divided' && Number.isInteger(g.part) && g.part >= 0 && g.part < field.parts.length;
+  const byPart = new Map();
+  for (const g of strewn.filter(onPart)) {
+    byPart.set(g.part, [byPart.get(g.part), `${groupWords(g, words)} ${groupTincture(g, words)}`].filter(Boolean).join(' '));
+  }
+  const fieldText = blazonField(field, words, byPart) + strewn.filter(g => !onPart(g)).map(g =>
     all + ' ' + groupWords(g, words) + (next && sameTincture(g, next) ? '' : ' ' + groupTincture(g, words))).join('');
   return [fieldText, ...(rest.length ? [groupsWords(rest, words)] : [])].join(', ');
 }

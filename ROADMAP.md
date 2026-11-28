@@ -124,9 +124,9 @@ here were made with the maintainer; add to it as things are decided.
   on its left ("default view", "see all", then by topic, type and artistic
   need), a box to search by name, and the pictures in a box that scrolls.
   The default view shows what can still be chosen: ordinaries, then charges
-  that are easy to draw, then the rest, alphabetically. Under it, a switch
-  between "Suggestions include any of my selections" and "Must include ALL
-  of my selections", and a card for each charge chosen ("you selected:
+  that are easy to draw, then the rest, alphabetically. Under it, the row
+  of suggestion modes (see "Suggestion modes" below; at first a switch
+  between two), and a card for each charge chosen ("you selected:
   lion") with its number on a line of stops and its colour as a menu and a
   strip of squares. Under the shield: "Artist credits" for the pictures in
   it, and the licence.
@@ -181,10 +181,9 @@ here were made with the maintainer; add to it as things are decided.
 - **Rules relaxed, late November 2026** (the maintainer; to be checked with
   another herald): a chief, bordure or base may share a tincture with a
   field of many pieces (SENA A3B4b allows it "if drawn so that the shared
-  tinctures are not against each other"); an ordinary may be counterchanged
-  over a field of many pieces (SENA A3F4 wants that "attested"; the College
-  registered "Paly azure and argent, a bend counterchanged" in 2018 and
-  "Gyronny vert and Or, a saltire counterchanged" in 2019).
+  tinctures are not against each other"). (An ordinary counterchanged over
+  a field of many pieces was also let through for a few days; the
+  maintainer took that back at the end of November 2026, see below.)
 - **Smaller things:** the background's colours are chosen automatically
   when the shield's colours leave only one set (azure and Or ticked, then
   per pale); an "AI disclosure" link beside the herald tick.
@@ -247,6 +246,38 @@ here were made with the maintainer; add to it as things are decided.
   background the rules allow as soon as the charges leave only one (azure
   and Or ticked, an Or charge: azure), unless "don't specify background" is
   ticked or the herald sets the background by hand.
+- **Suggestion modes** (the maintainer's sketch, the end of November 2026):
+  under the list of charges, "Mode: Suggestions include [any of] [all of]
+  [only] my selections, or [default mode]". "only" suggests nothing but the
+  charges picked; "default mode" may add an ordinary or a simple geometric
+  charge (roundel, annulet, billet, delf, lozenge, mascle, rustre, mullet,
+  estoile, crescent, heart, triangle, goutte) but no other charge: a cat
+  may get a bend or three mullets, never a bear.
+- **Semy on one part of the field:** "over:" on a strewn charge's card
+  chooses the whole background or one part of it ("Per chevron sable and
+  purpure semy of lions Or": lions on the purpure only). Drawn, blazoned
+  and judged by the rules on that part alone. The search sends it like any
+  strewn charge, which is how the O&A indexes it ("Per chevron vert
+  crusilly Or and Or" has `CRAC:crosslet:gpa:or:seme` and `PS:or`; "Per
+  chevron azure mullety argent and Or, a laurel wreath azure" has
+  `STAR:argent:...:seme:seme on field`): the index does not say which part.
+- **Line shapes traced from Traceable Heraldic Art** (the maintainer's
+  suggestion): wavy, indented, embattled, engrailed, invected, nebuly,
+  dovetailed, raguly and rayonny are now the collection's own shapes, and
+  urdy and potenty are new. `tools/trace_lines.py` reads them from the
+  "Per Fess ..." device forms. Dancetty has no drawing there and stays as
+  it was. Deep lines (nebuly, rayonny, urdy) are drawn smaller on an
+  ordinary, and smaller again along a bordure. Orly can have a line too.
+- **Rules, the end of November 2026** (the maintainer): ordinaries are once
+  more held to SENA A3F4 on counterchanging over a field of many pieces;
+  no fess with a chief, no fess with a base, no orle with a bordure
+  ("parallel ordinaries", held back for heralds to override); a complex
+  line between two colours or two metals is offered to everybody when the
+  College registers that pairing often (since 2015: gules and sable 55,
+  sable and vert 37, azure and gules 34, azure and vert 33, argent and Or
+  12) and held back for heralds otherwise (purpure and vert 6, azure and
+  purpure 4, gules and vert 2, gules and purpure 1), with the maintainer's
+  sentence.
 
 ## Next, in the maintainer's words
 
@@ -278,8 +309,8 @@ here were made with the maintainer; add to it as things are decided.
 5. *(Built: masoned, scaly, papellony. Mailly, honeycombed and the rest of
    my.cat's list still to do.)* **Field treatments,** e.g. masoned. The O&A has `FIELD TREATMENT-...`
    categories in my.cat.
-6. *(Built, see "Complex lines" above. Still to do: urdy, potenty, bevilled
-   and the rarer lines; a line on only one of two lines ("Quarterly per fess
+6. *(Built, see "Complex lines" above. Still to do: bevilled and the rarer
+   lines; dancetty traced from a real drawing; a line on only one of two lines ("Quarterly per fess
    indented"); lines for the orle, canton, flaunches and gore, and for two
    divisions together; counter-embattled / bretessed.)*
    **Complex lines,** e.g. per bend wavy. The shield description already has
@@ -401,16 +432,77 @@ here were made with the maintainer; add to it as things are decided.
      Decisions needed: whether the rules should judge the tweaked picture
      (probably not: it is the same blazon), and that a tweak is forgotten
      when the charge or its number changes. Ordinaries would not move.
+14. **The background picker, made like the charge picker** (the
+    maintainer's sketch, the end of November 2026; NOT BUILT, waiting for
+    their go-ahead on the plan below). Their words: "I don't think I
+    currently like the way background picking works - it gets complex when
+    you add complex lines. Let's make the background picker work like the
+    charge picker." And: they no longer like "Show one-part backgrounds".
+    - *The sketch:* a menu on the left (default, show all, plain, 2-part,
+      3-part, 4-part, 5+ parts, patterns, furs, field treatments), "must
+      contain all of:" with the colours as chips, "Type to find a field
+      description", and the pictures in a box that scrolls. Several
+      elements can be picked and are combined (per pale + checky), with the
+      suggestions showing every way they combine. Under it: "you selected:
+      per pale and checky", "Swap the parts", "divided with a line that is
+      [plain]", and a box per part (part 1, part 2). Lines appear as
+      pictures in the grid ("show 1 ordinary for each line type" for
+      ordinaries). The default view hides what the charges chosen rule out
+      and runs plain, then 2-part, 3-part, 4-part.
+    - *The plan suggested to them:* build it as ONE field picker that the
+      page uses three times: for the background, for one part of a divided
+      background (their own "most plausible alternative": asking for a
+      subdivision brings up a second copy of the same picker), and for the
+      inside of a parted charge (item 15). The alternatives they raised:
+      colour first, then "add a second colour?" (good for beginners, but a
+      long walk to "barry wavy", and it hides the pictures, which is what
+      the page teaches with); one merged "element selector" for backgrounds
+      and charges (worth trying as a separate page later, as they said: it
+      changes every question on the page at once).
+15. **Parted charges** (the maintainer, the end of November 2026; NOT
+    BUILT): "Please allow charges to be parted the same way backgrounds
+    are. I should be allowed 'argent, a lion barry gules and or', or
+    'sable, a bordure checky argent and gules', etc. Bordures should
+    additionally be allowed to be parted bordurewise." Needs: a charge's
+    tincture to be a FIELD (plain or divided) in `core/shield.js`; the
+    division drawn inside the charge's own outline (a lion's box, a
+    bordure's ring) in `draw.js` and `export.js`; contrast judged per piece
+    (SENA A3B3 on divided charges); the O&A's lines, from real records;
+    and the picker of item 14 to choose it with. "Parted bordurewise" is a
+    line running round the middle of the bordure (an inner and an outer
+    ring), which no background has: it is a shape of the bordure's own.
+    Best built together with item 14.
+16. **A point pointed**, and with it "no point pointed with a chevron" (the
+    maintainer's parallel-ordinaries rule; the other three pairs are built).
 
 ## Questions waiting for the maintainer
 
+From the pickers-and-rules round (the end of November 2026):
+
+- **Default mode with nothing picked** still suggests any charge at all (it
+  has nothing to keep to). "default mode" and "only" both use ALL the
+  charges picked, like "all of". Say if either should be otherwise.
+- **Parallel ordinaries** is recorded as the maintainer's rule: no sentence
+  of SENA was found that says it. If there is a precedent to cite, it can
+  become a SENA-level refusal instead of one heralds can override.
+- **Purpure and vert** with a complex line (6 registrations since 2015) is
+  still held back for heralds, with the three rarer pairings. Five
+  pairings are offered to everybody.
+- **The traced lines:** look at nebuly and rayonny on a bordure and on a
+  bend, where they are drawn smallest.
+- **Wording to check** (DRAFT in the page's `TEXT`): the hint on "default
+  mode" ("Suggestions use the charges you picked, and may add an ordinary
+  or a simple shape (a mullet, a roundel...), but no other charge."),
+  "over:", "the whole background", "part 1 only (purpure)", and "A fess
+  cannot go with a chief or a base, nor an orle with a bordure: they run
+  side by side" (the reason shown for the new rule, on both pages).
+
 From the complex lines round (the end of November 2026):
 
-- **How each line is drawn** is a first attempt, sized by eye (five waves
-  across a shield, ten points of indented, three of dancetty, six merlons).
-  Look especially at rayonny and nebuly, and at any zigzag on a slanting
-  line ("per bend indented" comes out like a flight of steps, as right-
-  angled teeth on a diagonal do).
+- *(Answered: "you can trace from Traceable Heraldic Art"; done, see
+  above.)* **How each line is drawn** was a first attempt, sized by eye.
+  Still worth a look: any zigzag on a slanting line ("per bend indented"
+  comes out like a flight of steps, as right-angled teeth on a diagonal do).
 - **Embattled on one edge:** of a fess, bend or chevron only the upper edge
   is embattled; of a pale, cross, saltire, pall, chief, base and bordure
   every edge is. Say if any of those should be otherwise.
@@ -418,9 +510,10 @@ From the complex lines round (the end of November 2026):
   the ordinary and its arcs biting in; invected the reverse. On a division
   ("per fess engrailed") the points are toward the chief (toward sinister
   on an upright line).
-- **Low-contrast complex lines** other than the two SENA names are offered
-  only to heralds. Should the commoner ones (gules and azure, say) be
-  offered to everybody?
+- *(Answered: yes, "if it's common and often allowed, like gules and
+  azure, with recent registrations, then no need to grey it out"; done.)*
+  **Low-contrast complex lines** other than the two SENA names were offered
+  only to heralds.
 - **Search mode's background** is only ever filled in with a PLAIN colour,
   and only when no two-colour division of the colours ticked would also be
   allowed. The colours ticked do not narrow the colour menus.
@@ -432,11 +525,9 @@ From the complex lines round (the end of November 2026):
 
 From the Shieldpainter round (the end of November 2026):
 
-- **Semy on one part of a divided field** ("Per chevron sable and purpure
-  semy of lions": lions on the purpure only) cannot be described yet: the
-  tools strew over the whole field, and the blazon now says "all semy of"
-  so that picture and words agree. Charges that belong to one part of a
-  field are a piece of work of their own.
+- *(Built, see "Semy on one part of the field" above.)* **Semy on one part
+  of a divided field** ("Per chevron sable and purpure semy of lions":
+  lions on the purpure only) could not be described.
 - **"or fewer" for every group:** it is applied to secondary and tertiary
   groups as well as the primary one. Say if Měryem meant the primary only.
 - **Checky under a lone cross** now also gets the smaller pieces (a cross
@@ -451,9 +542,11 @@ From the Shieldpainter round (the end of November 2026):
 
 From the round of late November 2026 (postures, furs, combined backgrounds):
 
-- **Answered:** "a single charge" in SENA A3F4 means a charge that is not
-  an ordinary, so any ordinary may be counterchanged over a field of many
-  pieces. Sword orientations are right as they are; charges that should go
+- **Answered, then taken back** (the end of November 2026: "I was wrong
+  about counterchanging; let's go back to the old rule where ordinaries
+  have to obey the rules against excessive counterchanging"): ordinaries
+  are held to SENA A3F4 like any other charge.
+- **Answered:** Sword orientations are right as they are; charges that should go
   the other way will be listed if found (Traceable Heraldic Art's pages
   often give a "default orientation"). Three charges and a canton: right
   as it is.

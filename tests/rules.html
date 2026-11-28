@@ -91,7 +91,12 @@ const CASES = [
   // Complex lines (SENA Appendix H)
   ['no', D('perPale', [P('sable'), P('azure')], 'wavy'), [], {}, 'Appendix H: "sable and azure" ruled unregisterable with a complex line'],
   ['no', D('perFess', [P('purpure'), P('sable')], 'indented'), [], {}, 'Appendix H: "sable and purpure" ruled unregisterable'],
-  ['house', D('perPale', [P('gules'), P('azure')], 'embattled'), [], {}, 'Appendix H: "Other combinations are registerable on a case-by-case basis" (held back)'],
+  ['yes', D('perPale', [P('gules'), P('azure')], 'embattled'), [], {}, 'Appendix H: azure and gules with a complex line, registered 34 times since 2015 (offered: the maintainer)'],
+  ['house', D('perPale', [P('gules'), P('purpure')], 'embattled'), [], {}, 'Appendix H: "Other combinations are registerable on a case-by-case basis" (a rare pairing: held back)'],
+  // Parallel ordinaries (the maintainer's rule, 27 November 2026)
+  ['house', P('azure'), [ordinaryGroup('fess', 'or'), ordinaryGroup('chief', 'argent')], {}, 'no fess with a chief (the maintainer)'],
+  ['house', P('azure'), [ordinaryGroup('orle', 'or'), ordinaryGroup('bordure', 'argent')], {}, 'no orle with a bordure (the maintainer)'],
+  ['yes', P('azure'), [ordinaryGroup('pale', 'or'), ordinaryGroup('chief', 'argent')], {}, 'a pale and a chief do not run side by side'],
   ['yes', D('perPale', [P('sable'), P('azure')]), [], {}, 'A3B3a: the same two colours with a plain line'],
   ['yes', D('perChevron', [P('sable'), P('or')], 'rayonny'), [], {}, 'a complex line between a colour and a metal'],
   ['yes', P('argent'), [ordinaryGroup('fess', 'gules', { line: 'wavy' })], {}, 'an ordinary with a complex line'],
@@ -100,7 +105,7 @@ const CASES = [
   ['no', two('orly', 'sable', 'gules'), [], {}, 'A3B3d: many pieces need good contrast'],
   ['yes', two('barry+perPale', 'argent', 'gules'), [], {}, 'registered: "Barry and per pale argent and gules"'],
   ['no', two('orly+chevronelly', 'azure', 'gules'), [], {}, 'A3B3d: many pieces need good contrast'],
-  ['yes', two('paly', 'or', 'azure'), [ordinaryGroup('fess', COUNTERCHANGED)], {}, 'A3F4 (an ordinary counterchanged over many pieces: registered since SENA, e.g. "Paly azure and argent, a bend counterchanged", 2018)'],
+  ['no', two('paly', 'or', 'azure'), [ordinaryGroup('fess', COUNTERCHANGED)], {}, 'A3F4: "The counterchanging of a single charge over a field division with more than four sections must be attested" (ordinaries too: the maintainer, 27 November 2026)'],
   // A3D1c: a chief or base with a per fess field
   ['no', two('perFess', 'argent', 'sable'), [ordinaryGroup('chief', 'gules')], {}, 'A3D1c'],
   ['yes', two('perPale', 'argent', 'sable'), [ordinaryGroup('chief', 'gules')], {}, 'A3D1c'],
