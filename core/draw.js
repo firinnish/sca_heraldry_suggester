@@ -7,9 +7,10 @@
 // itself be divided), clipped to that part's region, so nesting works to any
 // depth.
 
-import { TINCTURES } from './catalog.js';
+import { TINCTURES, BORDUREWISE, partedOf } from './catalog.js';
 import { COUNTERCHANGED, counterchangedField } from './shield.js';
-import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes, framePath, isLayered, bordureInner } from './geometry.js';
+import { W, H, SHIELD_PATH, BORDURE_WIDTH, ORLE_GAP, ORLE_WIDTH, pathOf, divisionShapes, framePath, isLayered, bordureInner,
+         divisionOn, ordinaryFit, bordureRing } from './geometry.js';
 import { layoutShield } from './layout.js';
 import { scatter } from './scatter.js';
 
@@ -50,6 +51,9 @@ function ermineSpot(x, y, fill, outlined = false) {
 function paintFor(tincture, ctx) {
   const t = TINCTURES[tincture];
   const lines = ctx.mode === 'lines';
+  // (A parted tincture is painted part by part: see partedPaint. Anywhere it
+  // cannot be, its first part stands for it.)
+  if (t.parted) return paintFor(t.parted.parts[0], ctx);
   if (!t.fur && !t.pattern) return lines ? '#fff' : t.hex;
   const id = `${ctx.id}-${tincture.replace(/:/g, '_')}`;
   if (!t.fur) {
@@ -140,14 +144,97 @@ function drawField(field, ctx, regions = [], key = 'whole', frame = null) {
 // two tinctures swapped, showing through the charge's shape.
 // `frame`: as for the field itself, so that the swapped field lines up with
 // the real one when both are drawn in the space below a chief.
+// For a PARTED charge ("a lion barry gules and Or") it is the parts of its
+// division, laid over that one charge: `fit`, the second thing the function
+// is given, says where (it is itself a function, so that it is only worked
+// out for a parted charge; every other paint ignores it).
 function painter(group, field, ctx, frame = null) {
   if (group.tincture === COUNTERCHANGED) {
     const swapped = counterchangedField(field);
     if (swapped) return cut => `<g ${cut}>${drawField(swapped, ctx, [], 'whole', frame)}</g>`;
   }
+  const parted = partedOf(group.tincture);
+  if (parted) return (cut, fit) => partedPaint(parted, ctx, fit(), cut);
   const paint = group.tincture && group.tincture !== COUNTERCHANGED ? paintFor(group.tincture, ctx)
     : ctx.mode === 'lines' ? '#fff' : ctx.mode === 'export' ? ctx.unknown : UNKNOWN_CHARGE;
   return cut => `<rect width="${W}" height="${H}" fill="${paint}" ${cut}/>`;
+}
+
+// ---- Parted charges -----------------------------------------------------------
+// "A lion barry gules and Or", "a bordure checky argent and gules", "a chief
+// per pale" (catalog.js: parted tinctures; the maintainer, 27 November 2026).
+// The charge is painted with the parts of its division, each in its own
+// tincture, through the same cut-out a plain tincture is painted through.
+// A FIT (geometry.js: "a division on a charge") says where the division
+// goes: over the picture's own box for a charge with a picture, each charge
+// of a group separately; for an ordinary, as ordinaryFit there sets out.
+const tidy = v => +v.toFixed(3);
+function partedPaint(parted, ctx, fit, cut) {
+  const lines = ctx.mode === 'lines';
+  const paints = parted.parts.map(t => paintFor(t, ctx));
+  // (for the picture of outlines alone, a line is drawn round each part)
+  const edge = lines ? ` stroke="${LINE}" stroke-width="0.8"` : '';
+  const all = paint => `<rect width="${W}" height="${H}" fill="${paint}"/>`;
+  if (parted.division === BORDUREWISE) {
+    // An outer ring (the first tincture) and an inner one. Only a bordure
+    // has them: `fit.ring` gives the line between the two. Anything else
+    // cannot be drawn this way (rules.js says so) and is left its first
+    // tincture.
+    if (!fit.ring) return `<rect width="${W}" height="${H}" fill="${paints[0]}" ${cut}/>`;
+    const ring = pathOf([fit.ring(parted.line)]);
+    return `<g ${cut}>${all(paints[1])}<path d="M-20 -20 H${W + 20} V${H + 20} H-20 Z ${ring}" fill-rule="evenodd" fill="${paints[0]}"/>` +
+      (lines ? `<path d="${ring}" fill="none"${edge}/>` : '') + `</g>`;
+  }
+  if (parted.division === 'checky' || parted.division === 'lozengy') {
+    // Squares: a pattern of two squares of each tincture, repeated, and set
+    // down where the fit says (`grid`). Lozengy is the same pattern stood on
+    // its corner, each lozenge as wide as a square of checky would be.
+    const grid = fit.grid, lozengy = parted.division === 'lozengy';
+    const side = Math.min(...grid.cell) / Math.SQRT2;
+    const [w, h] = lozengy ? [side, side] : grid.cell;
+    const [first, second] = grid.first && !lozengy ? [paints[1], paints[0]] : paints;
+    // How the pattern is set down, last step first: begun at the middle of
+    // a square (or, with `corner`, where four squares meet); for lozengy
+    // stood on its corner, and made longer where the fit says; slanted and
+    // squeezed; moved to its place; turned with the charge.
+    const steps = (fit.turns || []).map(([degrees, x, y]) => `rotate(${tidy(degrees)} ${tidy(x)} ${tidy(y)})`).reverse();
+    steps.push(`translate(${tidy(grid.centre[0])} ${tidy(grid.centre[1])})`);
+    if (grid.squeeze && grid.squeeze !== 1) steps.push(`scale(1 ${tidy(grid.squeeze)})`);
+    if (grid.slant) steps.push(`rotate(${grid.slant})`);
+    if (lozengy && grid.long) steps.push(`scale(${grid.long} 1)`);
+    if (lozengy) steps.push('rotate(45)');
+    if (lozengy || !grid.corner) steps.push(`translate(${tidy(-w / 2)} ${tidy(-h / 2)})`);
+    const set = steps.join(' ');
+    const tile = (id, transform) =>
+      `<pattern id="${id}" width="${tidy(2 * w)}" height="${tidy(2 * h)}" patternUnits="userSpaceOnUse" patternTransform="${transform}">` +
+      `<rect width="${tidy(2 * w)}" height="${tidy(2 * h)}" fill="${second}"/>` +
+      `<path d="M0 0h${tidy(w)}v${tidy(h)}h${tidy(-w)}zM${tidy(w)} ${tidy(h)}h${tidy(w)}v${tidy(h)}h${tidy(-w)}z" fill="${first}"${edge}/></pattern>`;
+    const id = `${ctx.id}-g${ctx.clips++}`;
+    if (grid.mirror === undefined) {
+      ctx.defs.push(tile(id, set));
+      return `<rect width="${W}" height="${H}" fill="url(#${id})" ${cut}/>`;
+    }
+    // The two arms of a chevron: the squares to sinister, and their mirror image to dexter.
+    const x = tidy(grid.mirror);
+    ctx.defs.push(tile(id, set), tile(id + 'm', `translate(${tidy(2 * grid.mirror)} 0) scale(-1 1) ${set}`));
+    return `<g ${cut}><rect x="${x}" width="${tidy(W - grid.mirror)}" height="${H}" fill="url(#${id})"/>` +
+      `<rect width="${x}" height="${H}" fill="url(#${id}m)"/></g>`;
+  }
+  // Any other division: the first part everywhere, then the others over it
+  // (so no hairline of whatever lies underneath can show between two parts).
+  const shapes = divisionOn(parted.division, parted.line, fit);
+  return `<g ${cut}>${all(paints[0])}` + shapes.slice(1).map((polygons, i) =>
+    (polygons.length ? `<path d="${pathOf(polygons)}" fill="${paints[i + 1]}"${edge}/>` : '')).join('') + `</g>`;
+}
+// The fit for a charge with a picture (or a blob): the division is laid over
+// the picture's own box, `w` by `h` about (cx, cy), and turns as the picture
+// does. Its squares are a sixth of the charge across, with a line through
+// the charge's middle each way, as on a field.
+function pictureFit(cx, cy, w, h, turns = []) {
+  const cell = Math.sqrt(w * h) / 6;
+  [cx, cy, w, h] = [cx, cy, w, h].map(tidy);
+  return { at: [cx, cy], size: [w, h], turns, keep: [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2],
+           grid: { cell: [cell, cell], centre: [cx, cy], first: 0, corner: true } };
 }
 
 // ---- Ordinaries ------------------------------------------------------------
@@ -156,6 +243,10 @@ function painter(group, field, ctx, frame = null) {
 // drawn in the space below it.
 function drawOrdinary(group, shapes, field, ctx, frame) {
   const paint = painter(group, field, ctx, frame);
+  // (for a parted ordinary: where its division goes, and for a bordure the
+  // line between its two rings)
+  const fit = () => ({ ...ordinaryFit(group.ordinary, shapes, frame),
+                       ring: group.ordinary === 'bordure' ? line => bordureRing(frame, line) : null });
   const id = `${ctx.id}-o${ctx.clips++}`;
   // A bordure or orle follows the edge of the space it is in: the shield's
   // edge, or beside a chief the edge of the space below it, so that it runs
@@ -169,7 +260,7 @@ function drawOrdinary(group, shapes, field, ctx, frame) {
       `<path d="${edge}" fill="none" stroke="#fff" stroke-width="${2 * (ORLE_GAP + ORLE_WIDTH) + grow}"/>` +
       `<path d="${edge}" fill="none" stroke="#000" stroke-width="${2 * ORLE_GAP - grow}"/></mask>`;
     ctx.defs.push(band(id, 0), band(id + 'l', 1.6));
-    return `<rect width="${W}" height="${H}" fill="${LINE}" mask="url(#${id}l)"/>` + paint(`mask="url(#${id})"`);
+    return `<rect width="${W}" height="${H}" fill="${LINE}" mask="url(#${id}l)"/>` + paint(`mask="url(#${id})"`, fit);
   }
   if (group.ordinary === 'bordure' && group.line && group.line !== 'plain') {
     // "A bordure embattled": everything between the edge and the bordure's
@@ -177,20 +268,20 @@ function drawOrdinary(group, shapes, field, ctx, frame) {
     // bordureInner), with a line along that inner edge.
     const inner = pathOf([bordureInner(frame, group.line)]);
     ctx.defs.push(`<mask id="${id}"><path d="${edge}" fill="#fff"/><path d="${inner}" fill="#000"/></mask>`);
-    return paint(`mask="url(#${id})"`) + `<path d="${inner}" fill="none" stroke="${LINE}" stroke-width="0.8"/>`;
+    return paint(`mask="url(#${id})"`, fit) + `<path d="${inner}" fill="none" stroke="${LINE}" stroke-width="0.8"/>`;
   }
   if (group.ordinary === 'bordure') {
     // A wide line along the edge; the half outside the shield is trimmed off
     // by the shield's own outline.
     const width = BORDURE_WIDTH * 2;
     ctx.defs.push(`<mask id="${id}"><path d="${edge}" fill="none" stroke="#fff" stroke-width="${width}"/></mask>`);
-    return `<path d="${edge}" fill="none" stroke="${LINE}" stroke-width="${width + 1.6}"/>` + paint(`mask="url(#${id})"`);
+    return `<path d="${edge}" fill="none" stroke="${LINE}" stroke-width="${width + 1.6}"/>` + paint(`mask="url(#${id})"`, fit);
   }
   const d = pathOf(shapes);
   ctx.defs.push(`<clipPath id="${id}"><path d="${d}"/></clipPath>`);
   // Outline first, then the paint over it, so that where two bands cross
   // (saltire, pall) there are no lines through the middle.
-  return `<path d="${d}" fill="none" stroke="${LINE}" stroke-width="1.6"/>` + paint(`clip-path="url(#${id})"`);
+  return `<path d="${d}" fill="none" stroke="${LINE}" stroke-width="1.6"/>` + paint(`clip-path="url(#${id})"`, fit);
 }
 
 // ---- Charges with pictures -------------------------------------------------
@@ -205,21 +296,26 @@ function drawOrdinary(group, shapes, field, ctx, frame) {
 
 const LINE_ON_DARK = [165, 165, 165];
 const LINE_ON_LIGHT = [17, 17, 17];
+const LINE_ON_BOTH = [120, 120, 120];     // on a parted charge that is part black: "a lion per pale sable and Or"
 const DARK_CHARGES = new Set(['sable', 'counterermine', 'pean']);
 const BLOB = 'M50 4 C78 2 98 22 94 50 C99 78 74 98 48 95 C22 99 2 76 6 50 C1 24 22 3 50 4 Z';
 
 function drawCharge(group, paint, picture, flipY, { cx, cy, size, turn }, ctx) {
   // A charge lying along a bend or a chevron's arm is turned to follow it.
   const turning = turn ? `rotate(${turn} ${cx} ${cy}) ` : '';
-  if (picture.base) return drawTurned(group, paint, picture, { cx, cy, size }, turning, ctx);
+  if (picture.base) return drawTurned(group, paint, picture, { cx, cy, size, turn }, turning, ctx);
   const w = size, h = size / picture.aspect, x = cx - w / 2, y = cy - h / 2;
   const n = ctx.clips++;
+  // (A parted charge's division lies over this box and turns with the charge.
+  // It is not flipped with the picture: of "a lion contourny per pale gules
+  // and Or" the dexter half is still the gules one.)
+  const fit = () => pictureFit(cx, cy, w, h, turn ? [[turn, cx, cy]] : []);
   if (!picture.href) {
     const id = `${ctx.id}-b${n}`;
     const blob = `<path d="${BLOB}" transform="${turning}translate(${x} ${y}) scale(${w / 100} ${h / 100})"`;
     ctx.defs.push(`<clipPath id="${id}">${blob}/></clipPath>`);
     // (the line is drawn in the blob's own, scaled, measure: thinner on a small charge)
-    return paint(`clip-path="url(#${id})"`) + `${blob} fill="none" stroke="${LINE}" stroke-width="3"/>`;
+    return paint(`clip-path="url(#${id})"`, fit) + `${blob} fill="none" stroke="${LINE}" stroke-width="3"/>`;
   }
   // Facing sinister = flipped left to right; upside down = flipped top to
   // bottom; both about the charge's own centre. Only the picture is flipped,
@@ -228,29 +324,39 @@ function drawCharge(group, paint, picture, flipY, { cx, cy, size, turn }, ctx) {
     ? ` transform="${turning}translate(${cx} ${cy}) scale(${group.mirror ? -1 : 1} ${flipY ? -1 : 1}) translate(${-cx} ${-cy})"`
     : '';
   const image = `<image href="${picture.href}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none"${flip}`;
-  return paintedImage(group, paint, image, n, ctx);
+  return paintedImage(group, paint, image, n, ctx, fit);
 }
+
+// (a fur or treatment on a sable background is dark too)
+const isDark = tincture => {
+  const made = TINCTURES[tincture];
+  return DARK_CHARGES.has(tincture) || (!!made && !!made.pair && made.tone !== 'neutral' && made.pair[0] === 'sable');
+};
 
 // The picture painted in the group's tincture, with its lines on top.
 // `image` is the <image ...> element, left open so that more can be added.
-function paintedImage(group, paint, image, n, ctx) {
+// `fit`: for a parted charge (see painter).
+function paintedImage(group, paint, image, n, ctx, fit) {
   const maskId = `${ctx.id}-m${n}`, linesId = `${ctx.id}-l${n}`;
-  const made = TINCTURES[group.tincture];           // (a fur or treatment on a sable background is dark too)
-  const dark = DARK_CHARGES.has(group.tincture) || (!!made && !!made.pair && made.tone !== 'neutral' && made.pair[0] === 'sable');
-  const [r, g, b] = (ctx.mode !== 'lines' && dark ? LINE_ON_DARK : LINE_ON_LIGHT).map(v => (v / 255).toFixed(3));
+  // A parted charge with a dark part and a light one has its lines in a
+  // grey that shows on both.
+  const parted = partedOf(group.tincture);
+  const darks = (parted ? parted.parts : [group.tincture]).map(isDark);
+  const line = ctx.mode === 'lines' || !darks.includes(true) ? LINE_ON_LIGHT : darks.includes(false) ? LINE_ON_BOTH : LINE_ON_DARK;
+  const [r, g, b] = line.map(v => (v / 255).toFixed(3));
   ctx.defs.push(
     `<mask id="${maskId}">${image}/></mask>` +
     // keeps the picture's dark lines only: colour = line colour, opacity = opacity - brightness
     `<filter id="${linesId}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" ` +
     `values="0 0 0 0 ${r}  0 0 0 0 ${g}  0 0 0 0 ${b}  -1 0 0 1 0"/></filter>`);
-  return paint(`mask="url(#${maskId})"`) + `${image} filter="url(#${linesId})"/>`;
+  return paint(`mask="url(#${maskId})"`, fit) + `${image} filter="url(#${linesId})"/>`;
 }
 
 // A charge TURNED to lie another way ("a sword bendwise"). `picture` is the
 // turned picture from art.js: the layout fitted its turned shape, `size`
 // wide, about (cx, cy); what is drawn is the picture itself (`base`), first
 // mirrored or turned over as wanted, then turned about its own centre.
-function drawTurned(group, paint, picture, { cx, cy, size }, turning, ctx) {
+function drawTurned(group, paint, picture, { cx, cy, size, turn }, turning, ctx) {
   const base = picture.base, n = ctx.clips++;
   const w = size * picture.k, h = w / base.aspect;
   const px = cx + picture.ox * size, py = cy + picture.oy * size;     // the picture's own centre
@@ -258,7 +364,10 @@ function drawTurned(group, paint, picture, { cx, cy, size }, turning, ctx) {
   const flip = picture.mirror || picture.flipY ? ` translate(${round(px)} ${round(py)}) scale(${picture.mirror ? -1 : 1} ${picture.flipY ? -1 : 1}) translate(${round(-px)} ${round(-py)})` : '';
   const image = `<image href="${base.href}" x="${round(px - w / 2)}" y="${round(py - h / 2)}" width="${round(w)}" height="${round(h)}" preserveAspectRatio="none"` +
     ` transform="${turning}rotate(${picture.turn} ${round(px)} ${round(py)})${flip}"`;
-  return paintedImage(group, paint, image, n, ctx);
+  // (A parted charge's division turns with the picture: "a sword bendwise
+  // per pale" is split along the blade.)
+  const fit = () => pictureFit(px, py, w, h, [[picture.turn, px, py], ...(turn ? [[turn, cx, cy]] : [])]);
+  return paintedImage(group, paint, image, n, ctx, fit);
 }
 
 // One group as the layout (layout.js) has placed it, then whatever lies on it.
@@ -324,10 +433,19 @@ export function shieldSVG(field, { title = '', charges = [], mode = 'colour', un
 // A fur or field treatment is shown by ONE of whatever it is made of, large
 // (one ermine spot, one vair bell, one scale), not the pattern in miniature,
 // which is too small to make out (the maintainer, November 2026).
+// A parted tincture ("barry gules and Or") is shown as the square divided
+// that way; parted bordurewise, as a ring round a smaller square.
 export function swatchSVG(tincture) {
   const t = TINCTURES[tincture];
   const frame = `<rect x="1" y="1" width="38" height="38" rx="5" fill="none" stroke="${OUTLINE}" stroke-width="1.5"/>`;
   const open = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">`;
+  if (t.parted) {
+    const ctx = newContext(), id = `sw${ctx.id}`;
+    const fit = { at: [20, 20], size: [38, 38], keep: [1, 1, 39, 39], ring: () => [[9, 9], [31, 9], [31, 31], [9, 31]],
+                  grid: { cell: [9.5, 9.5], centre: [20, 20], first: 0, corner: true } };
+    const body = partedPaint(t.parted, ctx, fit, `clip-path="url(#${id})"`);
+    return open + `<defs><clipPath id="${id}"><rect x="1" y="1" width="38" height="38" rx="5"/></clipPath>${ctx.defs.join('')}</defs>${body}${frame}</svg>`;
+  }
   if (t.fur) {
     return open + `<rect x="1" y="1" width="38" height="38" rx="5" fill="${TINCTURES[t.fur.field].hex}"/>` +
       `<g transform="translate(20 6) scale(3.1)">${ermineSpot(0, 0, TINCTURES[t.fur.spots].hex)}</g>${frame}</svg>`;

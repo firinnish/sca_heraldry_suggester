@@ -104,6 +104,7 @@ One line per charge (not per picture):
 | `name` | The name as blazoned | `Laurel Wreath` |
 | `plural` | Only if it is not just the name plus "s" | `fleurs-de-lys` |
 | `plain_name` | An everyday name, if the heraldic one is obscure | |
+| `synonyms` | Other words people may type to find it; several separated by `;` | `boat; ship` |
 | `oanda_category` | The O&A category code. Look it up in `charges/oanda_categories.csv`; do not guess | `LW` |
 | `type` | From `data/taxonomy.csv` | `Plant` |
 | `themes` | From `data/taxonomy.csv`; several separated by `;` | `War; Household` |

@@ -26,7 +26,7 @@ import { SAMPLES, insideShield, pointInPolygon, samplesInBox, ordinarySamples, o
          DIVISION_VARIANTS, divisionShapes, isLayered } from './geometry.js';
 import { TINCTURES, ARRANGEMENTS, SEMY, familyOf, baseTincture, turnFor } from './catalog.js';
 import { roles } from './shield.js';
-import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, centroid, heights, sides, sidesAt, cuts,
+import { maskFromPolygons, maskFromPicture, where, and, minus, shieldMask, insetMask, inMask, centroid, heights, sides, sidesAt, cuts,
          probeOf, turned, largestFit, fitsAt, bestSpot, clearDistance } from './space.js';
 
 export const FILL = 0.95;
@@ -371,26 +371,32 @@ const TAKES_SPACE = ['canton', 'flaunches', 'gore'];
 function ordinaryParts(group, division, frame, width = 1) {
   // (with its complex line, if it has one: "a fess wavy". What goes beside
   // it or on it is then fitted to the shape as drawn.)
-  const line = lineOf(group);
+  const line = lineOf(group), how = howOf(group);
   return {
-    shapes: ordinaryShapes(group.ordinary, division, frame, width, line),
-    coverage: [ordinarySamples(group.ordinary, division, frame, width, line)],
+    shapes: ordinaryShapes(group.ordinary, division, frame, width, line, how),
+    coverage: [ordinarySamples(group.ordinary, division, frame, width, line, how)],
   };
 }
 const lineOf = group => (group.line && group.line !== 'plain' ? group.line : null);
+// Voided, or cotised ("a cross voided", "a bend cotised": catalog.js). The
+// shapes then include the hole, or the cotises, so whatever goes beside the
+// ordinary keeps clear of them.
+const howOf = group => (group.kind !== 'ordinary' ? null : group.voided ? 'voided' : group.cotised ? 'cotised' : null);
 
 // ---- 2. Primary charges, inside a space ------------------------------------------------
 // As for a group alone: one in the middle, two side by side (one above the
 // other if they are wide), three "two and one"; each at the centre of its
 // share, all as large as the tightest share allows.
-function placeIn(group, region, splitAt = null) {
+// `corner`: true = something stands in the dexter chief corner of the space
+// (a canton), which a line of charges in bend must start clear of.
+function placeIn(group, region, splitAt = null, corner = false) {
   const shape = pictureOf(group);
   if (group.number === SEMY) return placeSemy(shape, region);
   // (How many has not been chosen, but how they are set out has: drawn as
   // three, or as many as that arrangement takes.)
   const number = group.number || (group.arranged && ARRANGEMENTS[group.arranged]
     ? [3, 5, 4, 2].find(n => ARRANGEMENTS[group.arranged].numbers.includes(n)) : 1);
-  if (group.arranged || number > MAX_NUMBER) return placeArranged(group, shape, number, region);
+  if (group.arranged || number > MAX_NUMBER) return placeArranged(group, shape, number, region, corner);
   const [cx, cy] = splitAt || centroid(region);
   let shares;
   if (number === 1) shares = [region];
@@ -438,7 +444,7 @@ const SIDEWAYS_TOO = new Set(['bend', 'bendSinister']);
 const APART = 1.12;                // charges keep this much of their own size between centres
 const SPREAD = 0.45;               // a slanting line reaches across at least this share of the space
 
-function placeArranged(group, shape, number, region) {
+function placeArranged(group, shape, number, region, corner = false) {
   const id = group.arranged || null;
   if (id && !(ARRANGEMENTS[id] && ARRANGEMENTS[id].numbers.includes(number))) return null;
   const make = id ? PATTERNS[id] : USUAL[number];
@@ -471,7 +477,22 @@ function placeArranged(group, shape, number, region) {
   // charges barely stepped past one another; to read as a line it must
   // stretch across a fair share of the space.
   const [leftEdge, rightEdge] = sides(region);
-  const reach = square ? SPREAD * (rightEdge - leftEdge) / span(0) : 0;
+  // A line in bend beside a canton: the canton stands where the line would
+  // start, and two wings in bend came out tiny, squeezed against it. The
+  // line is laid along the part of the diagonal that is LEFT, from the edge
+  // of the canton to the far edge of the shield, and centred on that (the
+  // maintainer, 28 November 2026: "re-center them on a diagonal line that
+  // starts at the edge of the canton rather than starting at the edge of
+  // the shield"). `share` is how much of the diagonal is left.
+  let fromX = 0, fromY = 0, share = 1;
+  if (corner && id === 'bend') {
+    const run = (way, inside) => { let d = 0; while (d < 150 && inside(cx + way * (d + 1), cy + way * (d + 1))) d++; return d; };
+    const up = run(-1, (x, y) => inMask(region, x, y)), down = run(1, (x, y) => inMask(region, x, y));
+    const whole = run(-1, insideShield) + down;
+    fromX = fromY = (down - up) / 2;
+    share = whole > 0 ? (up + down) / whole : 1;
+  }
+  const reach = square ? SPREAD * share * (rightEdge - leftEdge) / span(0) : 0;
   // Charges in ROWS (one and two, two and two...) must read as rows: the top
   // row keeps out of the bottom third of the space and the bottom row out
   // of the top third (the maintainer, November 2026, after three tall
@@ -536,7 +557,7 @@ function placeArranged(group, shape, number, region) {
     }
     return [at, atSize];
   };
-  let [best, bestSize] = climb([start, start, 0, 0], moves);
+  let [best, bestSize] = climb([Math.max(reach + 0.5, start * share), Math.max(reach + 0.5, start * share), fromX, fromY], moves);
   if (!(bestSize > 0)) return null;
 
   // That is the layout with the LARGEST charges, which is not always the
@@ -840,7 +861,7 @@ function compose(groups, r, division) {
     if (wanted.includes('chief')) region = where(region, (x, y) => y >= chiefLine);
     if (wanted.includes('base')) region = where(region, (x, y) => y <= baseLine);
     const whole = region === frame.mask && !frame.chief && !frame.base && !frame.lopsided;
-    const found = remembered(['primary', drawnAs(primary), partKey(primary)].join('|'), () => placeIn(primary, partOf(primary, region), whole ? centre : null));
+    const found = remembered(['primary', drawnAs(primary), partKey(primary)].join('|'), () => placeIn(primary, partOf(primary, region), whole ? centre : null, frame.taken.includes('canton')));
     // (a copy: the remembered placing must not be changed by what follows)
     const placed = found && found.places.length ? { shape: found.shape, places: found.places.map(p => ({ ...p })) } : null;
     if (!placed) Object.assign(entries[pi], { ok: false, picture: BLOB_PICTURE, flipY: false, places: [], coverage: [] });
@@ -897,7 +918,7 @@ function compose(groups, r, division) {
 // How one charge group shows in the layout, for a signature of the shield.
 const signature = g => [g.kind, g.ordinary || (g.art && getPicture(g.art) ? g.art : 'blob'), g.number, !!g.mirror, !!g.inverted,
   !!g.artInverted, g.role || null, g.place || null, g.arranged || null, g.charged ? signature(g.charged) : null, g.turned || null,
-  lineOf(g), Number.isInteger(g.part) ? g.part : null];
+  lineOf(g), Number.isInteger(g.part) ? g.part : null, howOf(g)];
 const layoutCache = new Map();
 
 // Where everything on a shield goes. Returns { frame, entries } with one
@@ -969,6 +990,35 @@ export function fieldShowing(layout) {
   for (const e of layout.entries) for (const points of e.coverage || []) for (const i of points) covered.add(i);
   return 1 - covered.size / SAMPLES.length;
 }
+// How much of the lines a field is divided by shows: is not under any
+// ordinary or charge on it (1 = all of it; 1 for a plain field). The lines
+// are found from the plain shape of the division: a sample point is on a
+// line when the point beside it or below it belongs to another part.
+let whichSample = null;
+const linePoints = new Map();
+export function lineShowing(field, layout) {
+  if (!field || field.type !== 'divided') return 1;
+  const key = `${field.division}|${layout.frame}|${layout.variant || ''}`;
+  if (!linePoints.has(key)) {
+    if (!whichSample) { whichSample = new Map(); SAMPLES.forEach(([x, y], i) => whichSample.set(`${x},${y}`, i)); }
+    const map = partMap(field.division, layout.frame, layout.variant || null);
+    const on = new Set();
+    SAMPLES.forEach(([x, y], i) => {
+      for (const j of [whichSample.get(`${x + 2},${y}`), whichSample.get(`${x},${y + 2}`)]) {
+        if (j !== undefined && map[i] !== map[j]) { on.add(i); on.add(j); }
+      }
+    });
+    if (linePoints.size > 200) linePoints.clear();
+    linePoints.set(key, on);
+  }
+  const on = linePoints.get(key);
+  if (!on.size) return 1;
+  let hidden = 0;
+  const covered = new Set();
+  for (const e of layout.entries) for (const points of e.coverage || []) for (const i of points) covered.add(i);
+  for (const i of on) if (covered.has(i)) hidden++;
+  return 1 - hidden / on.size;
+}
 // Checky or lozengy mostly hidden (under a pale and a bordure, say) is drawn
 // with pieces half the size, so that enough of them show to be made out (the
 // maintainer, November 2026). Twice as many pieces line up with every
@@ -1038,8 +1088,8 @@ function placeAll(field, groups) {
     const g = alone, frame = g.kind !== 'ordinary' ? null : g.ordinary === 'chief' ? 'chief' : g.ordinary === 'bordure' ? frameName(false, BORDURE_WIDTH) : null;
     if (g.kind === 'ordinary') {
       return { frame, entries: [{ ...r[0], kind: g.kind, ok: true, tertiary: null,
-                                  shapes: ordinaryShapes(g.ordinary, division, null, 1, lineOf(g)),
-                                  coverage: [ordinarySamples(g.ordinary, division, null, 1, lineOf(g))] }] };
+                                  shapes: ordinaryShapes(g.ordinary, division, null, 1, lineOf(g), howOf(g)),
+                                  coverage: [ordinarySamples(g.ordinary, division, null, 1, lineOf(g), howOf(g))] }] };
     }
     const placed = placeGroup(g, field);
     return { frame, entries: [{ ...r[0], kind: g.kind, ok: true, tertiary: null, picture: placed.picture, flipY: placed.flipY,

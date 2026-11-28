@@ -30,7 +30,7 @@
 // NOT CHOSEN YET: anything the shield description leaves open (see shield.js)
 // is simply left out of the pattern, so the search matches any value for it.
 
-import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, LINES, SEMY, postureCode } from './catalog.js';
+import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, LINES, SEMY, COTISABLE, postureCode, partedOf } from './catalog.js';
 import { COUNTERCHANGED, tincturesIn, isComplete, roles, isPeripheral } from './shield.js';
 
 const FORM_URL = 'https://oanda.sca.org/oanda_complex.cgi';
@@ -83,7 +83,33 @@ function madeFieldLine(tincture) {
 // "a wolf rampant gules ermined Or" has just fur; "a fess embattled argent,
 // masoned sable" has just argent; "a chief sable scaly Or" has multicolor
 // dark with both tinctures.
+//
+// A PARTED CHARGE ("a lion barry gules and Or": catalog.js) is indexed by its
+// tinctures alone: multicolor neutral, dark or light, then the two of them
+// in alphabetical order. HOW it is divided is not indexed at all, nor is a
+// complex line inside it. From the records (November 2026):
+//   "Gules, a wolf rampant bendy argent and sable"       DOG:1:multicolor neutral:rampant to dexter:spa:~ argent:~and sable
+//   "Argent, a horse passant per pale gules and azure"   BEAST-HORSE:1:multicolor dark:passant to dexter:spa:~ azure:~and gules
+//   "Gules, a cross crescenty quarterly Or and argent"   CRAC:1:multicolor light:other cross:spa:~ argent:~and or
+//   "... a fess checky Or and gules between ..."         FESS:1:multicolor neutral:pl:spna:unc:~ gules:~and or
+//   "... a bordure parted bordurewise indented Or and azure"   BORDURE:multicolor neutral:pl:surrounding 1 only:unc:~ azure:~and or
+//     (the "pl" is the bordure's own edge)
+// A part that is a fur is "fur": "a bordure per saltire counter-ermine and
+// azure" has multicolor dark:~ azure:~and fur. As for a field, the class is
+// then left at plain "multicolor", which finds all three. The one record of
+// three parts ("a bordure tierced per pall gules, Or and argent") has
+// multicolor light and no tinctures, so three parts are just "multicolor";
+// so is anything with a part of vair or a made tincture, which has too few
+// records to be sure of.
+function partedChargeTincture(parted) {
+  const parts = parted.parts.map(t => ({ type: 'plain', tincture: t }));
+  if (parts.length !== 2 || parted.parts.some(made)) return ['multicolor'];
+  const names = parts.map(fieldLineName).sort();
+  return [multicolorClass(parts), '~ ' + names[0], '~and ' + names[1]];
+}
 function chargeTincture(tincture) {
+  const parted = partedOf(tincture);
+  if (parted) return partedChargeTincture(parted);
   const t = made(tincture);
   if (!t) return [tincture];
   const [x, y] = [...t.pair].sort();
@@ -314,6 +340,14 @@ export function shieldPatterns(field, groups = [], { noCharge = false } = {}) {
     else if (!r[i].chosen) patterns.push(groupLine(g, field, null));
     else if (r[i].role === 'primary') patterns.push(...primaryLines(g, field));
     else patterns.push(groupLine(g, field, 'secondary'));
+    // Cotises are indexed as a group of their own beside the ordinary,
+    // naming it: "Pean, a bend cotised Or" has COTISES:1:bend:or:pl:second;
+    // "Ermine, a pale endorsed azure" COTISES:1:azure:pale:pl:second
+    // (checked on the 750 records with cotises). Voiding is not indexed at
+    // all: "Argent, a pall voided sable" has only PALL:1:pl:sable:spa:unc.
+    if (g.kind === 'ordinary' && g.cotised && COTISABLE[g.ordinary]) {
+      patterns.push(['COTISES', '1', ...tinctureFeatures(g, field), COTISABLE[g.ordinary].word, 'pl', 'second'].join(':'));
+    }
     if (g.charged) {
       const each = g.kind === 'ordinary' ? 1 : g.number;
       const count = g.charged.number === SEMY || each === SEMY ? SEMY

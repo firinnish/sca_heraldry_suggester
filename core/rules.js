@@ -25,11 +25,11 @@
 //
 // GOOD CONTRAST (SENA A3B2) is metal against colour, or neutral against either.
 
-import { TINCTURES, SEMY, familyOf, sharesGround, groundsOf, tincturesWithin } from './catalog.js';
+import { TINCTURES, SEMY, BORDUREWISE, SIMPLE_CHARGES, VOIDABLE, COTISABLE, familyOf, sharesGround, groundsOf, tincturesWithin, partedOf } from './catalog.js';
 import { COUNTERCHANGED, isComplete, isNested, leafTinctures, tincturesIn, shieldTinctures,
-         roles, allGroups, typeOf, isCentralOrdinary } from './shield.js';
+         roles, allGroups, typeOf, isCentralOrdinary, partedField } from './shield.js';
 import { partMap } from './geometry.js';
-import { layoutShield, extentOf, fieldShowing, SEMY_FEWEST } from './layout.js';
+import { layoutShield, extentOf, fieldShowing, lineShowing, SEMY_FEWEST } from './layout.js';
 
 const MAX_COMPLEXITY = 8;          // SENA A3E2
 // A charge drawn smaller than this (its greater measure, on a shield 100
@@ -51,14 +51,18 @@ const READS_CLEARLY = new Set(['chief', 'bordure', 'base']);
 // Checky or lozengy needs at least this share of the shield left showing to
 // be made out (see checkShield).
 const PATTERN_SHOWS = 0.25;
-// Low-contrast pairings registered with a complex line of division ten times
-// or more since 2015, counted in the O&A in November 2026 (fields of two or
-// four parts whose blazon begins "Per pale wavy ..." and the like): gules and
-// sable 55 times, sable and vert 37, azure and gules 34, azure and vert 33,
-// argent and Or 12. Those are offered to everybody. The rest are held back
-// for heralds: purpure and vert 6, azure and purpure 4, gules and vert 2,
-// gules and purpure 1. (Count again before adding to this list.)
-const REGISTERED_OFTEN = new Set(['gules,sable', 'sable,vert', 'azure,gules', 'azure,vert', 'argent,or']);
+// A complex line of division needs at least this share of its length left
+// showing, not under a charge, to be made out (the maintainer, 28 November
+// 2026: "at least 1/3 of the total line length must be visible to use a
+// complex line. If it is hidden by charges it'll be hard to identify"). See
+// checkShield. (For a day before that, low-contrast pairings were let
+// through by how often the College registers them with a complex line:
+// since 2015, gules and sable 55 times, sable and vert 37, azure and gules
+// 34, azure and vert 33, argent and Or 12, purpure and vert 6, azure and
+// purpure 4, gules and vert 2, gules and purpure 1. The maintainer: "it's
+// less about the specific colour combination and more about
+// identifiability".)
+const LINE_SHOWS = 1 / 3;
 // Ordinaries that run side by side and so may not be used together (the
 // maintainer, 27 November 2026: "There should be a ban on parallel
 // ordinaries; no fess used with a chief, no base used with a fess ... and no
@@ -68,6 +72,13 @@ const PARALLEL = [['fess', 'chief'], ['fess', 'base'], ['orle', 'bordure']];
 // (Vair and the furs like it are neutral: SENA A3B1, "As they are made up of
 // multiple pieces, divided evenly between a color and a metal, they are
 // treated as neutral".)
+// (A parted charge, "a lion barry gules and Or", has its class from its
+// parts, which catalog.js works out as the tincture's tone: SENA A3B1,
+// "Divided fields and charges are considered metals or colors based on the
+// tincture class that dominates across the entire field or charge. If
+// fields or charges are evenly divided into color and metal, they are
+// treated as neutral and have good contrast with both colors and metals. If
+// they are over half color, they are treated as colors".)
 const classOf = tincture => ({ light: 1, dark: -1, neutral: 0 }[TINCTURES[tincture].tone]);
 const sign = v => (v > 1e-9 ? 1 : v < -1e-9 ? -1 : 0);
 
@@ -124,20 +135,14 @@ function checkField(field, problems, depth = 0) {
   // readily identifiable." Two pairings "have been ruled unregisterable,
   // even when there is no overlying charge": "sable and purpure" and "sable
   // and azure". "Other combinations are registerable on a case-by-case
-  // basis", which the tools cannot judge, so they are held back (house): a
-  // herald may choose them.
+  // basis": those depend on how much of the line can be seen, which is
+  // judged with the charges in place (checkShield, LINE_SHOWS).
   if (field.line && field.line !== 'plain') {
     for (let i = 0; i < parts.length; i++) {
       for (let j = i + 1; j < parts.length; j++) {
         if (goodContrast(classes[i], classes[j])) continue;
         const pair = [parts[i], parts[j]].map(p => (p.type === 'plain' ? groundsOf(p.tincture)[0] : null)).sort().join();
-        const ruledOut = pair === 'purpure,sable' || pair === 'azure,sable';
-        // The pairings the College registers with a complex line as a matter
-        // of course are offered to everybody (the maintainer, 27 November
-        // 2026: "If it's common and often allowed ... with recent
-        // registrations, then no need to grey it out"). See REGISTERED_OFTEN.
-        if (!ruledOut && REGISTERED_OFTEN.has(pair)) continue;
-        problems.push({ id: ruledOut ? 'complex-line-ruled-out' : 'complex-line-contrast', sena: 'Appendix H', level: ruledOut ? 'sena' : 'house' });
+        if (pair === 'purpure,sable' || pair === 'azure,sable') problems.push({ id: 'complex-line-ruled-out', sena: 'Appendix H', level: 'sena' });
       }
     }
   }
@@ -294,12 +299,15 @@ function checkGroup(field, group, coverage, frame, crossed, problems, variant = 
   }
 
   const chargeClass = classOf(group.tincture);
-  let lowContrast = null, shares = false;
+  // (a parted charge: "a lion barry gules and Or", catalog.js)
+  const parted = partedOf(group.tincture);
+  let lowContrast = null, shares = false, bothNeutral = false;
   for (const points of coverage) {
     if (!points.length) continue;
     // SENA A3B4a, applied to the part of the field behind this one charge.
     const behind = classBehind(field, points, frame, variant);
     if (!goodContrast(chargeClass, behind)) lowContrast = hintAgainst(behind);
+    if (parted && sign(chargeClass) === 0 && sign(behind) === 0) bothNeutral = true;
     // SENA A3B4b: "the field and charges on it may share a tincture only if
     // (1) the charges appear only on a section of the field with a different
     // tincture or (2) only one of the two is multiply divided ... and the
@@ -318,7 +326,30 @@ function checkGroup(field, group, coverage, frame, crossed, problems, variant = 
       if (under[t] > BARELY && group.number === SEMY && tincturesWithin(t).some(x => groundsOf(group.tincture).includes(x))) shares = true;
     }
   }
-  if (shares) {
+  if (shares && parted) {
+    // A PARTED charge that shares a tincture with the field under it. SENA
+    // A3B4b again: the two "may share a tincture only if (1) the charges
+    // appear only on a section of the field with a different tincture or
+    // (2) only one of the two is multiply divided (that is, has more than
+    // one division) and the charge(s) is an ordinary or simple geometric
+    // shape arranged in a way that both the type of field division and
+    // charge are clearly identifiable." Its examples: "Pily gules and
+    // argent, a bordure per fess argent and gules is acceptable if drawn so
+    // that both the type of field division and the bordure are clearly
+    // identifiable, because only the field is multiply divided. However,
+    // Checky gules and argent, a bordure quarterly gules and argent is not
+    // acceptable, as both the field and the bordure are multiply divided."
+    // So: an ordinary, with exactly one of the two multiply divided, depends
+    // on the drawing (house); anything else SENA does not allow. (Per pale
+    // and its kin are one division; quarterly, per pall and the patterns
+    // are more. Which part of the charge lies on which part of the field is
+    // not worked out, so a parted charge that amounts to counterchanging is
+    // reported too: say "counterchanged" for that.)
+    const chargeMany = familyOf(parted.division) !== 'two';
+    const fieldMany = field.type === 'divided' && (familyOf(field.division) !== 'two' || isNested(field));
+    const caseTwo = group.kind === 'ordinary' && chargeMany !== fieldMany;
+    problems.push({ id: 'charge-shares-tincture', sena: 'A3B4b', level: caseTwo ? 'house' : 'sena' });
+  } else if (shares) {
     // Case (2) above: an ordinary on a field of many pieces "can be
     // acceptable, if drawn so that the shared tinctures are not against each
     // other" (SENA's example: Lozengy vert and Or, a chief Or).
@@ -333,6 +364,40 @@ function checkGroup(field, group, coverage, frame, crossed, problems, variant = 
       problems.push({ id: 'charge-shares-tincture', sena: 'A3B4b', level: caseTwo ? 'house' : 'sena' });
     }
   } else if (lowContrast) problems.push({ id: 'charge-low-contrast', sena: 'A3B4a', level: 'sena', hint: lowContrast });
+  // A parted charge of a colour and a metal, on a part of the field that is
+  // itself of a colour and a metal (across the line of per pale, on checky,
+  // on vair). SENA A3B2: "In some cases, two neutral tinctures may have good
+  // contrast with each other, but identifiability must be maintained. This
+  // occurs most often when a charge is counterchanged over a line of
+  // division. In such a case ... all edges that touch have good contrast
+  // with each other." Whether they do depends on the drawing, which is not
+  // worked out piece by piece, so it is held back (house).
+  else if (bothNeutral) problems.push({ id: 'neutral-on-neutral', sena: 'A3B2', level: 'house' });
+}
+
+// A PARTED CHARGE's own division ("a lion barry gules and Or", "a bordure
+// parted bordurewise argent and sable": catalog.js), whatever field it is on.
+// SENA A3B3 is headed "Contrast Requirements for Divided Fields and
+// Charges", and each of its rules speaks of "elements" or of "fields or
+// charges", so the charge's division must obey exactly what a field's does:
+// it is checked as the field it would be (shield.js: partedField). What is
+// found is reported under the field's own id with "parted-" before it:
+//   parted-same-base            A3B3a-c  argent and ermine side by side
+//   parted-many-low-contrast    A3B3d    barry gules and azure
+//   parted-three-part-contrast  A3B3b    per pall of three colours
+//   parted-complex-line-ruled-out  Appendix H  sable with azure or purpure, with a complex line
+function checkParted(group, problems) {
+  const parted = group.tincture ? partedOf(group.tincture) : null;
+  if (!parted) return;
+  // What the tools cannot draw: only a bordure has an outer ring and an
+  // inner one (the maintainer, 27 November 2026: "Bordures should
+  // additionally be allowed to be parted bordurewise").
+  if (parted.division === BORDUREWISE && !(group.kind === 'ordinary' && group.ordinary === 'bordure')) {
+    problems.push({ id: 'bordurewise-not-bordure', sena: null, level: 'house' });
+  }
+  const found = [];
+  checkField(partedField(group.tincture), found);
+  for (const p of found) problems.push({ ...p, id: 'parted-' + p.id });
 }
 
 // ---- The whole shield --------------------------------------------------------
@@ -344,6 +409,8 @@ export function checkShield({ field, groups = [], noCharge = false }) {
   const problems = [];
   // How the charge groups go together does not depend on the field.
   const layout = groups.length ? checkGroups(field, groups, problems) : null;
+  // Nor does how a parted charge is itself divided.
+  for (const group of allGroups(groups)) checkParted(group, problems);
   if (!field) return dedupe(problems);
   if (isComplete(field)) checkField(field, problems);
 
@@ -366,6 +433,22 @@ export function checkShield({ field, groups = [], noCharge = false }) {
     problems.push({ id: 'pattern-hidden', sena: null, level: 'house' });
   }
 
+  // A complex line of division must be identifiable (SENA Appendix H: "The
+  // primary standard for low-contrast complex lines of division is that
+  // they be readily identifiable"; "Other combinations are registerable on
+  // a case-by-case basis"). The maintainer's measure, 28 November 2026: "at
+  // least 1/3 of the total line length must be visible to use a complex
+  // line. If it is hidden by charges it'll be hard to identify." Held back
+  // (house) when less shows: between two colours or two metals as the
+  // Appendix H case, otherwise as a line that cannot be made out.
+  if (layout && isComplete(field) && field.type === 'divided' && field.line && field.line !== 'plain' &&
+      lineShowing(field, layout) < LINE_SHOWS) {
+    const classes = field.parts.map(fieldClass);
+    const lowContrast = classes.some((a, i) => classes.some((b, j) => j > i && !goodContrast(a, b)));
+    problems.push(lowContrast ? { id: 'complex-line-contrast', sena: 'Appendix H', level: 'house' }
+      : { id: 'complex-line-hidden', sena: null, level: 'house' });
+  }
+
   // A single charge in the middle of the shield lies over the lines of a
   // divided field (see SENA A3D1c, in checkGroup).
   const crossed = groups.some((g, i) => layout.entries[i].role === 'primary' && g.kind === 'charge' && g.number === 1);
@@ -385,7 +468,8 @@ export function checkShield({ field, groups = [], noCharge = false }) {
   // SENA A3E2: "measured by adding the number of types of charges to the
   // number of tinctures. Items with a complexity count of eight or less
   // receive no penalty".
-  if (shieldTinctures(field, groups).length + new Set(allGroups(groups).map(typeOf)).size > MAX_COMPLEXITY) {
+  // (cotises are a type of charge of their own)
+  if (shieldTinctures(field, groups).length + new Set(allGroups(groups).map(typeOf)).size + (groups.some(g => g.cotised) ? 1 : 0) > MAX_COMPLEXITY) {
     problems.push({ id: 'complexity', sena: 'A3E2', level: 'sena' });
   }
   return dedupe(problems);
@@ -454,9 +538,47 @@ export function checkArrangement(groups) {
   const types = groups.map(typeOf);
   if (new Set(types).size < types.length) problems.push({ id: 'same-charge-twice', sena: 'A3D1a', level: 'sena' });
 
+  groups.forEach((g, i) => {
+    if (g.kind !== 'ordinary') return;
+    const lined = !!g.line && g.line !== 'plain';
+    if (g.voided) {
+      // SENA A3C: "Voiding and fimbriation may only be used with ordinaries
+      // or simple geometric charges when they are part of a primary charge
+      // group. Peripheral ordinaries may not be voided or fimbriated ... All
+      // central ordinaries with more than two ends, such as palls, crosses,
+      // and saltires, may be voided ... As central ordinaries with two ends
+      // which are voided would give the unmistakable appearance of being
+      // multiple ordinaries, they may not be voided." ("a design that
+      // appears to be a fess voided must be blazoned as two bars".)
+      if (!VOIDABLE.has(g.ordinary)) problems.push({ id: 'voided-not-allowed', sena: 'A3C', level: 'sena' });
+      // What the tools cannot draw yet: charges on an ordinary that is only
+      // an outline, and a voided ordinary with a complex line (which SENA
+      // allows: "even those with complex lines").
+      else if (g.charged || lined) problems.push({ id: 'voided-unsupported', sena: null, level: 'house' });
+    }
+    // Cotises: the ordinaries the tools can draw them for, with plain
+    // lines. They are a charge group of their own (the O&A indexes them as
+    // one, "second"), so with other charges around the ordinary as well
+    // there are three groups on the field, which SENA Appendix J limits:
+    // that is held back too, for a herald to choose.
+    if (g.cotised && (!COTISABLE[g.ordinary] || lined || g.voided || r[i].role !== 'primary' ||
+                      groups.some((x, k) => k !== i && r[k].role === 'secondary'))) {
+      problems.push({ id: 'cotised-unsupported', sena: null, level: 'house' });
+    }
+  });
+
   // Parallel ordinaries (the maintainer's rule; see PARALLEL).
   const has = id => groups.some(g => g.kind === 'ordinary' && g.ordinary === id);
   if (PARALLEL.some(([a, b]) => has(a) && has(b))) problems.push({ id: 'parallel-ordinaries', sena: null, level: 'house' });
+
+  // Charges set out in bend beside a canton: the canton stands where the
+  // line starts, and the charges came out tiny, squeezed against it (the
+  // maintainer, 28 November 2026: "ban 'in bend' arrangements like this
+  // from being combined with a canton"). A herald may still choose it; the
+  // line is then laid from the canton's edge (layout.js: placeArranged).
+  if (has('canton') && groups.some(g => g.kind === 'charge' && g.arranged === 'bend')) {
+    problems.push({ id: 'canton-in-bend', sena: null, level: 'house' });
+  }
 
   // SENA Appendix I3: "Charges on tertiary charges are known as quaternary
   // charges and are not allowed".
@@ -528,12 +650,32 @@ function checkTertiary(field, host, group, problems) {
     }
     return;
   }
+  // A parted charge, or a charge on a parted one, that shares a tincture
+  // with the other: "on a fess checky argent and gules three mullets gules".
+  // The charge underneath is the background here (SENA A3B4a, quoted
+  // below), so A3B4b applies as it does on the field: the two "may share a
+  // tincture only if ... (2) only one of the two is multiply divided ...
+  // and the charge(s) is an ordinary or simple geometric shape arranged in
+  // a way that both ... are clearly identifiable." A simple shape
+  // (catalog.js: SIMPLE_CHARGES) with exactly one of the two multiply
+  // divided depends on the drawing (house); otherwise it is not allowed.
+  const hostParted = partedOf(host.tincture), parted = partedOf(group.tincture);
+  if ((hostParted || parted) && sharesGround(host.tincture, group.tincture)) {
+    const hostMany = !!hostParted && familyOf(hostParted.division) !== 'two';
+    const chargeMany = !!parted && familyOf(parted.division) !== 'two';
+    const caseTwo = hostMany !== chargeMany && group.kind === 'charge' && SIMPLE_CHARGES.includes(group.charge);
+    problems.push({ id: 'charge-shares-tincture', sena: 'A3B4b', level: caseTwo ? 'house' : 'sena' });
+    return;
+  }
   // SENA A3B4a: "Tertiary charge groups are considered to be placed on the
   // underlying charge group and must have good contrast with that charge
   // group."
-  const under = classOf(host.tincture);
-  if (!goodContrast(classOf(group.tincture), under)) {
+  const under = classOf(host.tincture), over = classOf(group.tincture);
+  if (!goodContrast(over, under)) {
     problems.push({ id: 'charge-low-contrast', sena: 'A3B4a', level: 'sena', hint: hintAgainst(under) });
+  } else if ((hostParted || parted) && sign(over) === 0 && sign(under) === 0) {
+    // (two neutrals, one of them parted: SENA A3B2, as in checkGroup)
+    problems.push({ id: 'neutral-on-neutral', sena: 'A3B2', level: 'house' });
   }
 }
 

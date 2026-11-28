@@ -22,7 +22,7 @@
 // them out, and the rules skip whatever they cannot judge yet.
 
 import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, AROUND_NAMED, SEMY,
-         LINES, LINED_ORDINARIES, canBeLined } from './catalog.js';
+         LINES, LINED_ORDINARIES, BORDUREWISE, COTISABLE, canBeLined, partedOf } from './catalog.js';
 
 const checkTincture = t => {
   if (t !== null && !TINCTURES[t]) throw new Error('Unknown tincture: ' + t);
@@ -30,7 +30,24 @@ const checkTincture = t => {
 
 export function plain(tincture) {
   checkTincture(tincture);
-  return { type: 'plain', tincture };
+  // (A parted tincture is made for a charge, "a lion barry gules and Or". As
+  // a field it is simply that division: see partedField below. Only a
+  // bordure can be parted bordurewise.)
+  const parted = partedOf(tincture);
+  if (parted && parted.division === BORDUREWISE) throw new Error('A field cannot be parted bordurewise');
+  return partedField(tincture) || { type: 'plain', tincture };
+}
+
+// PARTED CHARGES. A charge's `tincture` may be a parted one (catalog.js:
+// "parted:barry:gules,or"): the charge is divided as a field would be. This
+// gives the field such a tincture stands for, divided('barry', [plain('gules'),
+// plain('or')]), so that the blazon, the rules and the drawing can treat a
+// parted charge with what they already know about fields. Null for any
+// other tincture. (Only a bordure can be parted bordurewise, so as a field
+// that one is good for the rules and the blazon alone: it has no shape.)
+export function partedField(tincture) {
+  const parted = partedOf(tincture);
+  return parted ? divided(parted.division, parted.parts.map(plain), parted.line) : null;
 }
 
 export function divided(division, parts, line = 'plain') {
@@ -122,13 +139,18 @@ const checkChargeTincture = t => { if (t !== COUNTERCHANGED) checkTincture(t); }
 // `line`: 'plain', or a complex line for its edges (catalog.js: LINES): "a
 // fess wavy", "a bordure embattled". An ordinary that cannot be drawn with
 // one yet (LINED_ORDINARIES) is drawn plain.
-export function ordinaryGroup(ordinary, tincture, { role = null, place = null, charged = null, line = 'plain' } = {}) {
+// `voided`: drawn as its outline, the field showing through ("a cross voided").
+// `cotised`: with a narrow stripe either side ("a bend cotised", "a pale
+// endorsed"). See VOIDABLE and COTISABLE in catalog.js; the rules say which
+// ordinaries may be.
+export function ordinaryGroup(ordinary, tincture, { role = null, place = null, charged = null, line = 'plain', voided = false, cotised = false } = {}) {
   if (!ORDINARIES[ordinary]) throw new Error('Unknown ordinary: ' + ordinary);
   checkChargeTincture(tincture);
   checkLine(line);
   if (!LINED_ORDINARIES.has(ordinary)) line = 'plain';
   // (Flaunches come as a pair: catalog.js.)
-  return { kind: 'ordinary', ordinary, number: ORDINARIES[ordinary].count || 1, tincture, role, place, charged, line };
+  return { kind: 'ordinary', ordinary, number: ORDINARIES[ordinary].count || 1, tincture, role, place, charged, line,
+           ...(voided ? { voided: true } : {}), ...(cotised ? { cotised: true } : {}) };
 }
 
 export function chargeGroup({ charge, name = charge, plural = '', category = '', posture = '',
@@ -243,10 +265,15 @@ export function counterchangedField(field) {
   return swap(field);
 }
 
-// Every tincture a whole shield uses (a counterchanged charge adds none).
+// Every tincture a whole shield uses (a counterchanged charge adds none, and
+// a parted charge each of its parts).
 export function shieldTinctures(field, groups = []) {
   const used = new Set(tincturesIn(field));
-  for (const g of allGroups(groups)) if (g.tincture && g.tincture !== COUNTERCHANGED) used.add(g.tincture);
+  for (const g of allGroups(groups)) {
+    if (!g.tincture || g.tincture === COUNTERCHANGED) continue;
+    const parted = partedOf(g.tincture);
+    for (const t of parted ? parted.parts : [g.tincture]) used.add(t);
+  }
   return [...used];
 }
 
@@ -298,6 +325,9 @@ function groupWords(group, words) {
   else text = (NUMBER_WORDS[group.number] || group.number) + ' ' + many;
   // "a fess wavy", "a bordure embattled"
   if (group.kind === 'ordinary' && group.line && group.line !== 'plain') text += ' ' + LINES[group.line].name;
+  // "a cross voided", "a bend cotised", "a pale endorsed"
+  if (group.kind === 'ordinary' && group.voided) text += ' voided';
+  if (group.kind === 'ordinary' && group.cotised) text += ' ' + ((COTISABLE[group.ordinary] || {}).blazon || 'cotised');
   if (group.posture) text += ' ' + group.posture;
   if (group.turned) text += ' ' + ORIENTATIONS[group.turned].name;
   if (group.inverted) text += ' inverted';
