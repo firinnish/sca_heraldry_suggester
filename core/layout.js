@@ -371,13 +371,17 @@ const TAKES_SPACE = ['canton', 'flaunches', 'gore'];
 function ordinaryParts(group, division, frame, width = 1) {
   // (with its complex line, if it has one: "a fess wavy". What goes beside
   // it or on it is then fitted to the shape as drawn.)
-  const line = lineOf(group);
+  const line = lineOf(group), how = howOf(group);
   return {
-    shapes: ordinaryShapes(group.ordinary, division, frame, width, line),
-    coverage: [ordinarySamples(group.ordinary, division, frame, width, line)],
+    shapes: ordinaryShapes(group.ordinary, division, frame, width, line, how),
+    coverage: [ordinarySamples(group.ordinary, division, frame, width, line, how)],
   };
 }
 const lineOf = group => (group.line && group.line !== 'plain' ? group.line : null);
+// Voided, or cotised ("a cross voided", "a bend cotised": catalog.js). The
+// shapes then include the hole, or the cotises, so whatever goes beside the
+// ordinary keeps clear of them.
+const howOf = group => (group.kind !== 'ordinary' ? null : group.voided ? 'voided' : group.cotised ? 'cotised' : null);
 
 // ---- 2. Primary charges, inside a space ------------------------------------------------
 // As for a group alone: one in the middle, two side by side (one above the
@@ -914,7 +918,7 @@ function compose(groups, r, division) {
 // How one charge group shows in the layout, for a signature of the shield.
 const signature = g => [g.kind, g.ordinary || (g.art && getPicture(g.art) ? g.art : 'blob'), g.number, !!g.mirror, !!g.inverted,
   !!g.artInverted, g.role || null, g.place || null, g.arranged || null, g.charged ? signature(g.charged) : null, g.turned || null,
-  lineOf(g), Number.isInteger(g.part) ? g.part : null];
+  lineOf(g), Number.isInteger(g.part) ? g.part : null, howOf(g)];
 const layoutCache = new Map();
 
 // Where everything on a shield goes. Returns { frame, entries } with one
@@ -1084,8 +1088,8 @@ function placeAll(field, groups) {
     const g = alone, frame = g.kind !== 'ordinary' ? null : g.ordinary === 'chief' ? 'chief' : g.ordinary === 'bordure' ? frameName(false, BORDURE_WIDTH) : null;
     if (g.kind === 'ordinary') {
       return { frame, entries: [{ ...r[0], kind: g.kind, ok: true, tertiary: null,
-                                  shapes: ordinaryShapes(g.ordinary, division, null, 1, lineOf(g)),
-                                  coverage: [ordinarySamples(g.ordinary, division, null, 1, lineOf(g))] }] };
+                                  shapes: ordinaryShapes(g.ordinary, division, null, 1, lineOf(g), howOf(g)),
+                                  coverage: [ordinarySamples(g.ordinary, division, null, 1, lineOf(g), howOf(g))] }] };
     }
     const placed = placeGroup(g, field);
     return { frame, entries: [{ ...r[0], kind: g.kind, ok: true, tertiary: null, picture: placed.picture, flipY: placed.flipY,

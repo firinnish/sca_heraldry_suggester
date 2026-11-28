@@ -327,6 +327,29 @@ here were made with the maintainer; add to it as things are decided.
   - *Charges in bend with a canton* are held back for heralds; when chosen,
     the line runs from the canton's edge.
   - *The AI disclosure* has the maintainer's fourth paragraph, on both pages.
+  - *Voided and cotised ordinaries:* "voided" and "cotised" on an
+    ordinary's card. A cross, saltire or pall can be voided (SENA A3C
+    allows no others: a fess voided "must be blazoned as two bars"); a
+    pale ("endorsed"), fess, bend, bend sinister, chevron or chevron
+    inverted can be cotised. Suggestions use them now and then. The search
+    sends the cotises as the O&A indexes them (`COTISES:1:or:bend:pl:second`);
+    voiding is not indexed there at all.
+- **Questions from that list:**
+  - The alternative palette's four colours are still read from pictures
+    (azure #2D6B92, gules #94110D, vert #469A49, and now purpure #E98CC0);
+    the picture sent has no colour profile, and its colours only match the
+    earlier ones if read as "Display P3". Exact codes would settle it.
+  - Oar and rudder are not under Maritime, and the search page (search
+    mode) does not use the synonyms yet.
+  - A cross, saltire or pall cotised, a cotised ordinary with a complex
+    line or with charges around it, and a voided ordinary with a complex
+    line are held back as things the tools cannot draw yet.
+  - DRAFT wording: "Charges in bend start in the corner where the canton
+    is", "Only an ordinary with more than two ends (a cross, a saltire, a
+    pall) can be voided", "The tools cannot yet draw a voided ordinary with
+    charges on it or with a complex line", "The tools can only cotise a
+    pale, fess, bend or chevron that has a plain line and no other charges
+    around it".
 
 ## Next, in the maintainer's words
 

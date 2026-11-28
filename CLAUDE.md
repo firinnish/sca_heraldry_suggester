@@ -102,7 +102,8 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   chief on a per pall field or two charges side by side on per pale.
 - Rule violations never block the search link: people search for old armory
   that breaks today's rules. They grey out options and show a warning.
-- Not covered yet: voiding/fimbriation, "sword and dagger" (A3D1b).
+- Not covered yet: fimbriation, voiding of charges that are not ordinaries,
+  "sword and dagger" (A3D1b).
 
 ## Complex lines (built the end of November 2026)
 - `line` on a divided field and on an ordinary group is 'plain' or an id
@@ -331,6 +332,33 @@ Read README.md for the layout and ROADMAP.md for what is built and what is next.
   rows; a bend checky runs down the bend).
 - The page: "More complex options" on a chosen charge's card (see "How the
   page behaves"). The generator never makes a parted charge at random.
+
+## Voided and cotised ordinaries (built 28 November 2026)
+- The maintainer: "add a way to void and cotise ordinaries, which should
+  show up as an option in the charge's card when selected (and should show
+  up in suggestions sometimes)". `voided` and `cotised` on an ordinary group
+  (`ordinaryGroup(..., { voided, cotised })`), and on the page's choice for
+  an ordinary; buttons on its card (`ordinaryFlags`).
+- VOIDED is only for a cross, a saltire or a pall (`VOIDABLE` in
+  `catalog.js`): SENA A3C lets only "central ordinaries with more than two
+  ends" be voided ("a design that appears to be a fess voided must be
+  blazoned as two bars"). Anything else voided is `voided-not-allowed`
+  (sena). The shape is ONE polygon with the hole cut into it
+  (`voidedShape` in `geometry.js`), so nothing else needed changing. The
+  O&A does not index voiding at all.
+- COTISED is for the pale ("endorsed"), fess, bend, bend sinister, chevron
+  and chevron inverted (`COTISABLE`): the ordinary drawn narrower with a
+  stripe either side (`cotisedShapes`, proportions from Traceable Heraldic
+  Art's "Fess Cotised"). The cotises are part of the ordinary's shapes, so
+  charges keep clear of them. The O&A indexes them as a group of their
+  own, `COTISES:1:or:bend:pl:second` (in `shieldPatterns`), and the rules
+  count them as one more type of charge.
+- Held back (`house`, what the tools cannot draw or are unsure of):
+  `voided-unsupported` (voided with charges on it or a complex line) and
+  `cotised-unsupported` (any other ordinary cotised; a complex line; other
+  charges around it as well, which would make three groups on the field).
+- The generator voids or cotises a suggestion's ordinary now and then
+  (about one in twelve where it can), never one whose card has been touched.
 
 ## The two pages
 - `apps/search/` is "Forannán's Shieldpainter 1.0", the BUILD MODE (the

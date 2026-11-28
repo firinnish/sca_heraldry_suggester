@@ -22,7 +22,7 @@
 // them out, and the rules skip whatever they cannot judge yet.
 
 import { TINCTURES, DIVISIONS, ORDINARIES, ARRANGEMENTS, ORIENTATIONS, AROUND_NAMED, SEMY,
-         LINES, LINED_ORDINARIES, BORDUREWISE, canBeLined, partedOf } from './catalog.js';
+         LINES, LINED_ORDINARIES, BORDUREWISE, COTISABLE, canBeLined, partedOf } from './catalog.js';
 
 const checkTincture = t => {
   if (t !== null && !TINCTURES[t]) throw new Error('Unknown tincture: ' + t);
@@ -139,13 +139,18 @@ const checkChargeTincture = t => { if (t !== COUNTERCHANGED) checkTincture(t); }
 // `line`: 'plain', or a complex line for its edges (catalog.js: LINES): "a
 // fess wavy", "a bordure embattled". An ordinary that cannot be drawn with
 // one yet (LINED_ORDINARIES) is drawn plain.
-export function ordinaryGroup(ordinary, tincture, { role = null, place = null, charged = null, line = 'plain' } = {}) {
+// `voided`: drawn as its outline, the field showing through ("a cross voided").
+// `cotised`: with a narrow stripe either side ("a bend cotised", "a pale
+// endorsed"). See VOIDABLE and COTISABLE in catalog.js; the rules say which
+// ordinaries may be.
+export function ordinaryGroup(ordinary, tincture, { role = null, place = null, charged = null, line = 'plain', voided = false, cotised = false } = {}) {
   if (!ORDINARIES[ordinary]) throw new Error('Unknown ordinary: ' + ordinary);
   checkChargeTincture(tincture);
   checkLine(line);
   if (!LINED_ORDINARIES.has(ordinary)) line = 'plain';
   // (Flaunches come as a pair: catalog.js.)
-  return { kind: 'ordinary', ordinary, number: ORDINARIES[ordinary].count || 1, tincture, role, place, charged, line };
+  return { kind: 'ordinary', ordinary, number: ORDINARIES[ordinary].count || 1, tincture, role, place, charged, line,
+           ...(voided ? { voided: true } : {}), ...(cotised ? { cotised: true } : {}) };
 }
 
 export function chargeGroup({ charge, name = charge, plural = '', category = '', posture = '',
@@ -320,6 +325,9 @@ function groupWords(group, words) {
   else text = (NUMBER_WORDS[group.number] || group.number) + ' ' + many;
   // "a fess wavy", "a bordure embattled"
   if (group.kind === 'ordinary' && group.line && group.line !== 'plain') text += ' ' + LINES[group.line].name;
+  // "a cross voided", "a bend cotised", "a pale endorsed"
+  if (group.kind === 'ordinary' && group.voided) text += ' voided';
+  if (group.kind === 'ordinary' && group.cotised) text += ' ' + ((COTISABLE[group.ordinary] || {}).blazon || 'cotised');
   if (group.posture) text += ' ' + group.posture;
   if (group.turned) text += ' ' + ORIENTATIONS[group.turned].name;
   if (group.inverted) text += ' inverted';

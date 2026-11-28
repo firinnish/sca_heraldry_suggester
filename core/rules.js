@@ -25,7 +25,7 @@
 //
 // GOOD CONTRAST (SENA A3B2) is metal against colour, or neutral against either.
 
-import { TINCTURES, SEMY, BORDUREWISE, SIMPLE_CHARGES, familyOf, sharesGround, groundsOf, tincturesWithin, partedOf } from './catalog.js';
+import { TINCTURES, SEMY, BORDUREWISE, SIMPLE_CHARGES, VOIDABLE, COTISABLE, familyOf, sharesGround, groundsOf, tincturesWithin, partedOf } from './catalog.js';
 import { COUNTERCHANGED, isComplete, isNested, leafTinctures, tincturesIn, shieldTinctures,
          roles, allGroups, typeOf, isCentralOrdinary, partedField } from './shield.js';
 import { partMap } from './geometry.js';
@@ -468,7 +468,8 @@ export function checkShield({ field, groups = [], noCharge = false }) {
   // SENA A3E2: "measured by adding the number of types of charges to the
   // number of tinctures. Items with a complexity count of eight or less
   // receive no penalty".
-  if (shieldTinctures(field, groups).length + new Set(allGroups(groups).map(typeOf)).size > MAX_COMPLEXITY) {
+  // (cotises are a type of charge of their own)
+  if (shieldTinctures(field, groups).length + new Set(allGroups(groups).map(typeOf)).size + (groups.some(g => g.cotised) ? 1 : 0) > MAX_COMPLEXITY) {
     problems.push({ id: 'complexity', sena: 'A3E2', level: 'sena' });
   }
   return dedupe(problems);
@@ -536,6 +537,35 @@ export function checkArrangement(groups) {
   // the field and in a tertiary charge group".
   const types = groups.map(typeOf);
   if (new Set(types).size < types.length) problems.push({ id: 'same-charge-twice', sena: 'A3D1a', level: 'sena' });
+
+  groups.forEach((g, i) => {
+    if (g.kind !== 'ordinary') return;
+    const lined = !!g.line && g.line !== 'plain';
+    if (g.voided) {
+      // SENA A3C: "Voiding and fimbriation may only be used with ordinaries
+      // or simple geometric charges when they are part of a primary charge
+      // group. Peripheral ordinaries may not be voided or fimbriated ... All
+      // central ordinaries with more than two ends, such as palls, crosses,
+      // and saltires, may be voided ... As central ordinaries with two ends
+      // which are voided would give the unmistakable appearance of being
+      // multiple ordinaries, they may not be voided." ("a design that
+      // appears to be a fess voided must be blazoned as two bars".)
+      if (!VOIDABLE.has(g.ordinary)) problems.push({ id: 'voided-not-allowed', sena: 'A3C', level: 'sena' });
+      // What the tools cannot draw yet: charges on an ordinary that is only
+      // an outline, and a voided ordinary with a complex line (which SENA
+      // allows: "even those with complex lines").
+      else if (g.charged || lined) problems.push({ id: 'voided-unsupported', sena: null, level: 'house' });
+    }
+    // Cotises: the ordinaries the tools can draw them for, with plain
+    // lines. They are a charge group of their own (the O&A indexes them as
+    // one, "second"), so with other charges around the ordinary as well
+    // there are three groups on the field, which SENA Appendix J limits:
+    // that is held back too, for a herald to choose.
+    if (g.cotised && (!COTISABLE[g.ordinary] || lined || g.voided || r[i].role !== 'primary' ||
+                      groups.some((x, k) => k !== i && r[k].role === 'secondary'))) {
+      problems.push({ id: 'cotised-unsupported', sena: null, level: 'house' });
+    }
+  });
 
   // Parallel ordinaries (the maintainer's rule; see PARALLEL).
   const has = id => groups.some(g => g.kind === 'ordinary' && g.ordinary === id);
