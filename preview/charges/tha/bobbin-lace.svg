@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="63 63 99 351" width="99" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 63 63 L 162 63 L 162 414 L 63 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Bobbin,_Lace" fill-opacity="1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill="none">
+    <title>Bobbin, Lace</title>
+    <g id="Bobbin,_Lace_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_3">
+        <g id="Graphic_6">
+          <path d="M 82.34 90.86 C 82.34 76.62 95.65 65.08 112.06 65.08 C 128.47 65.08 141.78 76.62 141.78 90.86 L 82.34 90.86" fill="#ffffff"/>
+          <path d="M 82.34 90.86 C 82.34 76.62 95.65 65.08 112.06 65.08 C 128.47 65.08 141.78 76.62 141.78 90.86 L 82.34 90.86" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_5">
+          <rect x="100.24" y="90.86" width="23.63" height="71.97" fill="#ffffff"/>
+          <rect x="100.24" y="90.86" width="23.63" height="71.97" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_4">
+          <path d="M 112.03 411.9 C 113.75 412.37 117.57 405 127.29 381.79 C 130.9 373.16 134.98 363.28 136.55 359.83 C 140.63 350.73 143.92 339.91 148.31 321.4 C 161.02 267.6 159.45 226.98 143.45 195.45 C 135.92 180.39 135.29 177.25 138.9 168.63 L 141.41 162.82 L 82.71 162.82 L 85.22 168.63 C 88.83 177.25 88.2 180.39 80.67 195.45 C 64.67 226.98 63.1 267.6 75.81 321.4 C 80.2 339.91 83.49 350.73 87.57 359.83 C 89.14 363.28 93.22 373.16 96.83 381.79 C 106.55 405 110.31 412.37 112.04 411.9 C 112.09 411.88 111.98 411.88 112.03 411.9 Z" fill="#ffffff"/>
+          <path d="M 112.03 411.9 C 113.75 412.37 117.57 405 127.29 381.79 C 130.9 373.16 134.98 363.28 136.55 359.83 C 140.63 350.73 143.92 339.91 148.31 321.4 C 161.02 267.6 159.45 226.98 143.45 195.45 C 135.92 180.39 135.29 177.25 138.9 168.63 L 141.41 162.82 L 82.71 162.82 L 85.22 168.63 C 88.83 177.25 88.2 180.39 80.67 195.45 C 64.67 226.98 63.1 267.6 75.81 321.4 C 80.2 339.91 83.49 350.73 87.57 359.83 C 89.14 363.28 93.22 373.16 96.83 381.79 C 106.55 405 110.31 412.37 112.04 411.9 C 112.09 411.88 111.98 411.88 112.03 411.9 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

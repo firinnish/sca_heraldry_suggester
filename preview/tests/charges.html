@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Charge art: drawing check</title>
+<style>
+  body { font-family: Georgia, serif; margin: 20px 16px; color: #2b2620; background: #faf6ee; }
+  h2 { font-size: 1rem; margin: 26px 0 8px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; }
+  figure { margin: 0; width: 104px; text-align: center; font-size: 0.7rem; color: #6b6252; }
+  figure svg { width: 100%; height: auto; display: block; }
+</style>
+</head>
+<body>
+<h1>Charge art: drawing check</h1>
+<p>Every picture listed in <code>charges/art.csv</code>, drawn in each tincture on a
+contrasting field, then in twos and threes, facing the other way, upside down, and
+as the "blob" used when a charge has no picture. Then every ordinary.</p>
+<div id="out"></div>
+
+<script type="module">
+import { TINCTURES, ORDINARIES } from '../core/catalog.js';
+import { plain, divided, chargeGroupFromLibrary, ordinaryGroup, blazon } from '../core/shield.js';
+import { shieldSVG } from '../core/draw.js';
+import { loadLibrary } from '../core/art.js';
+
+// [charge tincture, field] pairs to try.
+const PAIRS = [
+  ['or', plain('gules')], ['argent', plain('azure')], ['gules', plain('or')], ['azure', plain('argent')],
+  ['vert', plain('argent')], ['purpure', plain('or')], ['sable', plain('argent')], ['sable', plain('or')],
+  ['ermine', plain('gules')], ['counterermine', plain('or')], ['erminois', plain('azure')], ['pean', plain('argent')],
+  ['or', divided('perPale', [plain('azure'), plain('gules')])],
+  ['argent', divided('lozengy', [plain('vert'), plain('sable')])],
+];
+
+const figure = (svg, caption) => `<figure>${svg}<figcaption>${caption}</figcaption></figure>`;
+const show = (field, group, caption) => figure(shieldSVG(field, { charges: [group], title: blazon(field, [group]) }), caption);
+
+const library = await loadLibrary();
+let html = '';
+for (const picture of library.pictures) {
+  const group = extra => chargeGroupFromLibrary(picture.charge, picture, { tincture: 'or', ...extra });
+  html += `<h2>${picture.file}  (${picture.charge_id}${picture.posture ? ' ' + picture.posture : ''}${picture.inverted ? ', drawn inverted' : ''})</h2><div class="row">`;
+  for (const [tincture, field] of PAIRS) html += show(field, group({ tincture }), TINCTURES[tincture].name);
+  html += show(plain('gules'), group({ number: 2 }), 'two');
+  html += show(plain('gules'), group({ number: 3 }), 'three');
+  html += show(plain('gules'), group({ mirror: true }), 'facing sinister');
+  html += show(plain('gules'), group({ inverted: true }), 'inverted');
+  html += show(plain('gules'), chargeGroupFromLibrary(picture.charge, null, { tincture: 'or', number: 3 }), 'no picture (blobs)');
+  html += '</div>';
+}
+html += '<h2>Ordinaries</h2><div class="row">';
+for (const id of Object.keys(ORDINARIES)) {
+  html += show(plain('azure'), ordinaryGroup(id, 'or'), ORDINARIES[id].name);
+  html += show(plain('gules'), ordinaryGroup(id, 'ermine'), ORDINARIES[id].name + ' ermine');
+}
+html += '</div>';
+document.getElementById('out').innerHTML = html;
+window.done = true;
+</script>
+</body>
+</html>

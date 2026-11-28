@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="62 65 245 301" width="245" height="301">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 62 65 L 307 65 L 307 366 L 62 366 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Apple_(2)" stroke-opacity="1" fill="none" fill-opacity="1" stroke-dasharray="none" stroke="none">
+    <title>Apple (2)</title>
+    <g id="Apple_(2)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Group_66">
+        <g id="Graphic_72">
+          <path d="M 186.66 155.08 C 183.07 121.82 195.56 88.84 220.28 66.29 C 208.41 66.35 196.83 69.92 186.98 76.55 C 190.95 82.12 191.56 89.42 188.57 95.57 C 179.69 112.87 175.07 132.03 175.08 151.48 C 174.08 153.64 174.43 156.18 175.96 157.99 C 177.5 159.8 179.95 160.57 182.24 159.94 C 184.53 159.32 186.26 157.43 186.66 155.08 Z" fill="#ffffff"/>
+          <path d="M 186.66 155.08 C 183.07 121.82 195.56 88.84 220.28 66.29 C 208.41 66.35 196.83 69.92 186.98 76.55 C 190.95 82.12 191.56 89.42 188.57 95.57 C 179.69 112.87 175.07 132.03 175.08 151.48 C 174.08 153.64 174.43 156.18 175.96 157.99 C 177.5 159.8 179.95 160.57 182.24 159.94 C 184.53 159.32 186.26 157.43 186.66 155.08 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_71">
+          <path d="M 63 243.13 C 63 176.11 117.34 121.77 184.37 121.77 C 251.39 121.77 305.73 176.11 305.73 243.13 C 305.73 310.16 251.39 364.5 184.37 364.5 C 117.34 364.5 63 310.16 63 243.13 Z" fill="#ffffff"/>
+          <path d="M 63 243.13 C 63 176.11 117.34 121.77 184.37 121.77 C 251.39 121.77 305.73 176.11 305.73 243.13 C 305.73 310.16 251.39 364.5 184.37 364.5 C 117.34 364.5 63 310.16 63 243.13 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Group_69">
+          <title>shape5-7</title>
+          <g id="Graphic_70">
+            <path d="M 150.95 339.14 C 167.32 345.85 189.93 345.85 206.3 339.14" fill="black"/>
+            <path d="M 150.95 339.14 C 167.32 345.85 189.93 345.85 206.3 339.14" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          </g>
+        </g>
+        <g id="Group_67">
+          <title>shape6-10</title>
+          <g id="Graphic_68">
+            <path d="M 178.38 316.51 C 175.58 324.25 174.79 333.76 176.23 342.6 C 177.67 351.44 181.2 358.75 185.9 362.64" fill="black"/>
+            <path d="M 178.38 316.51 C 175.58 324.25 174.79 333.76 176.23 342.6 C 177.67 351.44 181.2 358.75 185.9 362.64" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

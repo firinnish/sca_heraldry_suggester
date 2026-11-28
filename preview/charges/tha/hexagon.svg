@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" viewBox="36 90 292.5 254.25" width="292.5" height="254.25">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 36 90 L 328.5 90 L 328.5 344.25 L 36 344.25 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Hexagon" stroke-opacity="1" stroke="none" stroke-dasharray="none" fill="none" fill-opacity="1">
+    <title>Hexagon</title>
+    <g id="Hexagon_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Graphic_20">
+        <path d="M 40.5 217.12 L 111.38 94.43 L 253.12 94.43 L 324 217.12 L 253.12 339.82 L 111.38 339.82 Z" fill="#ffffff"/>
+        <path d="M 40.5 217.12 L 111.38 94.43 L 253.12 94.43 L 324 217.12 L 253.12 339.82 L 111.38 339.82 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

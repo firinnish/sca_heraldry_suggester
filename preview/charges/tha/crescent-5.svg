@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="36 99 292.5 252" width="292.5" height="252">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 36 99 L 328.5 99 L 328.5 331.13 L 328.5 351 L 36 351 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Crescent_(5)" stroke-opacity="1" stroke="none" fill="none" fill-opacity="1" stroke-dasharray="none">
+    <title>Crescent (5)</title>
+    <g id="Crescent_(5)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Graphic_602">
+        <path d="M 100.73 103.49 C 93.58 108.04 86.78 113.25 80.43 119.13 C 24.19 171.15 24.19 255.48 80.43 307.5 C 136.66 359.52 227.84 359.52 284.07 307.5 C 340.31 255.48 340.31 171.15 284.07 119.13 C 277.72 113.25 270.92 108.04 263.77 103.49 C 285.46 137.16 280.64 181.38 249.3 210.36 C 212.27 244.62 152.23 244.62 115.2 210.36 C 83.86 181.38 79.04 137.16 100.73 103.49 Z" fill="#ffffff"/>
+        <path d="M 100.73 103.49 C 93.58 108.04 86.78 113.25 80.43 119.13 C 24.19 171.15 24.19 255.48 80.43 307.5 C 136.66 359.52 227.84 359.52 284.07 307.5 C 340.31 255.48 340.31 171.15 284.07 119.13 C 277.72 113.25 270.92 108.04 263.77 103.49 C 285.46 137.16 280.64 181.38 249.3 210.36 C 212.27 244.62 152.23 244.62 115.2 210.36 C 83.86 181.38 79.04 137.16 100.73 103.49 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

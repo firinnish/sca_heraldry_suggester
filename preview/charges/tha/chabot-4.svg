@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="63 72 292.5 218.43" width="292.5" height="218.43">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 63 72 L 355.5 72 L 355.5 290.43 L 63 290.43 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Chabot_(4)" stroke-opacity="1" stroke="none" fill="none" fill-opacity="1" stroke-dasharray="none">
+    <title>Chabot (4)</title>
+    <g id="Chabot_(4)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_25">
+        <g id="Graphic_30">
+          <path d="M 328.41 117.83 C 336.1 110.14 282.28 75.55 209.25 75.55 C 136.22 75.55 82.4 110.14 90.09 117.83 C 97.78 125.52 120.84 125.52 120.84 148.58 C 120.84 171.65 90.09 187.02 90.09 187.02 C 90.09 187.02 120.84 198.55 120.84 221.62 C 120.84 244.68 67.03 286.96 67.03 286.96 C 67.03 286.96 163.12 283.12 209.25 236.99 C 255.38 283.12 351.47 286.96 351.47 286.96 C 351.47 286.96 297.66 244.68 297.66 221.62 C 297.66 198.55 328.41 187.02 328.41 187.02 C 328.41 187.02 297.66 171.65 297.66 148.58 C 297.66 125.52 320.72 125.52 328.41 117.83 Z" fill="#ffffff"/>
+          <path d="M 328.41 117.83 C 336.1 110.14 282.28 75.55 209.25 75.55 C 136.22 75.55 82.4 110.14 90.09 117.83 C 97.78 125.52 120.84 125.52 120.84 148.58 C 120.84 171.65 90.09 187.02 90.09 187.02 C 90.09 187.02 120.84 198.55 120.84 221.62 C 120.84 244.68 67.03 286.96 67.03 286.96 C 67.03 286.96 163.12 283.12 209.25 236.99 C 255.38 283.12 351.47 286.96 351.47 286.96 C 351.47 286.96 297.66 244.68 297.66 221.62 C 297.66 198.55 328.41 187.02 328.41 187.02 C 328.41 187.02 297.66 171.65 297.66 148.58 C 297.66 125.52 320.72 125.52 328.41 117.83 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Group_27">
+          <g id="Graphic_29">
+            <circle cx="172.73" cy="148.58" r="15.38" fill="#e1e1e1"/>
+            <circle cx="172.73" cy="148.58" r="15.38" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          </g>
+          <g id="Graphic_28">
+            <circle cx="245.77" cy="148.58" r="15.38" fill="#e1e1e1"/>
+            <circle cx="245.77" cy="148.58" r="15.38" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          </g>
+        </g>
+        <g id="Graphic_26">
+          <path d="M 90 117.75 C 82.32 110.06 136.13 75.46 209.16 75.46 C 282.2 75.46 336.01 110.06 328.33 117.75 C 324.7 121.37 311.62 126.42 299.69 121.17 C 281 112.88 253.33 102.37 209.16 102.37 C 165 102.37 130.58 115.01 114.8 122.88 C 108.58 125.61 93.63 121.37 90 117.75 Z" fill="#ccc"/>
+          <path d="M 90 117.75 C 82.32 110.06 136.13 75.46 209.16 75.46 C 282.2 75.46 336.01 110.06 328.33 117.75 C 324.7 121.37 311.62 126.42 299.69 121.17 C 281 112.88 253.33 102.37 209.16 102.37 C 165 102.37 130.58 115.01 114.8 122.88 C 108.58 125.61 93.63 121.37 90 117.75 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

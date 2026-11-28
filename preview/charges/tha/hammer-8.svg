@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="99 63 166.5 351" width="166.5" height="351">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 99 63 L 265.5 63 L 265.5 360 L 242.45 414 L 99 414 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Hammer_(8)" stroke-opacity="1" stroke="none" fill="none" fill-opacity="1" stroke-dasharray="none">
+    <title>Hammer (8)</title>
+    <g id="Hammer_(8)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_53">
+        <g id="Graphic_55">
+          <path d="M 191.65 124.34 L 156.73 124.34 C 156.73 124.34 151.36 388.47 151.36 388.92 C 151.36 401.53 161.58 411.75 174.19 411.75 C 186.8 411.75 197.02 401.53 197.02 388.92 C 197.02 388.47 191.65 124.34 191.65 124.34 Z" fill="#e1e1e1"/>
+          <path d="M 191.65 124.34 L 156.73 124.34 C 156.73 124.34 151.36 388.47 151.36 388.92 C 151.36 401.53 161.58 411.75 174.19 411.75 C 186.8 411.75 197.02 401.53 197.02 388.92 C 197.02 388.47 191.65 124.34 191.65 124.34 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+        <g id="Graphic_54">
+          <path d="M 221.2 65.25 L 264.17 124.34 L 100.33 124.34 L 100.33 65.25 Z" fill="#ffffff"/>
+          <path d="M 221.2 65.25 L 264.17 124.34 L 100.33 124.34 L 100.33 65.25 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

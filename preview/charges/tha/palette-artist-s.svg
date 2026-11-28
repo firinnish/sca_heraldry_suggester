@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg" viewBox="35.44 63 239.62 238.5" width="239.62" height="238.5">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 35.44 63 L 275.06 63 L 275.06 301.5 L 35.44 301.5 Z"/>
+    </clipPath>
+    <clipPath id="inner_stroke_clip_path">
+      <path d="M 69.41 67.9 C 69.41 75.46 66.41 82.71 61.06 88.06 C 55.72 93.41 48.46 96.41 40.9 96.41 L 40.9 67.9 Z"/>
+    </clipPath>
+    <clipPath id="inner_stroke_clip_path_2">
+      <path d="M 69.01 297 C 69.01 289.44 66.01 282.19 60.66 276.84 C 55.31 271.49 48.06 268.49 40.5 268.49 L 40.5 297 Z"/>
+    </clipPath>
+    <clipPath id="inner_stroke_clip_path_3">
+      <path d="M 241.49 297 C 241.49 289.44 244.49 282.19 249.84 276.84 C 255.19 271.49 262.44 268.49 270 268.49 L 270 297 Z"/>
+    </clipPath>
+    <clipPath id="inner_stroke_clip_path_4">
+      <path d="M 241.49 67.5 C 241.49 75.06 244.49 82.31 249.84 87.66 C 255.19 93.01 262.44 96.01 270 96.01 L 270 67.5 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Palette,_Artist_s" fill-opacity="1" fill="none" stroke="none" stroke-dasharray="none" stroke-opacity="1">
+    <title>Palette, Artist&apos;s</title>
+    <g id="Palette,_Artist_s_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_69">
+        <g id="Graphic_75">
+          <title>rect826</title>
+          <path d="M 40.5 67.5 L 40.5 297 L 270 297 L 270 67.5 Z M 231.41 90.4 C 240.45 90.38 247.79 97.69 247.82 106.72 L 247.82 106.77 C 247.82 115.81 240.5 123.14 231.46 123.14 C 222.42 123.15 215.09 115.83 215.07 106.8 C 215.06 97.76 222.37 90.42 231.41 90.4 Z" fill="#ffffff"/>
+          <path d="M 40.5 67.5 L 40.5 297 L 270 297 L 270 67.5 Z M 231.41 90.4 C 240.45 90.38 247.79 97.69 247.82 106.72 L 247.82 106.77 C 247.82 115.81 240.5 123.14 231.46 123.14 C 222.42 123.15 215.09 115.83 215.07 106.8 C 215.06 97.76 222.37 90.42 231.41 90.4 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+        <g id="Graphic_74">
+          <title>path829</title>
+          <path d="M 69.41 67.9 C 69.41 75.46 66.41 82.71 61.06 88.06 C 55.72 93.41 48.46 96.41 40.9 96.41 L 40.9 67.9 Z" fill="#e1e1e1"/>
+          <path d="M 69.41 67.9 C 69.41 75.46 66.41 82.71 61.06 88.06 C 55.72 93.41 48.46 96.41 40.9 96.41 L 40.9 67.9 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" clip-path="url(#inner_stroke_clip_path)"/>
+        </g>
+        <g id="Graphic_73">
+          <title>path832</title>
+          <path d="M 69.01 297 C 69.01 289.44 66.01 282.19 60.66 276.84 C 55.31 271.49 48.06 268.49 40.5 268.49 L 40.5 297 Z" fill="#e1e1e1"/>
+          <path d="M 69.01 297 C 69.01 289.44 66.01 282.19 60.66 276.84 C 55.31 271.49 48.06 268.49 40.5 268.49 L 40.5 297 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" clip-path="url(#inner_stroke_clip_path_2)"/>
+        </g>
+        <g id="Graphic_72">
+          <title>path834</title>
+          <path d="M 241.49 297 C 241.49 289.44 244.49 282.19 249.84 276.84 C 255.19 271.49 262.44 268.49 270 268.49 L 270 297 Z" fill="#e1e1e1"/>
+          <path d="M 241.49 297 C 241.49 289.44 244.49 282.19 249.84 276.84 C 255.19 271.49 262.44 268.49 270 268.49 L 270 297 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" clip-path="url(#inner_stroke_clip_path_3)"/>
+        </g>
+        <g id="Graphic_71">
+          <title>path836</title>
+          <path d="M 241.49 67.5 C 241.49 75.06 244.49 82.31 249.84 87.66 C 255.19 93.01 262.44 96.01 270 96.01 L 270 67.5 Z" fill="#e1e1e1"/>
+          <path d="M 241.49 67.5 C 241.49 75.06 244.49 82.31 249.84 87.66 C 255.19 93.01 262.44 96.01 270 96.01 L 270 67.5 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" clip-path="url(#inner_stroke_clip_path_4)"/>
+        </g>
+        <g id="Graphic_70">
+          <title>path838</title>
+          <path d="M 225.25 91.61 C 219.13 94.15 215.15 100.12 215.15 106.75 C 215.16 115.78 222.5 123.1 231.54 123.09 C 237.51 123.09 243 119.84 245.87 114.61 C 243.89 115.44 241.76 115.87 239.61 115.87 C 230.57 115.88 223.24 108.56 223.22 99.52 C 223.22 96.76 223.92 94.04 225.25 91.61 Z" fill="#e1e1e1"/>
+          <path d="M 225.25 91.61 C 219.13 94.15 215.15 100.12 215.15 106.75 C 215.16 115.78 222.5 123.1 231.54 123.09 C 237.51 123.09 243 119.84 245.87 114.61 C 243.89 115.44 241.76 115.87 239.61 115.87 C 230.57 115.88 223.24 108.56 223.22 99.52 C 223.22 96.76 223.92 94.04 225.25 91.61 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

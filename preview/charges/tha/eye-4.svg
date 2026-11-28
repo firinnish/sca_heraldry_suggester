@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" viewBox="40.5 90 283.5 238.5" width="283.5" height="238.5">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 40.5 90 L 324 90 L 324 328.5 L 40.5 328.5 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Eye_(4)" stroke="none" stroke-opacity="1" fill-opacity="1" stroke-dasharray="none" fill="none">
+    <title>Eye (4)</title>
+    <g id="Eye_(4)_Art" clip-path="url(#artboard_clip_path)">
+      <title>Art</title>
+      <g id="Group_113">
+        <g id="Graphic_116">
+          <title>path4688</title>
+          <path d="M 42.25 92.25 C 148.25 153.58 239.58 222.25 322.25 326.25 C 253.81 275.36 215.36 271.14 188.92 271.58 C 138.47 269.36 124.03 245.14 115.58 188.92 C 107.81 148.69 74.03 123.81 42.25 92.25 Z" fill="#ffffff"/>
+          <path d="M 42.25 92.25 C 148.25 153.58 239.58 222.25 322.25 326.25 C 253.81 275.36 215.36 271.14 188.92 271.58 C 138.47 269.36 124.03 245.14 115.58 188.92 C 107.81 148.69 74.03 123.81 42.25 92.25 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.77"/>
+        </g>
+        <g id="Graphic_115">
+          <title>path4690</title>
+          <path d="M 161.43 170.45 C 122.93 176.03 116.49 234.16 144.93 258.6 C 184.13 282.17 234.65 256.95 237.09 233.14 C 208.8 208.24 189.48 192.52 161.43 170.45 Z" fill="#e1e1e1"/>
+          <path d="M 161.43 170.45 C 122.93 176.03 116.49 234.16 144.93 258.6 C 184.13 282.17 234.65 256.95 237.09 233.14 C 208.8 208.24 189.48 192.52 161.43 170.45 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.77"/>
+        </g>
+        <g id="Graphic_114">
+          <title>circle4692</title>
+          <circle cx="181.93" cy="217.12" r="19.33" fill="#ccc"/>
+          <circle cx="181.93" cy="217.12" r="19.33" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.77"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

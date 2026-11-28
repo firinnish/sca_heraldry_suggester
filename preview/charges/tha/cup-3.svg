@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" viewBox="99 82.9 166.5 308.6" width="166.5" height="308.6">
+  <defs>
+    <clipPath id="artboard_clip_path">
+      <path d="M 99 82.9 L 265.5 82.9 L 265.5 367.17 L 265.5 391.5 L 99 391.5 Z"/>
+    </clipPath>
+  </defs>
+  <g id="Cup_(3)" stroke="none" stroke-opacity="1" fill-opacity="1" stroke-dasharray="none" fill="none">
+    <title>Cup (3)</title>
+    <g id="Cup_(3)_Layer_2" clip-path="url(#artboard_clip_path)">
+      <title>Layer 2</title>
+      <g id="Graphic_172">
+        <path d="M 110.02 385.7 L 254.76 385.7 L 259.72 385.7 C 259.72 370.38 243.29 357.09 219.24 350.5 C 206.37 343.58 197.6 331.37 196.88 317.33 L 196.88 263.33 C 197.61 249.15 206.54 236.84 219.62 229.96 L 219.62 229.94 C 243.31 220.94 259.44 203.09 259.44 182.54 L 259.44 88.7 L 254.48 88.7 L 109.74 88.7 L 104.78 88.7 L 104.78 182.54 C 104.78 203.56 121.66 221.75 146.24 230.55 C 158.81 237.58 167.3 249.71 167.9 263.61 L 167.9 317.05 C 167.28 331.21 158.48 343.54 145.52 350.51 C 121.48 357.1 105.06 370.38 105.06 385.7 Z" fill="#ffffff"/>
+        <path d="M 110.02 385.7 L 254.76 385.7 L 259.72 385.7 C 259.72 370.38 243.29 357.09 219.24 350.5 C 206.37 343.58 197.6 331.37 196.88 317.33 L 196.88 263.33 C 197.61 249.15 206.54 236.84 219.62 229.96 L 219.62 229.94 C 243.31 220.94 259.44 203.09 259.44 182.54 L 259.44 88.7 L 254.48 88.7 L 109.74 88.7 L 104.78 88.7 L 104.78 182.54 C 104.78 203.56 121.66 221.75 146.24 230.55 C 158.81 237.58 167.3 249.71 167.9 263.61 L 167.9 317.05 C 167.28 331.21 158.48 343.54 145.52 350.51 C 121.48 357.1 105.06 370.38 105.06 385.7 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+      </g>
+    </g>
+  </g>
+</svg>
