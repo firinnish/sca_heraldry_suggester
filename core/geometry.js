@@ -631,6 +631,9 @@ export function ordinaryShapes(ordinary, division = null, frame = null, width = 
   if (ordinary === 'bordure' || ordinary === 'orle') return null;
   if (!ORDINARY_SHAPES[ordinary]) throw new Error('No shape for ordinary: ' + ordinary);
   if (how === 'voided' && OUTLINES[ordinary]) return intoFrame([voidedShape(ordinary, width)], frame);
+  // (Cotises that follow a complex line were tried on 28 November 2026 by
+  // redrawing each stripe's edges with the line: the stripes are too narrow
+  // and too close for that, and ran into the ordinary. See ROADMAP.md.)
   if (how === 'cotised' && STRIPS[ordinary]) return intoFrame(cotisedShapes(ordinary, division, width), frame);
   // A canton beside a chief hangs from the chief's lower edge, as square as
   // ever (the maintainer, 28 November 2026: "The top edge of the canton

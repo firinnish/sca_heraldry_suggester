@@ -334,6 +334,14 @@ here were made with the maintainer; add to it as things are decided.
     inverted can be cotised. Suggestions use them now and then. The search
     sends the cotises as the O&A indexes them (`COTISES:1:or:bend:pl:second`);
     voiding is not indexed there at all.
+- **Still to do: cotises that follow a complex line** (the maintainer, 28
+  November 2026: "allow cotised ordinaries with a complex line and have the
+  cotising follow the complex line - Traceable Heraldic Art should have
+  examples"). A first try redrew each stripe's two edges with the line and
+  failed: the stripes are narrower than the line is deep and sit too close
+  to the ordinary. It needs each cotise built as the ordinary's own lined
+  edge moved outward twice (a copy of the edge, not a new line), with the
+  gap widened to the line's depth. Until then it is `cotised-unsupported`.
 - **Questions from that list:**
   - The alternative palette's four colours are still read from pictures
     (azure #2D6B92, gules #94110D, vert #469A49, and now purpure #E98CC0);
